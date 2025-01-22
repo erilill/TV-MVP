@@ -4,6 +4,7 @@ library(glmnet)     # For lasso penalization
 library(FactoMineR) # For PCA
 library(quadprog)   # For quadratic programming
 library(FE)         # Testing with real data
+library(forecast)   # For ARIMA comparison
 
 ################################################################################
 
@@ -11,9 +12,12 @@ library(FE)         # Testing with real data
 set.seed(123)
 T <- 200  # Number of time periods
 p <- 50   # Number of assets
-returns <- portfolio_m[,5:124] #matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
-T <- nrow(returns)
-p <- ncol(returns)
+returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
+
+# Example with real data (Warning: Slow)
+#returns <- portfolio_m[,5:124]
+#T <- nrow(returns)
+#p <- ncol(returns)
 
 # Ensure data is properly scaled (optional)
 returns <- scale(returns)
@@ -36,11 +40,11 @@ boundary_kernel <- function(t, r, T, h, kernel_func) {
     # Lower boundary case
     integral_val <- integrate(kernel_func, lower = -r / (T * h), upper = 1)$value
     return(k_val / integral_val)
-    } else if (r > (T - Th_floor)) {
+  } else if (r > (T - Th_floor)) {
     # Upper boundary case
     integral_val <- integrate(kernel_func, lower = -1, upper = (1 - r / T) / h)$value
     return(k_val / integral_val)
-      } else {
+  } else {
     # Middle region
     return(k_val)
   }
@@ -380,6 +384,8 @@ random_walk_forecasts <- matrix(NA, nrow = T, ncol = p)
 ar1_forecasts <- matrix(NA, nrow = T, ncol = p)
 
 # Loop over assets
+fit_ar1 <- ar(returns[1:W, j], order.max = 1, method = "ols")
+
 for (j in 1:p) {
   # Historical Mean Forecast
   for (tau in (W+1):T) {
@@ -394,8 +400,7 @@ for (j in 1:p) {
   # AR(1) Model Forecast
   for (tau in (W+1):T) {
     if ((tau - 1) > 1) {
-      fit_ar1 <- arima(returns[1:(tau-1), j], order = c(1, 0, 0), include.mean = TRUE)
-      ar1_forecasts[tau, j] <- predict(fit_ar1, n.ahead = 1)$pred
+      ar1_forecasts[tau, j] <- predict(fit_ar1, newdata = returns[1:tau, j], n.ahead = 1)$pred
     }
   }
 }
@@ -471,7 +476,7 @@ test_information_criterion <- function() {
   T <- 200
   p <- 50
   returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
-
+  
   result <- select_optimal_factors(returns, max_factors = 10, T_h = T*bandwidth, epanechnikov_kernel ,bandwidth)
   
   # Print results
