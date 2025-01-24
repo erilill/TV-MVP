@@ -202,23 +202,42 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
 
 
 compute_B_pT <- function(local_factors, global_factors, residuals, h, T, p, kernel_func) {
-  B_pT <- 0
-  if (m ==1){
-    global_factors <- matrix(global_factors)
-  }
-  for (i in 1:p) {
+  # 1) Precompute sum of residual squares per row s
+  res2 <- rowSums(residuals^2)  # length T
+  
+  # 2) Kernel matrix K[s,t]
+  K <- matrix(0, nrow=T, ncol=T)
+  for (s in 1:T) {
     for (t in 1:T) {
-      for (s in 1:T) {
-        k_h_st <- boundary_kernel(s, t, T, h, kernel_func)
-        diff <- (k_h_st * (t(local_factors[[s]][s,]) %*% local_factors[[t]][t,]) - # Outer poroduct or dot product?
-                   (t(global_factors[s, ]) %*% global_factors[t, ]))^2
-        B_pT <- B_pT + diff * residuals[s, i]^2
-      }
+      K[s, t] <- boundary_kernel(s, t, T, h, kernel_func)
     }
   }
-  B_pT <- (h^(1/2) / (T^2 * sqrt(p))) * B_pT
+  
+  # 3) Local dot-product matrix, L[s,t] = l_s . l_t
+  #    where l_s = local_factors[[s]][s, ], a length-r vector.
+  L <- matrix(0, nrow=T, ncol=T)
+  for (s in 1:T) {
+    ls <- local_factors[[s]][s, ]
+    for (t in 1:T) {
+      lt <- local_factors[[t]][t, ]
+      L[s, t] <- sum(ls * lt)
+    }
+  }
+  
+  # 4) Global dot-product matrix, G[s,t] = g_s . g_t
+  #    if global_factors is T x r
+  G <- global_factors %*% t(global_factors)
+  
+  # 5) Vectorized calculation of (K*L - G)^2, then multiply row s by res2[s], sum over all s,t
+  D <- (K * L) - G  # elementwise
+  D2 <- D^2
+  val <- sum(D2 * res2[row(D2)])
+  
+  # 6) Final scaling
+  B_pT <- (h^(1/2) / (T^2 * sqrt(p))) * val
   return(B_pT)
 }
+
 
 compute_V_pT <- function(local_factors, residuals, h, T, p, factor_cov, kernel_func) {
   V_pT <- 0
