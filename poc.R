@@ -17,9 +17,6 @@ T <- 200  # Number of time periods
 p <- 50   # Number of assets
 returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 
-# Ensure data is properly scaled (optional)
-returns <- scale(returns)
-
 ################################################################################
 # Kernel function (Epanechnikov)
 epanechnikov_kernel <- function(u) {

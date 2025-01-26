@@ -282,6 +282,7 @@ silverman <- function(returns, T=NULL, p=NULL){
   bandwidth <- (2.35/sqrt(12)) * T^(-0.2) * p^(-0.1)
   return(bandwidth)
 }
+
 #' Perform Local Principal Component Analysis (PCA) with Optimal Factor Selection
 #'
 #' This function conducts a comprehensive local PCA on asset returns by first selecting

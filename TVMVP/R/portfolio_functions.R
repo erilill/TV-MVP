@@ -394,3 +394,44 @@ SR <- function(W, returns, loadings_list, factors_list, optimal_weights, residua
   }
   return(realized_sharpes)
 }
+#' @export
+compute_mean_returns <- function(local_loadings, local_factors) {
+  # Check inputs
+  if (length(local_loadings) != length(local_factors)) {
+    stop("The number of local loadings must match the number of local factors.")
+  }
+
+  T_total <- length(local_loadings)   # Total number of time periods
+  p <- nrow(local_loadings[[1]])      # Number of assets
+  m <- ncol(local_loadings[[1]])      # Number of factors
+
+  # Ensure all loadings and factors have consistent dimensions
+  for (t in 1:T_total) {
+    if (!all(dim(local_loadings[[t]]) == c(p, m))) {
+      stop(sprintf("Dimension mismatch in local_loadings at time %d.", t))
+    }
+    if (!all(dim(local_factors[[t]]) == c(1, m))) {
+      stop(sprintf("Dimension mismatch in local_factors at time %d.", t))
+    }
+  }
+
+  # 1. Compute the average factor vector across all time periods
+  #    Resulting in a 1 x m vector
+  avg_factors <- colMeans(do.call(rbind, local_factors))  # 1 x m
+
+  # 2. Initialize a matrix to store mean returns for each time t
+  #    Resulting in a T_total x p matrix
+  mu_matrix <- matrix(0, nrow = T_total, ncol = p)
+  colnames(mu_matrix) <- paste0("Asset_", 1:p)
+  rownames(mu_matrix) <- paste0("Time_", 1:T_total)
+
+  # 3. Compute mu_t for each time period t
+  for (t in 1:T_total) {
+    B_t <- local_loadings[[t]]         # p x m matrix
+    mu_t <- B_t %*% avg_factors         # p x 1 vector
+    mu_matrix[t, ] <- as.vector(mu_t)    # Store as a row in mu_matrix
+  }
+
+  return(mu_matrix)  # T_total x p matrix of predicted mean returns
+}
+
