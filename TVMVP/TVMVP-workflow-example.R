@@ -1,5 +1,11 @@
-# Example
+library(devtools)
+remove.packages("TVMVP")
+devtools::clean_dll()
+build()
+install()
 
+# Example
+setwd("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/TV-MVP/TVMVP")
 # Load necessary libraries
 library(MASS)        # For matrix operations
 library(matrixcalc)  # For matrix calculations
@@ -12,78 +18,65 @@ library(ggplot2)     # For visualization
 library(TVMVP)
 library(PerformanceAnalytics)
 
+# Things that I am unsure of/needs work:
+# - localPCA: unsure if correctly computed
+# - estimate_residual_covariance: Wrong, do not understand the article
+# - cv_bandwidth: most likely wrong
+# - mvp_result: The results are strange, could be wrong, or could be affected by other bad functions
+# - predict_portfolio: Results are a bit strange, have only gotten it to work with global min var portf.
+
+
+
 data("edhec")
 head(edhec)
-# edhec is a time series (xts) of hedge fund indexes
 returns<- as.matrix(edhec)
 
 
 
-# Select bandwidth using Silverman's rule of thumb
+# Select bandwidth using Silverman's rule of thumb or CV
 bandwidth <- silverman(returns)
 
-# Perform Local PCA for all time points
-local_pca_res <- localPCA(returns)
+folds <- list(
+  returns[1:58, ],    # Fold 1
+  returns[59:118, ],   # Fold 2
+  returns[119:176, ],  # Fold 3
+  returns[177:236, ], # Fold 4
+  returns[237:293, ]  # Fold 5
+)
+bandwidth <- cv_bandwidth(returns, folds, seq(0.1, 1.0, by=0.05), 10, epanechnikov_kernel)
 
-m <- 1
+# Perform Local PCA for all time points
+local_pca_res <- localPCA(returns, bandwidth, 10)
+summary(local_pca_res$factors)
+cov(local_pca_res$factors)
+m <- local_pca_res$m
 
 # Global PCA
-global_pca <- prcomp(returns, scale. = FALSE, center = FALSE)
-global_factors <- global_pca$x[, 1:m]/sqrt(T)
+global_pca <- prcomp(returns, scale. = FALSE, center = TRUE)
+global_factors <- global_pca$x[, 1:m]
 global_loadings <- global_pca$rotation[, 1:m]
 
 # Compute residuals
-res <- residuals(local_pca_res$factors_list, local_pca_res$loadings_list, returns)
+res <- residuals(local_pca_res$factors, local_pca_res$loadings, returns)
 
 # Test if covariance is time invariant
 hyptest1(
-  local_factors = local_pca_res$factors_list,
+  local_factors = local_pca_res$factors,
   global_factors = global_factors,
-  local_loadings = local_pca_res$loadings_list,
+  local_loadings = local_pca_res$loadings,
   global_loadings = global_loadings,
   residuals = res,
   kernel_func = epanechnikov_kernel
 )
 
-W <- 100
-
-# Evaluate model on data to see if it is sensible to use:
-forecast <- forecast_local_factor_model(returns, W, m, bandwidth)
-
-covs <- realized_covariances(W, returns, res)
-true_weights <- optimal_weights(W, local_pca_res$factors_list,
-                                local_pca_res$loadings_list,
-                                covs$realized_resid_covariances,
-                                nrow(returns),
-                                ncol(returns))
-sharpes <- SR(W, returns, local_pca_res$loadings_list,
-              local_pca_res$factors_list, true_weights,
-              covs$realized_resid_covariances)
-
-ev <- evaluate_forecasts(
+# Evaluate historical performance of model:
+mvp_result <- rolling_time_varying_mvp(
   returns        = returns,
-  forecasts      = forecast$forecasts,
-  est_covariances = forecast$est_covariances,
-  residual_covariances_pred = forecast$residual_covariances,
-  weights_est    = forecast$optimal_weights,
-  window_eval    = (W+1):T,
-  realized_covariances       = covs$realized_covariances,
-  realized_resid_covariances = covs$realized_resid_covariances,
-  true_weights   = true_weights,
-  realized_sharpes = sharpes
+  initial_window = 60,
+  rebal_period   = 20,
+  max_factors    = 3,
+  bandwidth      = 0.2,
+  kernel_func    = epanechnikov_kernel
 )
-print(ev)
 
-# If satisfactory, use this method in order to produce the minimum variance portfolio
-mu <- compute_mean_returns(local_loadings = local_pca_res$loadings_list,
-                           local_factors = local_pca_res$factors_list)
-
-tvmvp <- minvar_portfolio(mu[200,],
-                          compute_time_varying_cov(local_pca_res$loadings_list[[200]],
-                                                   cov(local_pca_res$factors_list[[200]]),
-                                                   covs$realized_resid_covariances[[200]]
-                          ),
-                          0.005)
-plot_portfolio_weights(tvmvp$w_g, title = "Global Minimum Portfolio Weights")
-plot_portfolio_weights(tvmvp$w_p, title = "Target Minimum Portfolio Weights")
-
+prediction <- predict_portfolio(returns, horizon = 21, bandwidth = 0.2, max_factors = 3)

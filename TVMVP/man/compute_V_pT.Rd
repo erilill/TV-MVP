@@ -4,7 +4,7 @@
 \alias{compute_V_pT}
 \title{Compute \eqn{V_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing}
 \usage{
-compute_V_pT(local_factors, residuals, h, T, p, factor_cov, kernel_func)
+compute_V_pT(local_factors, residuals, h, T, p, kernel_func)
 }
 \arguments{
 \item{local_factors}{A list where each element is a numeric matrix representing the
@@ -19,10 +19,10 @@ local factor scores for a specific time period. Each matrix should have \eqn{T} 
 
 \item{p}{An integer specifying the number of assets.}
 
-\item{factor_cov}{A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.}
-
 \item{kernel_func}{A function representing the kernel used for weighting. Typically, an
 Epanechnikov kernel or another boundary kernel function.}
+
+\item{factor_cov}{A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.}
 }
 \value{
 A numeric scalar \eqn{V_{pT}} representing the computed statistic based on

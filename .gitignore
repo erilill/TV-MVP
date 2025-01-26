@@ -1,4 +1,14 @@
+# R build files
+*.o
+*.so
+*.dll
+*.rdb
+*.rdx
+
+# RStudio files
 .Rproj.user
 .Rhistory
 .RData
-.Ruserdata
+
+# Temporary files
+.Rbuildignore

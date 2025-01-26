@@ -65,7 +65,7 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
   }
   for (i in 1:N) {
     for (t in 1:T) {
-      common_H1 <- t(local_loadings[[t]][i, ]) %*% local_factors[[t]][t, ]
+      common_H1 <- (local_loadings[[t]][i, ]) %*% local_factors[t, ]
       common_H0 <- (global_loadings[i, ]) %*% global_factors[t, ]
       M_hat <- M_hat + (common_H1 - common_H0)^2
     }
@@ -137,38 +137,25 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
 #'
 #' @export
 compute_B_pT <- function(local_factors, global_factors, residuals, h, T, p, kernel_func) {
-  # 1) Precompute sum of residual squares per row s
-  res2 <- rowSums(residuals^2)  # length T
-
-  # 2) Kernel matrix K[s,t]
+  res2 <- rowSums(residuals^2)
   K <- matrix(0, nrow=T, ncol=T)
   for (s in 1:T) {
     for (t in 1:T) {
       K[s, t] <- boundary_kernel(s, t, T, h, kernel_func)
     }
   }
-
-  # 3) Local dot-product matrix, L[s,t] = l_s . l_t
-  #    where l_s = local_factors[[s]][s, ], a length-m vector.
   L <- matrix(0, nrow=T, ncol=T)
   for (s in 1:T) {
-    ls <- local_factors[[s]][s, ]
+    ls <- local_factors[s, ]
     for (t in 1:T) {
-      lt <- local_factors[[t]][t, ]
+      lt <- local_factors[t, ]
       L[s, t] <- sum(ls * lt)
     }
   }
-
-  # 4) Global dot-product matrix, G[s,t] = g_s . g_t
-  #    where g_s and g_t are rows of global_factors.
   G <- global_factors %*% t(global_factors)
-
-  # 5) Vectorized calculation of (K*L - G)^2, then multiply row s by res2[s], sum over all s,t
-  D <- (K * L) - G  # elementwise
+  D <- (K * L) - G
   D2 <- D^2
   val <- sum(D2 * res2[row(D2)])
-
-  # 6) Final scaling
   B_pT <- (sqrt(h) / (T^2 * sqrt(p))) * val
   return(B_pT)
 }
@@ -233,12 +220,12 @@ compute_B_pT <- function(local_factors, global_factors, residuals, h, T, p, kern
 #' print(V_pT)
 #'
 #' @export
-compute_V_pT <- function(local_factors, residuals, h, T, p, factor_cov, kernel_func) {
+compute_V_pT <- function(local_factors, residuals, h, T, p, kernel_func) {
   V_pT <- 0
   for (s in 1:(T - 1)) {
     for (r in (s + 1):T) {
       k_bar_sr <- two_fold_convolution_kernel((s - r) / (T * h), kernel_func)
-      term <- k_bar_sr^2 * (t(local_factors[[s]][t, ]) %*% factor_cov %*% local_factors[[r]][r, ])^2
+      term <- k_bar_sr^2 * (t(local_factors[s, ]) %*% cov(local_factors) %*% local_factors[r, ])^2
       V_pT <- V_pT + term * (t(residuals[s, ]) %*% residuals[r, ])^2
     }
   }
@@ -361,16 +348,16 @@ compute_J_pT <- function(B_pT, V_pT, M_hat, T, p, h) {
 #' @export
 hyptest1 <- function(local_factors, global_factors, local_loadings, global_loadings,
                      residuals, kernel_func=epanechnikov_kernel) {
-  T <- nrow(local_factors[[1]])
+  T <- nrow(local_factors)
   p <- nrow(local_loadings[[1]])
-  factor_cov <- cov(do.call(rbind, local_factors))
+  factor_cov <- cov(local_factors)
   h <- silverman(NULL, T, p)
-  m <- dim(local_factors[[1]])[2]
+  m <- ncol(local_factors)
 
   # Compute test statistics
   M_hat <- compute_M_hat(local_factors, global_factors, local_loadings, global_loadings, T, p, m)
   B_pT <- compute_B_pT(local_factors, global_factors, residuals, h, T, p, kernel_func)
-  V_pT <- compute_V_pT(local_factors, residuals, h, T, p, factor_cov, kernel_func)
+  V_pT <- compute_V_pT(local_factors, residuals, h, T, p, kernel_func)
   J_pT <- (T * sqrt(p) * sqrt(h) * M_hat - B_pT) / sqrt(V_pT)
 
   # Determine and print the hypothesis test result

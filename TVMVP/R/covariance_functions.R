@@ -1,32 +1,3 @@
-#' Compute Factor Covariance Matrix
-#'
-#' This function calculates the covariance matrix of aggregated factors by combining
-#' individual factor lists.
-#'
-#' @param factors_list A list where each element is a matrix representing factor data
-#' for a specific period or scenario.
-#'
-#' @return A covariance matrix computed from the aggregated factors.
-#'
-#' @details
-#' The function aggregates all factors by row-binding them and then computes the covariance
-#' matrix of the resulting matrix using the \code{cov} function.
-#'
-#' @examples
-#' # Example factors list
-#' factors_list <- list(
-#'   matrix(rnorm(100), ncol = 5),
-#'   matrix(rnorm(100), ncol = 5)
-#' )
-#'
-#' # Compute factor covariance
-#' factor_cov <- factor_covariance(factors_list)
-#' print(factor_cov)
-#'
-#' @export
-factor_covariance <- function(factors_list){
-  cov(do.call(rbind, factors_list))  # Aggregate over all factors
-}
 #' Estimate Residuals from Factor Model
 #'
 #' This function estimates the residuals of asset returns after removing the effect
@@ -70,13 +41,15 @@ factor_covariance <- function(factors_list){
 #' head(resid)
 #'
 #' @export
-residuals <- function(factors_list, loadings_list, returns){
+residuals <- function(factors, loadings_list, returns){
   T <- nrow(returns)
   p <- ncol(returns)
+  m <- dim(factors)[2]
+
   residuals <- matrix(NA, nrow = T, ncol = p)
   for (t in 1:T) {
-    modeled_returns_t <- factors_list[[t]] %*% t(loadings_list[[t]])
-    residuals[t, ] <- returns[t, ] - modeled_returns_t[t, ]
+    modeled_returns_t <- factors[t,] %*% t(loadings_list[[t]])
+    residuals[t, ] <- returns[t, ] - modeled_returns_t
   }
   return(residuals)
 }

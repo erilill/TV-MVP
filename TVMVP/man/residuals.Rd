@@ -4,17 +4,17 @@
 \alias{residuals}
 \title{Estimate Residuals from Factor Model}
 \usage{
-residuals(factors_list, loadings_list, returns)
+residuals(factors, loadings_list, returns)
 }
 \arguments{
-\item{factors_list}{A list where each element is a matrix representing factor data
-for a specific time period.}
-
 \item{loadings_list}{A list where each element is a matrix of loadings corresponding
 to the factors for each time period.}
 
 \item{returns}{A matrix of asset returns with rows representing time periods and
 columns representing assets.}
+
+\item{factors_list}{A list where each element is a matrix representing factor data
+for a specific time period.}
 }
 \value{
 A matrix of residuals where each row corresponds to a time period and each

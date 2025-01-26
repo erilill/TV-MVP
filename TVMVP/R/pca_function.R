@@ -49,29 +49,24 @@
 compute_V_m <- function(returns, m, kernel_func, bandwidth) {
   p <- ncol(returns)
   T <- nrow(returns)
-  total_ssr <- 0  # Sum of squared residuals
+  total_ssr <- 0
 
   for (x in 1:T) {
-    # Compute boundary kernel weights for time x
     w_x <- sapply(1:T, function(t) boundary_kernel(x, t, T, bandwidth, kernel_func))
-    w_x <- w_x / sum(w_x)  # Normalize weights
+    w_x <- w_x / sum(w_x)
 
-    # Apply weights to returns
     sqrt_w_x <- sqrt(w_x)
     weighted_returns <- sweep(returns, 1, sqrt_w_x, `*`)
 
-    # Perform PCA
     pca_result <- prcomp(weighted_returns, center = FALSE, scale. = FALSE)
     num_pcs <- min(m, ncol(pca_result$x))
-    if (num_pcs < 1) next  # Skip if no PCs are found
+    if (num_pcs < 1) next
 
-    # Extract factor scores and loadings
-    Fhat <- pca_result$x[, 1:num_pcs, drop = FALSE] / sqrt(T)  # Normalize
+    Fhat <- pca_result$x[x, 1:num_pcs, drop = FALSE] / sqrt(T)  # Normalize
     loadings_hat <- pca_result$rotation[, 1:num_pcs, drop = FALSE]
 
-    # Compute fitted values and residuals
     fitted <- Fhat %*% t(loadings_hat)
-    Resid_x <- returns - fitted
+    Resid_x <- returns[x,] - fitted
     total_ssr <- total_ssr + sum(Resid_x^2)
   }
 
@@ -212,30 +207,28 @@ select_optimal_factors <- function(returns, max_factors, T_h, kernel_func, bandw
 #' print(local_pca_result$loadings_full)
 #'
 #' @export
+# Load necessary library
+library(FactoMineR)
+
 local_pca <- function(returns, r, bandwidth, m, kernel_func) {
   T <- nrow(returns)
   p <- ncol(returns)
 
-  # Compute boundary kernel weights for time r
   w_r <- sapply(1:T, function(t) boundary_kernel(r, t, T, bandwidth, kernel_func))
-  w_r <- w_r / sum(w_r)  # Normalize weights
+  w_r <- w_r / sum(w_r)
 
-  # Apply weights to returns
   sqrt_w_r <- sqrt(w_r)
   weighted_returns <- sweep(returns, 1, sqrt_w_r, `*`)
 
-  # Perform PCA
-  pca_result <- prcomp(weighted_returns, center = FALSE, scale. = FALSE)
+  pca_result <- PCA(weighted_returns, ncp = m, scale.unit = FALSE, graph = FALSE)
 
-  # Determine actual number of factors
-  num_factors <- min(m, ncol(pca_result$x))
-  if (num_factors < 1) return(NULL)  # Return NULL if no factors are found
+  num_factors <- min(m, ncol(pca_result$ind$coord))
+  if (num_factors < 1) return(NULL)
 
-  # Extract factor scores and loadings
-  Fhat_all <- pca_result$x[, 1:num_factors, drop = FALSE] / sqrt(T)  # Normalize
-  loadings_all <- pca_result$rotation[, 1:num_factors, drop = FALSE]
+  Fhat <- pca_result$ind$coord[r, 1:num_factors, drop = FALSE]
+  loadings <- pca_result$var$coord[, 1:num_factors, drop = FALSE]
 
-  return(list(factors_full = Fhat_all, loadings_full = loadings_all))
+  return(list(factors = Fhat, loadings = loadings, w_r = w_r))
 }
 #' Compute Bandwidth Parameter Using Silverman's Rule of Thumb
 #'
@@ -347,7 +340,6 @@ localPCA <- function(returns, bandwidth = silverman(returns), max_factors = 10, 
   p <- ncol(returns)
   T <- nrow(returns)
 
-  # Select the optimal number of factors
   m_selection <- select_optimal_factors(
     returns = returns,
     max_factors = max_factors,
@@ -358,30 +350,29 @@ localPCA <- function(returns, bandwidth = silverman(returns), max_factors = 10, 
 
   m <- m_selection$optimal_m
 
-  # Print the number of factors chosen
-  message(sprintf("Optimal number of factors selected: %d", m))
+  factors <- matrix(NA, nrow = T, ncol = m)
+  loadings <- vector("list", T)
+  w_r <- vector("list", T)
 
-  # Initialize lists to store factors and loadings
-  factors_list <- vector("list", T)
-  loadings_list <- vector("list", T)
-
-  # Perform Local PCA for each time point
   for (t in 1:T) {
     pca_result <- local_pca(returns, t, bandwidth, m, kernel_func)
 
-    # Handle cases where PCA might return NULL
     if (!is.null(pca_result)) {
-      factors_list[[t]] <- pca_result$factors_full
-      loadings_list[[t]] <- pca_result$loadings_full
+      factors[t, ] <- pca_result$factors
+      loadings[[t]] <- pca_result$loadings
+      w_r[[t]] <- pca_result$w_r
     } else {
-      factors_list[[t]] <- NA
-      loadings_list[[t]] <- NA
+      factors[t, ] <- NA
+      loadings[[t]] <- matrix(NA, nrow = p, ncol = m)
+      w_r[[t]] <- NA
     }
   }
 
-  # Return the factors and loadings lists
   return(list(
-    factors_list = factors_list,
-    loadings_list = loadings_list
+    factors = factors,
+    loadings = loadings,
+    m = m,
+    w_r = w_r
   ))
 }
+

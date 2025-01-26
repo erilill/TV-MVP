@@ -73,8 +73,8 @@ epanechnikov_kernel <- function(u) {
 #'
 #' @export
 boundary_kernel <- function(t, r, T, h, kernel_func) {
-  scaled_diff <- (t - r) / (T * h)  # Argument of the kernel
-  k_val <- kernel_func(scaled_diff) / h  # Scale by h
+  scaled_diff <- (t - r) / (T * h)
+  k_val <- kernel_func(scaled_diff) / h
 
   # Determine the region of r
   Th_floor <- floor(T * h)
