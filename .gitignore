@@ -9,6 +9,16 @@
 .Rproj.user
 .Rhistory
 .RData
+.Ruserdata
 
 # Temporary files
 .Rbuildignore
+
+cran-comments.md
+
+*.Rproj
+*.swp
+*.Rmd
+
+**/vignettes
+**/tests
