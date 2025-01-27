@@ -32,6 +32,7 @@ compute_residuals <- function(local_factors, loadings_list, returns) {
 cv_bandwidth <- function(returns, folds, candidate_h, max_factors, kernel_func) {
   k <- length(folds)
   scores <- numeric(length(candidate_h))
+  p <- ncol(returns)
 
   for (h_i in seq_along(candidate_h)) {
     h_val <- candidate_h[h_i]

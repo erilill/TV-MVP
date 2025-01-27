@@ -52,18 +52,13 @@ compute_V_m <- function(returns, m, kernel_func, bandwidth) {
   total_ssr <- 0
 
   for (x in 1:T) {
-    w_x <- sapply(1:T, function(t) boundary_kernel(x, t, T, bandwidth, kernel_func))
-    w_x <- w_x / sum(w_x)
 
-    sqrt_w_x <- sqrt(w_x)
-    weighted_returns <- sweep(returns, 1, sqrt_w_x, `*`)
-
-    pca_result <- prcomp(weighted_returns, center = FALSE, scale. = FALSE)
-    num_pcs <- min(m, ncol(pca_result$x))
+    pca_res <- local_pca(returns, x, bandwidth, m, kernel_func)
+    num_pcs <- min(m, ncol(pca_res$factors))
     if (num_pcs < 1) next
 
-    Fhat <- pca_result$x[x, 1:num_pcs, drop = FALSE] / sqrt(T)  # Normalize
-    loadings_hat <- pca_result$rotation[, 1:num_pcs, drop = FALSE]
+    Fhat <- pca_res$factors
+    loadings_hat <- pca_res$loadings
 
     fitted <- Fhat %*% t(loadings_hat)
     Resid_x <- returns[x,] - fitted
@@ -154,6 +149,39 @@ select_optimal_factors <- function(returns, max_factors, T_h, kernel_func, bandw
 
   return(list(optimal_m = optimal_m, IC_values = IC_values, V_m_values = V_m_values, penalty_values = penalty_values))
 }
+
+determine_factors <- function(returns, max_R, g_func = function(N, T) log(N * T) / (N * T)) {
+  T <- nrow(returns)
+  N <- ncol(returns)
+
+  # Initialize storage for IC values
+  IC_values <- numeric(max_R)
+
+  # Loop over possible number of factors (R)
+  for (R in 1:max_R) {
+    # Step 1: Perform PCA with R factors
+    pca_result <- local_pca(returns, r = r, bandwidth = bandwidth, m = R, kernel_func = epanechnikov_kernel)
+    X_r <- matrix(0, nrow = T, ncol = p)
+    X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
+    Lambda_breve_R <- (1/T*N)*t(X_r)%*%X_rpca_result$loadings  # R x N
+    F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
+
+    # Step 2: Compute SSR (Sum of Squared Residuals)
+    residuals <- returns - F_breve_R %*% Lambda_breve_R
+    SSR <- sum(residuals^2)
+
+    # Step 3: Compute IC(R)
+    penalty <- R * g_func(N, T)
+    IC_values[R] <- log(SSR / (N * T)) + penalty
+  }
+
+  # Step 4: Determine optimal number of factors
+  optimal_R <- which.min(IC_values)
+
+  return(list(optimal_R = optimal_R, IC_values = IC_values))
+}
+
+
 #' Perform Local Principal Component Analysis (PCA)
 #'
 #' This function conducts a local PCA on asset returns within a specified bandwidth around a
@@ -207,28 +235,29 @@ select_optimal_factors <- function(returns, max_factors, T_h, kernel_func, bandw
 #' print(local_pca_result$loadings_full)
 #'
 #' @export
-# Load necessary library
-library(FactoMineR)
-
-local_pca <- function(returns, r, bandwidth, m, kernel_func) {
+local_pca <- function(returns, r, bandwidth, m, kernel_func){
   T <- nrow(returns)
   p <- ncol(returns)
 
-  w_r <- sapply(1:T, function(t) boundary_kernel(r, t, T, bandwidth, kernel_func))
-  w_r <- w_r / sum(w_r)
+  k_h <- sapply(1:T, function(t) boundary_kernel(r, t, T, bandwidth, kernel_func))
+  X_r <- matrix(0, nrow = T, ncol = p)
+  X_r <- sweep(returns, 1, sqrt(k_h), `*`)
 
-  sqrt_w_r <- sqrt(w_r)
-  weighted_returns <- sweep(returns, 1, sqrt_w_r, `*`)
 
-  pca_result <- PCA(weighted_returns, ncp = m, scale.unit = FALSE, graph = FALSE)
+  eigen_txr_xr <- eigen((X_r)%*%t(X_r))
+  idx <- order(eigen_txr_xr$values, decreasing = TRUE)
+  eigvals <- eigen_txr_xr$values[idx]
+  eigvecs <- eigen_txr_xr$vectors[, idx]
 
-  num_factors <- min(m, ncol(pca_result$ind$coord))
-  if (num_factors < 1) return(NULL)
+  F_hat_r <- sqrt(T)*eigvecs[,1:m]
 
-  Fhat <- pca_result$ind$coord[r, 1:num_factors, drop = FALSE]
-  loadings <- pca_result$var$coord[, 1:num_factors, drop = FALSE]
+  t_lambda_hat_r <- t(F_hat_r)%*%(X_r)/T
 
-  return(list(factors = Fhat, loadings = loadings, w_r = w_r))
+  F_hat <- solve((t_lambda_hat_r)%*%t(t_lambda_hat_r))%*%(t_lambda_hat_r)%*%returns[r,]
+
+  return(list(factors = t(F_hat),
+              loadings = t(t_lambda_hat_r),
+              w_r = k_h))
 }
 #' Compute Bandwidth Parameter Using Silverman's Rule of Thumb
 #'
@@ -336,10 +365,15 @@ silverman <- function(returns, T=NULL, p=NULL){
 #' print(loadings_time_100)
 #'
 #' @export
-localPCA <- function(returns, bandwidth = silverman(returns), max_factors = 10, kernel_func = epanechnikov_kernel){
+localPCA <- function(returns,
+                     bandwidth,
+                     max_factors,
+                     kernel_func = epanechnikov_kernel) {
   p <- ncol(returns)
   T <- nrow(returns)
 
+  # Example: user-supplied function to pick the number of factors
+  # (replace with your actual factor selection code)
   m_selection <- select_optimal_factors(
     returns = returns,
     max_factors = max_factors,
@@ -347,32 +381,34 @@ localPCA <- function(returns, bandwidth = silverman(returns), max_factors = 10, 
     kernel_func = kernel_func,
     bandwidth = bandwidth
   )
-
   m <- m_selection$optimal_m
 
+  # Initialize storage
   factors <- matrix(NA, nrow = T, ncol = m)
   loadings <- vector("list", T)
-  w_r <- vector("list", T)
+  weights_list <- vector("list", T)
 
-  for (t in 1:T) {
-    pca_result <- local_pca(returns, t, bandwidth, m, kernel_func)
-
-    if (!is.null(pca_result)) {
-      factors[t, ] <- pca_result$factors
-      loadings[[t]] <- pca_result$loadings
-      w_r[[t]] <- pca_result$w_r
+  # For each time t, do local PCA
+  for (t_i in 1:T) {
+    local_result <- local_pca(returns, t_i, bandwidth, m, kernel_func)
+    if (!is.null(local_result)) {
+      factors[t_i, ] <- local_result$factors
+      loadings[[t_i]] <- local_result$loadings
+      weights_list[[t_i]] <- local_result$w_r
     } else {
-      factors[t, ] <- NA
-      loadings[[t]] <- matrix(NA, nrow = p, ncol = m)
-      w_r[[t]] <- NA
+      factors[t_i, ] <- NA
+      loadings[[t_i]] <- matrix(NA, nrow = p, ncol = m)
+      weights_list[[t_i]] <- NA
     }
   }
 
   return(list(
-    factors = factors,
-    loadings = loadings,
+    factors = factors,    # T x m
+    loadings = loadings,  # list of length T, each p x m
     m = m,
-    w_r = w_r
+    weights = weights_list
   ))
 }
+
+
 
