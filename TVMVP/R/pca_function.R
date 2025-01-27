@@ -1,181 +1,33 @@
-#' Compute Sum of Squared Residuals (V_m) for Portfolio Optimization
-#'
-#' This function calculates the sum of squared residuals (\code{V_m}) for portfolio optimization
-#' using a rolling window approach. For each time period, it applies boundary kernel weights,
-#' performs Principal Component Analysis (PCA) to extract factors, computes residuals, and
-#' aggregates the sum of squared residuals across all time periods.
-#'
-#' @param returns A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
-#' @param m An integer specifying the number of principal components (factors) to extract.
-#' @param kernel_func A function representing the kernel used for weighting. Typically, an
-#' Epanechnikov kernel or another boundary kernel function.
-#' @param bandwidth A numeric value indicating the bandwidth parameter for the kernel function.
-#'
-#' @return A numeric scalar representing the sum of squared residuals (\code{V_m}) normalized by
-#' the product of the number of assets and time periods (\eqn{p \times T}).
-#'
-#' @details
-#' The function performs the following steps for each time period \eqn{x = 1} to \eqn{T}:
-#' \enumerate{
-#'   \item Computes boundary kernel weights \eqn{w_x} using the specified \code{kernel_func} and \code{bandwidth}.
-#'   \item Normalizes the weights so that they sum to 1.
-#'   \item Applies the square root of the weights to the returns matrix.
-#'   \item Performs PCA on the weighted returns to extract the first \code{m} principal components.
-#'   \item Computes the fitted returns and residuals by subtracting the modeled returns from the actual returns.
-#'   \item Aggregates the sum of squared residuals across all time periods.
-#' }
-#' Finally, \code{V_m} is computed by dividing the total sum of squared residuals by \eqn{p \times T}.
-#'
-#' @examples
-#' # Load necessary library
-#' library(ggplot2)
-#'
-#' # Simulate data for 50 assets over 200 time periods
-#' set.seed(123)
-#' T <- 200
-#' p <- 50
-#' returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
-#'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-#' }
-#'
-#' # Compute V_m for m = 5, bandwidth = 0.1
-#' V_m <- compute_V_m(returns, m = 5, kernel_func = epanechnikov_kernel, bandwidth = 0.1)
-#' print(V_m)
-#'
+
 #' @export
-compute_V_m <- function(returns, m, kernel_func, bandwidth) {
-  p <- ncol(returns)
-  T <- nrow(returns)
-  total_ssr <- 0
-
-  for (x in 1:T) {
-
-    pca_res <- local_pca(returns, x, bandwidth, m, kernel_func)
-    num_pcs <- min(m, ncol(pca_res$factors))
-    if (num_pcs < 1) next
-
-    Fhat <- pca_res$factors
-    loadings_hat <- pca_res$loadings
-
-    fitted <- Fhat %*% t(loadings_hat)
-    Resid_x <- returns[x,] - fitted
-    total_ssr <- total_ssr + sum(Resid_x^2)
-  }
-
-  # Compute V_m
-  V_m <- total_ssr / (p * T)
-  return(V_m)
-}
-#' Select Optimal Number of Factors Using Information Criterion
-#'
-#' This function determines the optimal number of principal components (factors) to retain
-#' in a portfolio optimization context by minimizing an information criterion. The criterion
-#' balances model fit and complexity to prevent overfitting.
-#'
-#' @param returns A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
-#' @param max_factors An integer specifying the maximum number of factors to consider.
-#' @param T_h A numeric value representing the effective window size, typically derived from the bandwidth parameter.
-#' @param kernel_func A function representing the kernel used for weighting. Typically, an
-#' Epanechnikov kernel or another boundary kernel function.
-#' @param bandwidth A numeric value indicating the bandwidth parameter for the kernel function.
-#'
-#' @return A list containing:
-#' \describe{
-#'   \item{\code{optimal_m}}{Integer. The optimal number of factors selected based on the information criterion.}
-#'   \item{\code{IC_values}}{Numeric vector. Information Criterion values for each number of factors from 1 to \code{max_factors}.}
-#'   \item{\code{V_m_values}}{Numeric vector. \code{V_m} values corresponding to each number of factors.}
-#'   \item{\code{penalty_values}}{Numeric vector. Penalty terms added to the information criterion for each number of factors.}
-#' }
-#'
-#' @details
-#' The function iterates over the number of factors \eqn{m} from 1 to \code{max_factors} and performs the following:
-#' \enumerate{
-#'   \item Computes \code{V_m} using the \code{compute_V_m} function.
-#'   \item Calculates a penalty term to account for model complexity.
-#'   \item Computes the Information Criterion (IC) as the sum of the logarithm of \code{V_m} and the penalty.
-#' }
-#' The optimal number of factors \eqn{m} is the one that minimizes the Information Criterion.
-#'
-#' @examples
-#' # Load necessary library
-#' library(ggplot2)
-#'
-#' # Simulate data for 50 assets over 200 time periods
-#' set.seed(123)
-#' T <- 200
-#' p <- 50
-#' returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
-#'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-#' }
-#'
-#' # Select the optimal number of factors with m up to 10 and bandwidth = 0.1
-#' selection_results <- select_optimal_factors(
-#'   returns = returns,
-#'   max_factors = 10,
-#'   T_h = T * 0.1,
-#'   kernel_func = epanechnikov_kernel,
-#'   bandwidth = 0.1
-#' )
-#' print(selection_results$optimal_m)
-#'
-#' @export
-select_optimal_factors <- function(returns, max_factors, T_h, kernel_func, bandwidth) {
-  p <- ncol(returns)
-  T <- nrow(returns)
-
-  IC_values <- numeric(max_factors)
-  V_m_values <- numeric(max_factors)
-  penalty_values <- numeric(max_factors)
-
-  for (m in 1:max_factors) {
-    V_m <- compute_V_m(returns, m, kernel_func, bandwidth)
-    V_m_values[m] <- V_m
-
-    # Compute penalty
-    penalty <- (p + T_h) / (p * T_h) * log((p * T_h) / (p + T_h)) * m
-    penalty_values[m] <- penalty
-
-    # Compute Information Criterion (IC)
-    IC_values[m] <- log(V_m) + penalty
-  }
-
-  optimal_m <- which.min(IC_values)
-
-  return(list(optimal_m = optimal_m, IC_values = IC_values, V_m_values = V_m_values, penalty_values = penalty_values))
-}
-
 determine_factors <- function(returns, max_R, g_func = function(N, T) log(N * T) / (N * T)) {
   T <- nrow(returns)
   N <- ncol(returns)
 
-  # Initialize storage for IC values
-  IC_values <- numeric(max_R)
+  # Initialize storage
+  V <- numeric(max_R)
+  penalty <- numeric(max_R)
 
   # Loop over possible number of factors (R)
   for (R in 1:max_R) {
-    # Step 1: Perform PCA with R factors
-    pca_result <- local_pca(returns, r = r, bandwidth = bandwidth, m = R, kernel_func = epanechnikov_kernel)
-    X_r <- matrix(0, nrow = T, ncol = p)
-    X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
-    Lambda_breve_R <- (1/T*N)*t(X_r)%*%X_rpca_result$loadings  # R x N
-    F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
+    residuals <- matrix(NA, nrow = T, ncol = N)
+    for (r in 1:T){
+      # Step 1: Perform PCA with R factors
+      pca_result <- local_pca(returns, r = r, bandwidth = bandwidth, m = R, kernel_func = epanechnikov_kernel)
+      X_r <- matrix(0, nrow = T, ncol = N)
+      X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
+      Lambda_breve_R <- t((1/T*N)*t(X_r)%*%X_r%*%pca_result$loadings)
+      F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
 
-    # Step 2: Compute SSR (Sum of Squared Residuals)
-    residuals <- returns - F_breve_R %*% Lambda_breve_R
-    SSR <- sum(residuals^2)
+      # Step 2: Compute SSR (Sum of Squared Residuals)
+      residuals[r,] <- returns[r,] - t(F_breve_R) %*% (Lambda_breve_R)
+      V[R] <- sum(residuals^2) / (N * T)
 
-    # Step 3: Compute IC(R)
-    penalty <- R * g_func(N, T)
-    IC_values[R] <- log(SSR / (N * T)) + penalty
+      penalty[R] <- R * g_func(N, T)
+    }
   }
-
   # Step 4: Determine optimal number of factors
+  IC_values <- log(V) + penalty
   optimal_R <- which.min(IC_values)
 
   return(list(optimal_R = optimal_R, IC_values = IC_values))
@@ -367,21 +219,10 @@ silverman <- function(returns, T=NULL, p=NULL){
 #' @export
 localPCA <- function(returns,
                      bandwidth,
-                     max_factors,
+                     m,
                      kernel_func = epanechnikov_kernel) {
   p <- ncol(returns)
   T <- nrow(returns)
-
-  # Example: user-supplied function to pick the number of factors
-  # (replace with your actual factor selection code)
-  m_selection <- select_optimal_factors(
-    returns = returns,
-    max_factors = max_factors,
-    T_h = T * bandwidth,
-    kernel_func = kernel_func,
-    bandwidth = bandwidth
-  )
-  m <- m_selection$optimal_m
 
   # Initialize storage
   factors <- matrix(NA, nrow = T, ncol = m)
@@ -391,15 +232,9 @@ localPCA <- function(returns,
   # For each time t, do local PCA
   for (t_i in 1:T) {
     local_result <- local_pca(returns, t_i, bandwidth, m, kernel_func)
-    if (!is.null(local_result)) {
-      factors[t_i, ] <- local_result$factors
-      loadings[[t_i]] <- local_result$loadings
-      weights_list[[t_i]] <- local_result$w_r
-    } else {
-      factors[t_i, ] <- NA
-      loadings[[t_i]] <- matrix(NA, nrow = p, ncol = m)
-      weights_list[[t_i]] <- NA
-    }
+    factors[t_i, ] <- local_result$factors
+    loadings[[t_i]] <- local_result$loadings
+    weights_list[[t_i]] <- local_result$w_r
   }
 
   return(list(
@@ -409,6 +244,7 @@ localPCA <- function(returns,
     weights = weights_list
   ))
 }
+
 
 
 

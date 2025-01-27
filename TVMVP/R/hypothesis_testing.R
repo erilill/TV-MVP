@@ -65,8 +65,8 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
   }
   for (i in 1:N) {
     for (t in 1:T) {
-      common_H1 <- (local_loadings[[t]][i, ]) %*% local_factors[t, ]
-      common_H0 <- (global_loadings[i, ]) %*% global_factors[t, ]
+      common_H1 <- t(local_loadings[[t]][,i]) %*% local_factors[t, ]
+      common_H0 <- t(global_loadings[,i]) %*% global_factors[t, ]
       M_hat <- M_hat + (common_H1 - common_H0)^2
     }
   }
@@ -225,7 +225,7 @@ compute_V_pT <- function(local_factors, residuals, h, T, p, kernel_func) {
   for (s in 1:(T - 1)) {
     for (r in (s + 1):T) {
       k_bar_sr <- two_fold_convolution_kernel((s - r) / (T * h), kernel_func)
-      term <- k_bar_sr^2 * (t(local_factors[s, ]) %*% cov(local_factors) %*% local_factors[r, ])^2
+      term <- k_bar_sr^2 * (t(local_factors[s, ]) %*% (t(local_factors)%*%local_factors*(1/T)) %*% local_factors[r, ])^2
       V_pT <- V_pT + term * (t(residuals[s, ]) %*% residuals[r, ])^2
     }
   }
