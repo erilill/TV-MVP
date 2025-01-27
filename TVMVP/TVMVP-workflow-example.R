@@ -21,6 +21,7 @@ library(PerformanceAnalytics)
 # Things that I am unsure of/needs work:
 # - local_pca, determine_factors, localPCA: Follows Su & Wang now but needs to be optimized
 # - estimate_residual_covariance: Wrong, do not understand the article
+# - hypothesis test: Test statistic explodes, not sure if incorrect formulas
 # - cv_bandwidth: most likely wrong
 # - mvp_result: The results are strange, could be wrong, or could be affected by other bad functions
 # - predict_portfolio: Results are a bit strange, have only gotten it to work with global min var portf.
