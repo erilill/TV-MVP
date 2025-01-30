@@ -193,7 +193,6 @@ SR <- function(W, returns, loadings_list, factors_list, optimal_weights, residua
   return(realized_sharpes)
 }
 #' @export
-#' This was something I tried out, dont think I need it
 compute_mean_returns <- function(local_loadings, local_factors) {
   # Check inputs
   if (length(local_loadings) != length(local_factors)) {

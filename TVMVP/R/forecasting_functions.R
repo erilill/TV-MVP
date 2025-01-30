@@ -1,12 +1,11 @@
 #' @export
 rolling_time_varying_mvp <- function(
-    returns,
-    initial_window = 60,  # how many periods in the initial “estimation”
-    rebal_period   = 20,  # holding window length (HT in the paper)
-    max_factors    = 3,
-    bandwidth      = 0.2,
-    kernel_func    = epanechnikov_kernel
-) {
+    returns         ,
+    initial_window  ,  # how many periods in the initial “estimation”
+    rebal_period    ,  # holding window length (HT in the paper)
+    max_factors     ,
+    kernel_func    = epanechnikov_kernel,
+    bandwidth_func = cv_bandwidth) {
   T <- nrow(returns)
   p <- ncol(returns)
   rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
@@ -19,9 +18,18 @@ rolling_time_varying_mvp <- function(
     reb_t <- rebalance_dates[l]
     est_data <- returns[1:(reb_t - 1), , drop=FALSE]
 
-    local_res <- localPCA(est_data, bandwidth, max_factors, kernel_func)
-    factor_cov   <- cov(local_res$factors)
-    residuals    <- compute_residuals(local_res$factors, local_res$loadings, est_data)
+    m <- determine_factors(est_data, max_factors, silverman(est_data))$optimal_R
+
+
+    if (identical(bandwidth_func, silverman)){
+      bandwidth <- silverman(est_data)
+    } else {
+      bandwidth <- cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
+    }
+
+    local_res <- localPCA(est_data, bandwidth, m, kernel_func)
+    factor_cov   <- t(local_res$factors)%*%local_res$factors*(1/nrow(est_data))
+    residuals    <- residuals(local_res$factors, local_res$loadings, est_data)
     residual_cov <- estimate_residual_cov(residuals)
 
     last_t <- nrow(est_data)
@@ -29,10 +37,7 @@ rolling_time_varying_mvp <- function(
 
     Sigma_hat <- loadings_mid %*% factor_cov %*% t(loadings_mid) + residual_cov
 
-    inv_cov <- solve(Sigma_hat)
-    ones <- rep(1, p)
-    w_unnorm <- inv_cov %*% ones
-    w_hat <- as.numeric(w_unnorm / sum(w_unnorm))
+    w_hat <- solve_minvar_portfolio(Sigma_hat)
 
     weights[l, ] <- w_hat
 
@@ -68,43 +73,111 @@ rolling_time_varying_mvp <- function(
     sharpe_ratio             = SR
   )
 }
-
+#' @import quadprog
 #' @export
 predict_portfolio <- function(
     returns,
     horizon = 1,
-    bandwidth = 0.2,
+    bandwidth_func = cv_bandwidth,
     max_factors = 3,
     kernel_func = epanechnikov_kernel,
-    lambda = 0.1
+    lambda = 0.1,
+    min_return = NULL
 ) {
   T <- nrow(returns)
   p <- ncol(returns)
 
-  local_res <- localPCA(returns, bandwidth, max_factors, kernel_func)
+  # Determine optimal number of factors using Silverman’s bandwidth
+  m <- determine_factors(returns, max_factors, silverman(returns))$optimal_R
 
-  factor_cov <- cov(local_res$factors)
+  # Select bandwidth
+  if (identical(bandwidth_func, silverman)) {
+    bandwidth <- silverman(returns)
+  } else {
+    bandwidth <- cv_bandwidth(returns, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
+  }
 
-  residuals <- compute_residuals(local_res$factors, local_res$loadings, returns)
-  residual_cov <- estimate_residual_cov(residuals, lambda)
+  # Perform Local PCA
+  local_res <- localPCA(returns, bandwidth, m, kernel_func)
 
-  last_t <- T
-  loadings_last <- local_res$loadings[[last_t]]
+  # Estimate covariance matrices
+  factor_cov <- t(local_res$factors) %*% local_res$factors / T
+  res <- residuals(local_res$factors, local_res$loadings, returns)
+  residual_cov <- estimate_residual_cov(res, lambda)
+
+  # Compute Sigma_hat
+  loadings_last <- local_res$loadings[[T]]
   Sigma_hat <- loadings_last %*% factor_cov %*% t(loadings_last) + residual_cov
 
+  # Ensure Sigma_hat is well-conditioned
+  Sigma_hat <- Sigma_hat + diag(1e-6, p)
+
+  # **Corrected Mean Returns Calculation**
+  mean_returns <- as.vector(t(loadings_last %*% local_res$factors[T,]))  # Ensures 1 x p
+
+  ### **Global Minimum Variance Portfolio (GMVP)**
   inv_cov <- solve(Sigma_hat)
   ones <- rep(1, p)
-  w_unnorm <- inv_cov %*% ones
-  w_hat <- as.numeric(w_unnorm / sum(w_unnorm))
+  w_gmv_unnorm <- inv_cov %*% ones
+  w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
 
-  mean_returns <- colMeans(returns, na.rm = TRUE)
-  expected_return <- sum(w_hat * mean_returns) * horizon
+  # Compute GMVP Expected Return and Risk
+  expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
+  risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
 
-  risk <- sqrt(as.numeric(t(w_hat) %*% Sigma_hat %*% w_hat)) * sqrt(horizon)
+  ### **Minimum Variance Portfolio with Return Constraint**
+  if (!is.null(min_return)) {
+    Dmat <- as.matrix(Sigma_hat) + diag(1e-6, p)  # Regularization
+    dvec <- rep(0, p)  # Corrected vector format
+    Amat <- cbind(rep(1, p), mean_returns)  # Constraints matrix (p x 2)
+    bvec <- c(1, min_return / horizon)  # Constraint values
+    meq <- 2  # **Two equality constraints**
 
-  list(
-    weights = w_hat,
-    expected_return = expected_return,
-    risk = risk
-  )
+    result <- solve.QP(Dmat, dvec, Amat, bvec, meq = meq)
+    w_constrained <- as.numeric(result$solution)  # Extract optimized weights
+
+    # Compute Expected Return and Risk for Constrained Portfolio
+    expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
+    risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
+
+    return(list(
+      GMV = list(
+        weights = w_gmv,
+        expected_return = expected_return_gmv,
+        risk = risk_gmv
+      ),
+      MinVarWithReturnConstraint = list(
+        weights = w_constrained,
+        expected_return = expected_return_constrained,
+        risk = risk_constrained
+      )
+    ))
+  } else {
+    # If no return constraint, return only GMV
+    return(list(
+      GMV = list(
+        weights = w_gmv,
+        expected_return = expected_return_gmv,
+        risk = risk_gmv
+      )
+    ))
+  }
 }
+#' @import quadprog
+#' @export
+solve_minvar_portfolio <- function(Sigma) {
+  p <- ncol(Sigma)
+  ones <- matrix(1, nrow = p, ncol = 1)
+
+  # Solve using quadprog
+  result <- solve.QP(
+    Dmat = as.matrix(Sigma),
+    dvec = rep(0, p),
+    Amat = ones,
+    bvec = 1,
+    meq = 1
+  )
+
+  return(result$solution)  # Extract optimal weights
+}
+

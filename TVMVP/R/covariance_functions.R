@@ -41,79 +41,53 @@
 #' head(resid)
 #'
 #' @export
-residuals <- function(factors, loadings_list, returns){
+residuals <- function(factors, loadings_list, returns) {
   T <- nrow(returns)
   p <- ncol(returns)
-  m <- dim(factors)[2]
 
   residuals <- matrix(NA, nrow = T, ncol = p)
+
   for (t in 1:T) {
-    modeled_returns_t <- factors[t,] %*% t(loadings_list[[t]])
+    factors_t <- factors[t, , drop = FALSE]
+    loadings_t <- as.matrix(loadings_list[[t]])
+
+    modeled_returns_t <- factors_t %*% t(loadings_t)
     residuals[t, ] <- returns[t, ] - modeled_returns_t
   }
   return(residuals)
 }
-#' Estimate Residual Covariance Matrix with Lasso Penalization
-#'
-#' This function estimates the residual covariance matrix from asset returns using
-#' Lasso penalization to induce sparsity.
-#'
-#' @param residuals A matrix of residuals where rows represent time periods and columns
-#' represent assets.
-#' @param lambda A numeric value specifying the penalty parameter for Lasso regression.
-#' Defaults to \code{0.1}.
-#'
-#' @return A sparse covariance matrix estimated from the residuals.
-#'
-#' @details
-#' The function performs the following steps:
-#' \enumerate{
-#'   \item Computes the sample covariance matrix of residuals.
-#'   \item Initializes a sparse covariance matrix with zeros.
-#'   \item Applies Lasso regression row-wise to estimate the sparse structure of the
-#'   covariance matrix.
-#'   \item Symmetrizes the covariance matrix and retains the original diagonal elements.
-#' }
-#'
-#' @examples
-#' # Simulate residuals matrix
-#' residuals_matrix <- matrix(rnorm(200 * 5, mean = 0, sd = 0.01), ncol = 5)
-#'
-#' # Estimate residual covariance with Lasso
-#' residual_cov <- estimate_residual_cov(residuals_matrix, lambda = 0.1)
-#' print(residual_cov)
-#'
-#' @import glmnet
+
+
+#' @import spcov
 #' @export
-estimate_residual_cov <- function(residuals, lambda = 0.1) {
+estimate_residual_cov <- function(residuals, lambda = 0.1, tol = 1e-6) {
   p <- ncol(residuals)
 
-  # Compute the sample covariance matrix
-  S <- cov(residuals)
+  # Compute sample residual covariance matrix regularization
+  S_e <- cov(residuals) + diag(1e-6, p) # Is this okay?
 
-  # Initialize the sparse covariance matrix
-  sparse_cov <- matrix(0, nrow = p, ncol = p)
-
-  # Apply Lasso regression row-wise
-  for (i in 1:p) {
-    response <- S[i, -i]
-    predictors <- S[-i, -i]
-
-    # Fit Lasso regression without intercept
-    fit <- glmnet::glmnet(predictors, response, alpha = 1, lambda = lambda, intercept = FALSE, standardize = FALSE)
-
-    # Extract coefficients and assign to sparse covariance matrix
-    coef_i <- as.vector(coef(fit, s = lambda))[-1]  # Exclude intercept
-    sparse_cov[i, -i] <- coef_i
+  # Check for singularity
+  if (det(S_e) < 1e-10) {
+    message("Warning: Residual covariance nearly singular. Applying stronger regularization.")
+    S_e <- S_e + diag(1e-4, p)  # Apply stronger regularization if needed
   }
 
-  # Symmetrize the covariance matrix
-  sparse_cov <- (sparse_cov + t(sparse_cov)) / 2
+  # Initial covariance estimate (diagonal only)
+  Sigma_init <- diag(diag(S_e))
 
-  # Assign original diagonal elements
-  diag(sparse_cov) <- diag(S)
+  # Regularization parameter matrix (lambda is applied to off-diagonal elements)
+  Lambda <- matrix(lambda, nrow = p, ncol = p)
+  diag(Lambda) <- 0  # Do not penalize diagonal entries
 
-  return(sparse_cov)
+  # Solve using spcov
+  result <- spcov(Sigma_init, S_e, lambda = Lambda,
+                  step.size=0.001,  trace=0, tol.outer=tol,n.inner.steps = 200,
+                  n.outer.steps = 200,thr.inner = 1e-3)
+
+  # Extract estimated covariance matrix
+  Sigma_est <- result$Sigma
+
+  return(Sigma_est)
 }
 #' Compute Time-Varying Covariance Matrices
 #'
