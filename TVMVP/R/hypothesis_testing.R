@@ -62,11 +62,12 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
   if (m == 1){
     global_loadings <- matrix(global_loadings)
     global_factors <- matrix(global_factors)
+    local_factors <- matrix(local_factors)
   }
   for (i in 1:N) {
     for (t in 1:T) {
-      common_H1 <- t(local_loadings[[t]][,i]) %*% local_factors[t, ]
-      common_H0 <- t(global_loadings[,i]) %*% global_factors[t, ]
+      common_H1 <- (local_loadings[[t]][i,]) %*% local_factors[t, ]
+      common_H0 <- (global_loadings[i,]) %*% global_factors[t, ]
       M_hat <- M_hat + (common_H1 - common_H0)^2
     }
   }
@@ -350,7 +351,7 @@ hyptest1 <- function(local_factors, global_factors, local_loadings, global_loadi
                      residuals, kernel_func=epanechnikov_kernel) {
   T <- nrow(local_factors)
   p <- nrow(local_loadings[[1]])
-  factor_cov <- cov(local_factors)
+  factor_cov <- t(local_factors)%*%local_factors*(1/T)
   h <- silverman(NULL, T, p)
   m <- ncol(local_factors)
 
@@ -366,11 +367,8 @@ hyptest1 <- function(local_factors, global_factors, local_loadings, global_loadi
   } else {
     message(sprintf("J_pT = %.4f < 1.96: No evidence that the covariance is time-varying.", J_pT))
   }
-  cat("M_hat:", M_hat, "\n")
-  cat("B_pT:", B_pT, "\n")
-  cat("V_pT:", V_pT, "\n")
 
 
   # Return the J_pT value
-  return(J_pT)
+  return(list(J_pT=J_pT, M_hat=M_hat, B_pT=B_pT, V_pT=V_pT))
 }

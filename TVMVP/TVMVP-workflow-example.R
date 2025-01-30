@@ -1,61 +1,43 @@
 library(devtools)
-remove.packages("TVMVP")
-devtools::clean_dll()
+library(roxygen2)
 build()
+document()
 install()
 
-# Example
-setwd("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/TV-MVP/TVMVP")
 # Load necessary libraries
-library(MASS)        # For matrix operations
-library(matrixcalc)  # For matrix calculations
-library(glmnet)      # For lasso penalization
-library(FactoMineR)  # For PCA
-library(quadprog)    # For quadratic programming
-library(forecast)    # For ARIMA comparison
-library(zoo)         # For rolling operations
-library(ggplot2)     # For visualization
 library(TVMVP)
-library(PerformanceAnalytics)
 
 # Things that I am unsure of/needs work:
-# - local_pca, determine_factors, localPCA: Follows Su & Wang now but needs to be optimized
-# - estimate_residual_covariance: Wrong, do not understand the article
-# - hypothesis test: Test statistic explodes, not sure if incorrect formulas
-# - cv_bandwidth: most likely wrong
-# - mvp_result: The results are strange, could be wrong, or could be affected by other bad functions
-# - predict_portfolio: Results are a bit strange, have only gotten it to work with global min var portf.
+# - determine_factors, localPCA: slow
+# - cv_bandwidth: is this necessary? Might need to look at other articles.
+# - rolling_time_varying_mvp, predict_portfolio: I think it works
+# - compute_residual_covariance: Works but problems with singularity, probably due to some problem with local_pca
+# - local_pca: Worked a lot in order to get this to work properly, still not sure.
+# - Fan et al. uses CV to compute lambda for the residual covariance, will look into this.
 
+set.seed(123)
+T <- 200  # Number of time periods
+p <- 50   # Number of assets
+returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 
-
-data("edhec")
-head(edhec)
-returns<- as.matrix(edhec)
-
-
+# Number of factors
+m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization
 
 # Select bandwidth using Silverman's rule of thumb or CV
 bandwidth <- silverman(returns)
 
-folds <- list(
-  returns[1:58, ],    # Fold 1
-  returns[59:118, ],   # Fold 2
-  returns[119:176, ],  # Fold 3
-  returns[177:236, ], # Fold 4
-  returns[237:293, ]  # Fold 5
-)
-bandwidth <- cv_bandwidth(returns, folds, seq(0.1, 1.0, by=0.05), 10, epanechnikov_kernel)
+bandwidth <- cv_bandwidth(returns, m = m, candidate_h = seq(0.05, 0.95, 0.05),
+                          kernel_func = epanechnikov_kernel)$optimal_h # Needs optimization
 
 # Perform Local PCA for all time points
-m <- determine_factors(returns, ncol(returns)) # Needs optimization
-local_pca_res <- localPCA(returns, bandwidth, m$optimal_R) # Needs optimization
+local_pca_res <- localPCA(returns, bandwidth, m) # Needs optimization
 summary(local_pca_res$factors)
 t(local_pca_res$factors)%*%local_pca_res$factors*(1/nrow(returns)) #covariance
 
 # Global PCA
 global_pca <- prcomp(returns, scale. = FALSE, center = TRUE)
-global_factors <- global_pca$x[, 1:m$optimal_R]
-global_loadings <- global_pca$rotation[, 1:m$optimal_R]
+global_factors <- global_pca$x[, 1:m]
+global_loadings <- global_pca$rotation[, 1:m]
 
 # Compute residuals
 res <- residuals(local_pca_res$factors, local_pca_res$loadings, returns)
@@ -70,14 +52,16 @@ hyptest1(
   kernel_func = epanechnikov_kernel
 )
 
+
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(
   returns        = returns,
   initial_window = 60,
-  rebal_period   = 20,
-  max_factors    = 3,
-  bandwidth      = 0.2,
-  kernel_func    = epanechnikov_kernel
+  rebal_period   = 5,
+  max_factors    = 10,
+  kernel_func    = epanechnikov_kernel,
+  bandwidth_func = cv_bandwidth
 )
 
-prediction <- predict_portfolio(returns, horizon = 21, bandwidth = 0.2, max_factors = 3)
+
+prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)

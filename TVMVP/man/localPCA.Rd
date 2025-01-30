@@ -4,12 +4,7 @@
 \alias{localPCA}
 \title{Perform Local Principal Component Analysis (PCA) with Optimal Factor Selection}
 \usage{
-localPCA(
-  returns,
-  bandwidth = silverman(returns),
-  max_factors = 10,
-  kernel_func = epanechnikov_kernel
-)
+localPCA(returns, bandwidth, m, kernel_func = epanechnikov_kernel)
 }
 \arguments{
 \item{returns}{A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).}
@@ -17,7 +12,7 @@ localPCA(
 \item{bandwidth}{A numeric value indicating the bandwidth parameter defining the window around each time period.
 Defaults to the value computed using Silverman's rule of thumb.}
 
-\item{max_factors}{An integer specifying the maximum number of factors to consider during optimal factor selection. Defaults to \code{10}.}
+\item{m}{An integer specifying the maximum number of factors to consider during optimal factor selection. Defaults to \code{10}.}
 
 \item{kernel_func}{A function representing the kernel used for weighting. Typically, an
 Epanechnikov kernel or another boundary kernel function. Defaults to \code{epanechnikov_kernel}.}
