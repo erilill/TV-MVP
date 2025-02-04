@@ -21,11 +21,12 @@ rolling_time_varying_mvp <- function(
     m <- determine_factors(est_data, max_factors, silverman(est_data))$optimal_R
 
 
-    if (identical(bandwidth_func, silverman)){
+    if (identical(bandwidth_func, silverman)) {
       bandwidth <- silverman(est_data)
     } else {
-      bandwidth <- cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
+      bandwidth <- handle_cv_bandwidth(returns, m, seq(0.05, 0.95, 0.05), kernel_func)
     }
+    
 
     local_res <- localPCA(est_data, bandwidth, m, kernel_func)
     factor_cov   <- t(local_res$factors)%*%local_res$factors*(1/nrow(est_data))
@@ -94,8 +95,8 @@ predict_portfolio <- function(
   if (identical(bandwidth_func, silverman)) {
     bandwidth <- silverman(returns)
   } else {
-    bandwidth <- cv_bandwidth(returns, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
-  }
+    bandwidth <- cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
+    }
 
   # Perform Local PCA
   local_res <- localPCA(returns, bandwidth, m, kernel_func)
@@ -180,4 +181,47 @@ solve_minvar_portfolio <- function(Sigma) {
 
   return(result$solution)  # Extract optimal weights
 }
+
+#' Helper function
+find_smallest_matrix <- function(matrix_list) {
+  if (length(matrix_list) == 0) {
+  stop("The list is empty.")
+    }
+  # Extract dimensions of all matrices
+  dims <- sapply(matrix_list, function(mat) c(nrow(mat), ncol(mat)))
+  # Compute total number of elements (rows * cols)
+  total_elements <- apply(dims, 2, prod)
+  # Find the index of the smallest matrix
+  smallest_index <- which.min(total_elements)
+  # Return the smallest matrix
+  return(dim(matrix_list[[smallest_index]]))
+}
+
+#' Helper function
+handle_cv_bandwidth <- function(returns, m, candidate_h, kernel_func) {
+  h <- try(cv_bandwidth(returns, m, candidate_h, kernel_func), silent = TRUE)
+  
+  if (inherits(h, "try-error")) {  # Check if an error occurred
+    message("Error detected in bandwidth cross-validation. Attempting to lower m...")
+    
+    # Extract numeric values from the error message
+    error_message <- as.character(h)
+    m_eff_candidates <- as.numeric(unlist(regmatches(error_message, gregexpr("[0-9]+", error_message))))
+    
+    # Filter valid m_eff values (remove zeros, negatives, and NAs)
+    valid_m_eff <- m_eff_candidates[m_eff_candidates > 0 & !is.na(m_eff_candidates)]
+    
+    if (length(valid_m_eff) > 0) {
+      new_m <- min(valid_m_eff)  # Pick the smallest valid m_eff
+      message(sprintf("Switching to m = %d.", new_m))
+      
+      return(cv_bandwidth(returns, new_m, candidate_h, kernel_func)$optimal_h)
+    } else {
+      stop("Failed to extract a valid m_eff from the error message. Bandwidth selection aborted.")
+    }
+  } 
+  
+  return(h$optimal_h)
+}
+
 
