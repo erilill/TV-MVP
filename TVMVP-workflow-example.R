@@ -16,8 +16,8 @@ library(TVMVP)
 # - Fan et al. uses CV to compute lambda for the residual covariance, will look into this.
 
 set.seed(123)
-T <- 200  # Number of time periods
-p <- 50   # Number of assets
+T <- 100  # Number of time periods
+p <- 20   # Number of assets
 returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 
 # Number of factors
@@ -28,6 +28,7 @@ bandwidth <- silverman(returns)
 
 bandwidth <- cv_bandwidth(returns, m = m, candidate_h = seq(0.05, 0.95, 0.05),
                           kernel_func = epanechnikov_kernel)$optimal_h # Needs optimization
+## K: Warnings about many singularities
 
 # Perform Local PCA for all time points
 local_pca_res <- localPCA(returns, bandwidth, m) # Needs optimization
@@ -62,6 +63,8 @@ mvp_result <- rolling_time_varying_mvp(
   kernel_func    = epanechnikov_kernel,
   bandwidth_func = cv_bandwidth
 )
+## K: some problem with non-conformable arguments
+## K: Error in factors_t %*% t(loadings_t) : non-conformable arguments
 
 
 prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
