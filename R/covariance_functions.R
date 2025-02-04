@@ -66,12 +66,6 @@ estimate_residual_cov <- function(residuals, lambda = 0.1, tol = 1e-6) {
   # Compute sample residual covariance matrix regularization
   S_e <- cov(residuals) + diag(1e-6, p) # Is this okay?
 
-  # Check for singularity
-  if (det(S_e) < 1e-10) {
-    message("Warning: Residual covariance nearly singular. Applying stronger regularization.")
-    S_e <- S_e + diag(1e-4, p)  # Apply stronger regularization if needed
-  }
-
   # Initial covariance estimate (diagonal only)
   Sigma_init <- diag(diag(S_e))
 
