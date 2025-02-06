@@ -24,7 +24,8 @@ determine_factors <- function(returns, max_R, bandwidth) {
 
       X_r <- matrix(0, nrow = T, ncol = N)
       X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
-      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%pca_result$loadings)
+      scaled_loadings <- sqrt(N) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
+      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%scaled_loadings)
       F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
 
       # Step 2: Compute SSR (Sum of Squared Residuals)
