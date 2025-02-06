@@ -1,9 +1,3 @@
-library(devtools)
-library(roxygen2)
-build()
-document()
-install()
-
 # Load necessary libraries
 library(TVMVP)
 
@@ -24,11 +18,13 @@ returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization
 
 # Select bandwidth using Silverman's rule of thumb or CV
-bandwidth <- silverman(returns)
+bandwidth <- silverman(NULL, T, p)
 
 bandwidth <- cv_bandwidth(returns, m = m, candidate_h = seq(0.05, 0.95, 0.05),
                           kernel_func = epanechnikov_kernel)$optimal_h # Needs optimization
 ## K: Warnings about many singularities
+## E: Should be fixed now. I believe it was because spcov was not in the imports.
+## E: Have not stress-tested it fully, but it is not stable when T is small or m is large.
 
 # Perform Local PCA for all time points
 local_pca_res <- localPCA(returns, bandwidth, m) # Needs optimization

@@ -49,7 +49,7 @@ residuals <- function(factors, loadings_list, returns) {
 
   for (t in 1:T) {
     factors_t <- factors[t, , drop = FALSE]
-    loadings_t <- as.matrix(loadings_list[[t]])
+    loadings_t <- (loadings_list[[t]])
 
     modeled_returns_t <- factors_t %*% t(loadings_t)
     residuals[t, ] <- returns[t, ] - modeled_returns_t
@@ -64,7 +64,7 @@ estimate_residual_cov <- function(residuals, lambda = 0.1, tol = 1e-6) {
   p <- ncol(residuals)
 
   # Compute sample residual covariance matrix regularization
-  S_e <- cov(residuals) + diag(1e-6, p) # Is this okay?
+  S_e <- cov(residuals)
 
   # Initial covariance estimate (diagonal only)
   Sigma_init <- diag(diag(S_e))
