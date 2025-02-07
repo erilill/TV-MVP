@@ -1,5 +1,5 @@
 #' @import quadprog
-#' Helper function
+#' 
 solve_minvar_portfolio <- function(Sigma) {
   p <- ncol(Sigma)
   ones <- matrix(1, nrow = p, ncol = 1)
@@ -16,7 +16,7 @@ solve_minvar_portfolio <- function(Sigma) {
   return(result$solution)  # Extract optimal weights
 }
 
-#' Helper function
+#'
 find_smallest_matrix <- function(matrix_list) {
   if (length(matrix_list) == 0) {
     stop("The list is empty.")
@@ -31,7 +31,7 @@ find_smallest_matrix <- function(matrix_list) {
   return(dim(matrix_list[[smallest_index]]))
 }
 
-#' Helper function
+#'
 handle_cv_bandwidth <- function(returns, m, candidate_h, kernel_func) {
   h <- try(cv_bandwidth(returns, m, candidate_h, kernel_func), silent = TRUE)
   

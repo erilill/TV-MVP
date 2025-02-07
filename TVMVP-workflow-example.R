@@ -8,6 +8,7 @@ library(TVMVP)
 # - compute_residual_covariance: Works but problems with singularity, probably due to some problem with local_pca
 # - local_pca: Worked a lot in order to get this to work properly, still not sure.
 # - Fan et al. uses CV to compute lambda for the residual covariance, will look into this.
+# - Licence of quadprog and spcov: GPL 2/>=2. If I want to use them, do I also need to use GNU?
 
 set.seed(123)
 T <- 100  # Number of time periods

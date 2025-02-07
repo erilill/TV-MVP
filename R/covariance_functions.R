@@ -60,7 +60,7 @@ residuals <- function(factors, loadings_list, returns) {
 
 #' @import spcov
 #' @export
-estimate_residual_cov <- function(residuals, lambda = 0.1, tol = 1e-6) {
+estimate_residual_cov <- function(residuals, tol = 1e-6) {
   p <- ncol(residuals)
 
   # Compute sample residual covariance matrix regularization
@@ -68,6 +68,8 @@ estimate_residual_cov <- function(residuals, lambda = 0.1, tol = 1e-6) {
 
   # Initial covariance estimate (diagonal only)
   Sigma_init <- diag(diag(S_e))
+  
+  lambda <- cv_spcov_lambda(residuals)$optimal_lambda
 
   # Regularization parameter matrix (lambda is applied to off-diagonal elements)
   Lambda <- matrix(lambda, nrow = p, ncol = p)

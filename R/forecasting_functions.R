@@ -110,9 +110,6 @@ predict_portfolio <- function(
   loadings_last <- local_res$loadings[[T]]
   Sigma_hat <- loadings_last %*% factor_cov %*% t(loadings_last) + residual_cov
 
-  # Ensure Sigma_hat is well-conditioned
-  Sigma_hat <- Sigma_hat + diag(1e-6, p)
-
   # **Corrected Mean Returns Calculation**
   mean_returns <- as.vector(t(loadings_last %*% local_res$factors[T,]))  # Ensures 1 x p
 
