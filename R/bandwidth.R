@@ -82,7 +82,7 @@ cv_bandwidth <- function(returns, m, candidate_h, kernel_func) {
       test_data  <- testing_set_list[[j]]
 
       local_pca_train <- localPCA(train_data, bandwidth = h_val, m = m, kernel_func = kernel_func)
-      factor_cov <- cov(local_pca_train$factors)
+      factor_cov <- cov(local_pca_train$f_hat)
       
       # Check Effective m
       min_m_eff <- (find_smallest_matrix(local_pca_train$loadings)[2])
@@ -90,7 +90,7 @@ cv_bandwidth <- function(returns, m, candidate_h, kernel_func) {
         stop(sprintf("Effective m (%d) is smaller than m (%d).", min_m_eff, m))
       }
 
-      res <- residuals(local_pca_train$factors, local_pca_train$loadings, train_data)
+      res <- residuals(local_pca_train$f_hat, local_pca_train$loadings, train_data)
       residual_cov <- tryCatch({
         estimate_residual_cov(res)
       }, error = function(e) {

@@ -56,11 +56,7 @@ cv_spcov_lambda <- function(R, k = 5, tau = 1e-4, lambda_grid = c(seq(0.05, 1.5,
     
     # Store the averaged cross-validation score
     all_d[i] <- diff_sum / k
-    
-    # Early stopping if estimated covariance is non-sparse
-    if (length(which(sp_cov != 0)) == p * p) {
-      break
-    }
+
   }
   
   # Select the best lambda that maximizes the cross-validation score

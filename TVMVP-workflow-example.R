@@ -29,25 +29,11 @@ bandwidth <- cv_bandwidth(returns, m = m, candidate_h = seq(0.05, 0.95, 0.05),
 
 # Perform Local PCA for all time points
 local_pca_res <- localPCA(returns, bandwidth, m) # Needs optimization
-summary(local_pca_res$factors)
-t(local_pca_res$factors)%*%local_pca_res$factors*(1/nrow(returns)) #covariance
-
-# Global PCA
-global_pca <- prcomp(returns, scale. = FALSE, center = TRUE)
-global_factors <- global_pca$x[, 1:m]
-global_loadings <- global_pca$rotation[, 1:m]
-
-# Compute residuals
-res <- residuals(local_pca_res$factors, local_pca_res$loadings, returns)
 
 # Test if covariance is time invariant
-hyptest1(
-  local_factors = local_pca_res$factors,
-  global_factors = global_factors,
-  local_loadings = local_pca_res$loadings,
-  global_loadings = global_loadings,
-  residuals = res,
-  kernel_func = epanechnikov_kernel
+hyptest1(localPCA_results = local_pca_res,
+         returns = returns,
+         kernel_func = epanechnikov_kernel
 )
 
 

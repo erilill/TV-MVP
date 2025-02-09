@@ -76,12 +76,20 @@ estimate_residual_cov <- function(residuals, tol = 1e-6) {
   diag(Lambda) <- 0  # Do not penalize diagonal entries
 
   # Solve using spcov
-  result <- spcov(Sigma_init, S_e, lambda = Lambda,
+  result <- try(spcov(Sigma_init, S_e, lambda = Lambda,
                   step.size=0.001,  trace=0, tol.outer=tol,n.inner.steps = 200,
-                  n.outer.steps = 200,thr.inner = 1e-3)
-
-  # Extract estimated covariance matrix
-  Sigma_est <- result$Sigma
+                  n.outer.steps = 200,thr.inner = 1e-3))
+  if("try-error" %in% class(result))
+  {
+    Sigma_est <- Sigma_init
+  }
+  
+  else
+  {
+    # Extract estimated covariance matrix
+    Sigma_est <- result$Sigma
+  }
+ 
 
   return(Sigma_est)
 }

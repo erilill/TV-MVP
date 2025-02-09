@@ -66,8 +66,8 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
   }
   for (i in 1:N) {
     for (t in 1:T) {
-      common_H1 <- (local_loadings[[t]][i,]) %*% local_factors[t, ]
-      common_H0 <- (global_loadings[i,]) %*% global_factors[t, ]
+      common_H1 <- (local_loadings[[t]][i,]) %*% local_factors[t,]
+      common_H0 <- (global_loadings[i,]) %*% global_factors[t,]
       M_hat <- M_hat + (common_H1 - common_H0)^2
     }
   }
@@ -347,18 +347,32 @@ compute_J_pT <- function(B_pT, V_pT, M_hat, T, p, h) {
 #' print(J_pT_value)
 #'
 #' @export
-hyptest1 <- function(local_factors, global_factors, local_loadings, global_loadings,
-                     residuals, kernel_func=epanechnikov_kernel) {
+hyptest1 <- function(returns, localPCA_results, kernel_func=epanechnikov_kernel) {
+  local_factors <- localPCA_results$f_hat
+  local_loadings <- localPCA_results$loadings
   T <- nrow(local_factors)
   p <- nrow(local_loadings[[1]])
-  factor_cov <- t(local_factors)%*%local_factors*(1/T)
   h <- silverman(NULL, T, p)
   m <- ncol(local_factors)
+  
+  # Global factor analysis
+  my_svd_global <- svd(returns, nu=m, nv=m)  # only compute top-m components
+  U_m <- my_svd_global$u   # T x m
+  D   <- my_svd_global$d   # length(min(T,p))
+  V_m <- my_svd_global$v   # p x m
+  
+  # match local style:
+  F_global <- sqrt(T)* U_m              # T x m
+  B_global_t <- (1/T)* t(F_global) %*% returns  # (m x p)
+  B_global <- t(B_global_t)            # p x m
+  
+  # Residuals
+  res <- residuals(local_factors, local_loadings, returns)
 
   # Compute test statistics
-  M_hat <- compute_M_hat(local_factors, global_factors, local_loadings, global_loadings, T, p, m)
-  B_pT <- compute_B_pT(local_factors, global_factors, residuals, h, T, p, kernel_func)
-  V_pT <- compute_V_pT(local_factors, residuals, h, T, p, kernel_func)
+  M_hat <- compute_M_hat(local_factors, F_global, local_loadings, B_global, T, p, m)
+  B_pT <- compute_B_pT(local_factors, F_global, res, h, T, p, kernel_func)
+  V_pT <- compute_V_pT(local_factors, res, h, T, p, kernel_func)
   J_pT <- (T * sqrt(p) * sqrt(h) * M_hat - B_pT) / sqrt(V_pT)
 
   # Determine and print the hypothesis test result
