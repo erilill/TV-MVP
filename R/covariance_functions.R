@@ -49,7 +49,7 @@ residuals <- function(factors, loadings_list, returns) {
 
   for (t in 1:T) {
     factors_t <- factors[t, , drop = FALSE]
-    loadings_t <- as.matrix(loadings_list[[t]])
+    loadings_t <- (loadings_list[[t]])
 
     modeled_returns_t <- factors_t %*% t(loadings_t)
     residuals[t, ] <- returns[t, ] - modeled_returns_t
@@ -60,26 +60,36 @@ residuals <- function(factors, loadings_list, returns) {
 
 #' @import spcov
 #' @export
-estimate_residual_cov <- function(residuals, lambda = 0.1, tol = 1e-6) {
+estimate_residual_cov <- function(residuals, tol = 1e-6) {
   p <- ncol(residuals)
 
   # Compute sample residual covariance matrix regularization
-  S_e <- cov(residuals) + diag(1e-6, p) # Is this okay?
+  S_e <- cov(residuals)
 
   # Initial covariance estimate (diagonal only)
   Sigma_init <- diag(diag(S_e))
+  
+  lambda <- cv_spcov_lambda(residuals)$optimal_lambda
 
   # Regularization parameter matrix (lambda is applied to off-diagonal elements)
   Lambda <- matrix(lambda, nrow = p, ncol = p)
   diag(Lambda) <- 0  # Do not penalize diagonal entries
 
   # Solve using spcov
-  result <- spcov(Sigma_init, S_e, lambda = Lambda,
+  result <- try(spcov(Sigma_init, S_e, lambda = Lambda,
                   step.size=0.001,  trace=0, tol.outer=tol,n.inner.steps = 200,
-                  n.outer.steps = 200,thr.inner = 1e-3)
-
-  # Extract estimated covariance matrix
-  Sigma_est <- result$Sigma
+                  n.outer.steps = 200,thr.inner = 1e-3))
+  if("try-error" %in% class(result))
+  {
+    Sigma_est <- Sigma_init
+  }
+  
+  else
+  {
+    # Extract estimated covariance matrix
+    Sigma_est <- result$Sigma
+  }
+ 
 
   return(Sigma_est)
 }

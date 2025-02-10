@@ -15,16 +15,19 @@ determine_factors <- function(returns, max_R, bandwidth) {
     prev_F = NULL
     for (r in 1:T){
       # Step 1: Perform PCA with R factors
-      pca_result <- local_pca(returns, r = r, bandwidth = bandwidth, m = R, kernel_func = epanechnikov_kernel, prev_F)
-
-      if (pca_result$m_eff < R) {
-        message(sprintf("Warning: Effective rank (%d) is smaller than R (%d), skipping.", pca_result$m_eff, R))
-        next  # Skip this iteration if the effective rank is too low
+      pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth, 
+                                       m = R, kernel_func = epanechnikov_kernel, 
+                                       prev_F))
+      if("try-error" %in% class(pca_result))
+      {
+        next
       }
+                             
 
       X_r <- matrix(0, nrow = T, ncol = N)
       X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
-      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%pca_result$loadings)
+      scaled_loadings <- sqrt(N) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
+      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%scaled_loadings)
       F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
 
       # Step 2: Compute SSR (Sum of Squared Residuals)
@@ -38,7 +41,7 @@ determine_factors <- function(returns, max_R, bandwidth) {
   }
   # Step 4: Determine optimal number of factors
   optimal_R <- which.min(IC_values)
-  message(sprintf("Optimal number of factors is %s.", optimal_R))
+  #message(sprintf("Optimal number of factors is %s.", optimal_R))
   return(list(optimal_R = optimal_R, IC_values = IC_values))
 }
 #' Perform Local Principal Component Analysis (PCA)
@@ -122,33 +125,18 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
 
   # Compute Loadings: Lambda_r
   t_lambda_hat_r <- t(F_hat_r) %*% (X_r) / T  # (m x p)
-
-  # Enforce Lambda_r' Lambda_r = Diagonal via SVD
-  svd_lambda <- svd(t_lambda_hat_r)
-  rnk <- sum(svd_lambda$d > 1e-12)
-  m_eff <- min(m, rnk)
-
-  # Preserve matrix structure even if m = 1
-  U_m <- svd_lambda$u[, 1:m_eff, drop = FALSE]  # (m x m)
-  V_m <- svd_lambda$v[, 1:m_eff, drop = FALSE]  # (p x m)
-
-  D_inv <- diag(1 / pmax(svd_lambda$d[1:m_eff], 1e-6), nrow = m_eff, ncol = m_eff)  # (m x m)
-
-  # Ensure returns[r, ] is a matrix (p × 1)
-  returns_r <- matrix(returns[r, ], ncol = 1)  # (p x 1)
-
-  # Compute Factors: F_t = Lambda_r^{-1} * X_r
-  F_hat <- U_m %*% D_inv %*% t(V_m) %*% returns_r  # (m x 1)
-
-  # Compute Loadings correctly using V_m
-  loadings <- V_m %*% diag(svd_lambda$d[1:m_eff], nrow = m_eff, ncol = m_eff)  # (p x m)
-
+  loadings <- t(t_lambda_hat_r)
+    
+  # Second pass to compute F_r_hat
+  part1 <- crossprod(loadings)   # (m x m)
+  part2 <- crossprod(loadings, returns[r, ]) # (m)
+  F_r_hat <- solve(part1, part2)        # (m)
+  
   return(list(
-    factors = t(F_hat),  # (1 x m)
+    factors = F_hat_r,  # (T x m)
+    f_hat = t(F_r_hat), # (1 x m)
     loadings = loadings,  # (p x m)
-    w_r = as.matrix(k_h),
-    m_eff = m_eff,
-    F_hat_r = F_hat_r  # Return for alignment in the next step
+    w_r = as.matrix(k_h)
   ))
 }
 #' Perform Local Principal Component Analysis (PCA) with Optimal Factor Selection
@@ -219,27 +207,30 @@ localPCA <- function(returns,
   T <- nrow(returns)
 
   # Initialize storage
-  factors <- matrix(NA, nrow = T, ncol = m)
+  factors <- vector("list", T)
   loadings <- vector("list", T)
   weights_list <- vector("list", T)
+  f_hat <- matrix(NA, nrow=T, ncol=m)
 
   prev_F <- NULL
 
   # For each time t, do local PCA
   for (t_i in 1:T) {
     local_result <- local_pca(returns, t_i, bandwidth, m, kernel_func, prev_F)
-    factors[t_i, ] <- local_result$factors
+    factors[[t_i]] <- local_result$factors
     loadings[[t_i]] <- local_result$loadings
     weights_list[[t_i]] <- local_result$w_r
+    f_hat[t_i,] <- local_result$f_hat
 
-    prev_F <- local_result$F_hat_r
+    prev_F <- local_result$factors
   }
 
   return(list(
     factors = factors,    # T x m
     loadings = loadings,  # list of length T, each p x m
     m = m,
-    weights = weights_list
+    weights = weights_list,
+    f_hat=f_hat
   ))
 }
 
