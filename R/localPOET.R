@@ -3,39 +3,29 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
                                              returns,
                                              M0 = 10, 
                                              rho_grid = seq(0.001, 1, length.out = 20)) {
-  #
-  # localPCA_results is assumed to contain, for each local window z_t:
-  #   - loadings[[t]] = B(z_t)  (p x K matrix of factor loadings)
-  #   - factors[[t]]  = F(z_t)  (T_t x K matrix of factor scores)
-  #   - indices[[t]]  = which rows in 'returns' are used for that local window
-  #
-  # For each window t, we will:
+
+  # This function:
   #   1. Form local residuals u_t = R_local - F(z_t) * B(z_t)ᵀ
-  #   2. Call adaptive_poet_rho_chen19() on those residuals to pick the single best rho_t
+  #   2. Call adaptive_poet_rho() on those residuals to pick the single best rho_t
   #   3. Compute raw residual covariance, shrink once using rho_t
-  #   4. Combine with factor part to get Σ̂_X(z_t)
+  #   4. Combine with factor part to get Sigma_X(z_t)
   #
   # The function returns a list with the final local residual and total covariances.
-  #
   
-  L <- length(localPCA_results$loadings)  # number of local windows
-  output_list <- vector("list", L)
+
   
-  for (t in seq_len(L)) {
     # 1. Extract local loadings, factors, and row indices
-    Lambda_t <- localPCA_results$loadings[[t]]  # p x K
-    F_t <- localPCA_results$factors[t,]   # T_t x K
+    Lambda_t <- localPCA_results$loadings  # p x K
+    F_t <- localPCA_results$factors   # T_t x K
     idx <- t  # subset of rows in 'returns' for this window
     
-    # 2. Local data and local residuals
-    R_local <- returns[idx, , drop = FALSE]  # T_t x p
-    # naive factor fit:  F_t %*% t(B_t)  is T_t x p
-    U_local <- R_local - tcrossprod(F_t, Lambda_t)    # residuals, T_t x p
+    # 2. residuals
+    U_local <- returns - tcrossprod(F_t, Lambda_t)  # T_t x p
     
     # 3. Pick best rho for these local residuals using Chen–Leng–style grouping
-    #    (See the 'adaptive_poet_rho_chen19()' function you already have.)
+    #    (See the 'adaptive_poet_rho()' function you already have.)
     #    This returns (best_rho = ..., min_Fnorm = ...)
-    rho_result <- adaptive_poet_rho_chen19(U_local,
+    rho_result <- adaptive_poet_rho(U_local,
                                            M0 = M0,
                                            rho_grid = rho_grid)
     best_rho_t <- rho_result$best_rho
@@ -58,14 +48,14 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
     Sigma_X_t <- tcrossprod(Lambda_t) + S_u_shrunk  # p x p
     
     # store results
-    output_list[[t]] <- list(
+    output_list <- list(
       best_rho        = best_rho_t,
       residual_cov    = S_u_shrunk,  # Σ̂_u(z_t)
       total_cov       = Sigma_X_t,   # Σ̂_X(z_t)
-      loadings        = B_t,
+      loadings        = Lambda_t,
       naive_resid_cov = S_u_raw      # in case you want the pre-shrink version
     )
-  }
+  
   
   return(output_list)
 }
@@ -73,8 +63,9 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 
 
 #' @export
-adaptive_poet_rho_chen19 <- function(R, M0 = 10,
-                                     rho_grid = seq(0.001, 1, length.out = 20)) {
+adaptive_poet_rho <- function(R, M0 = 10,
+                                     rho_grid = seq(0.001, 1, length.out = 20),
+                                     epsilon2 = 1e-6) {
   # R: data matrix, dimension T x p
   # M0: number of observations to leave out between the two sub-samples
   # rho_grid: grid of possible rho values
@@ -106,13 +97,14 @@ adaptive_poet_rho_chen19 <- function(R, M0 = 10,
   # across all groups for a given rho
   frob_sum_for_rho <- function(rho) {
     total_error <- 0
+    lambda_min_vals <- numeric(num_groups)
     
     for (m in seq_len(num_groups)) {
       # The m-th group includes observations from:
       #    start_idx = (m - 1)*M0 + 1
       #    end_idx   = (m - 1)*M0 + (halfT + M0)
       #
-      # so each group is of length halfT + M0, with M0 overlap/step.
+      # each group is of length halfT + M0, with M0 overlap/step.
       
       start_idx <- (m - 1) * M0 + 1
       end_idx   <- (m - 1) * M0 + (halfT + M0)
@@ -143,16 +135,13 @@ adaptive_poet_rho_chen19 <- function(R, M0 = 10,
       S1_shrunk <- apply(S1, c(1, 2), soft_threshold, thr = threshold)
       
       eigvals <- eigen(S1_shrunk, symmetric = TRUE, only.values = TRUE)$values
-      if (min(eigvals) <= 1e-12) {
-        # Return Inf to signal that this rho is not feasible
-        return(Inf)
-      }
+      lambda_min_vals[m] <- min(eigvals)
       
       # Accumulate Frobenius norm difference
       total_error <- total_error + sum((S1_shrunk - S2)^2)
     }
     
-    return(total_error)
+    return(list(total_error = total_error, lambda_min_vals = lambda_min_vals))
   }
   
   # We now scan across rho_grid, compute the total Frobenius difference,
@@ -160,17 +149,31 @@ adaptive_poet_rho_chen19 <- function(R, M0 = 10,
   
   best_rho <- NA
   min_val  <- Inf
+  lambda_min_all <- numeric(length(rho_grid))
+  for (rho in rho_grid){
+    rho_result <- frob_sum_for_rho(rho)
+    lambda_min_all[rho] <- min(rho_result$lambda_min_vals, na.rm=T)
+  }
   
-  for (rho in rho_grid) {
-    val <- frob_sum_for_rho(rho)
+  # Compute rho_1
+  valid_rho_indices <- which(!is.na(lambda_min_all) & lambda_min_all > 0)
+  rho_1 <- if (length(valid_rho_indices) > 0) {
+    epsilon2 + min(rho_grid[valid_rho_indices])
+  } else {
+    epsilon2  # Default to epsilon2 if no valid rho is found
+  }
+  
+  # Compute rho
+  for (rho in rho_grid[rho_grid >= rho_1]) {
+    rho_result <- frob_sum_for_rho(rho)
+    val <- rho_result$total_error
+    
     if (val < min_val) {
       min_val  <- val
       best_rho <- rho
     }
   }
+  #cat(sprintf("Chosen rho = %.5f with rho_1 = %.5f, total F-norm difference = %.5f\n", best_rho, rho_1, min_val))
   
-  cat(sprintf("Chosen rho = %.5f with total F-norm difference = %.5f\n",
-              best_rho, min_val))
-  
-  return(list(best_rho = best_rho, min_Fnorm = min_val))
+  return(list(best_rho = best_rho, rho_1 = rho_1, min_Fnorm = min_val))
 }
