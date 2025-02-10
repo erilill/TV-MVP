@@ -67,7 +67,7 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
   for (i in 1:N) {
     for (t in 1:T) {
       common_H1 <- (local_loadings[[t]][i,]) %*% local_factors[t,]
-      common_H0 <- (global_loadings[i,]) %*% global_factors[t,]
+      common_H0 <- t(global_loadings[i,]) %*% global_factors[t,]
       M_hat <- M_hat + (common_H1 - common_H0)^2
     }
   }
@@ -139,25 +139,14 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
 #' @export
 compute_B_pT <- function(local_factors, global_factors, residuals, h, T, p, kernel_func) {
   res2 <- rowSums(residuals^2)
-  K <- matrix(0, nrow=T, ncol=T)
-  for (s in 1:T) {
-    for (t in 1:T) {
-      K[s, t] <- boundary_kernel(s, t, T, h, kernel_func)
-    }
-  }
-  L <- matrix(0, nrow=T, ncol=T)
-  for (s in 1:T) {
-    ls <- local_factors[s, ]
-    for (t in 1:T) {
-      lt <- local_factors[t, ]
-      L[s, t] <- sum(ls * lt)
-    }
-  }
+  K <- outer(1:T, 1:T, Vectorize(function(s, t) boundary_kernel(s, t, T, h, kernel_func)))
+  L <- local_factors %*% t(local_factors)
   G <- global_factors %*% t(global_factors)
   D <- (K * L) - G
   D2 <- D^2
   val <- sum(D2 * res2[row(D2)])
   B_pT <- (sqrt(h) / (T^2 * sqrt(p))) * val
+  
   return(B_pT)
 }
 #' Compute \eqn{V_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing
@@ -347,42 +336,81 @@ compute_J_pT <- function(B_pT, V_pT, M_hat, T, p, h) {
 #' print(J_pT_value)
 #'
 #' @export
-hyptest1 <- function(returns, localPCA_results, kernel_func=epanechnikov_kernel) {
+hyptest1 <- function(returns, m, B = 199, kernel_func = epanechnikov_kernel) {
+  # Standardize returns
+  returns <- scale(returns)
+  
+  T <- nrow(returns)
+  p <- ncol(returns)
+  h <- silverman(returns)
+  
+  # Local PCA
+  localPCA_results <- localPCA(returns, bandwidth = h, m = m)
   local_factors <- localPCA_results$f_hat
   local_loadings <- localPCA_results$loadings
-  T <- nrow(local_factors)
-  p <- nrow(local_loadings[[1]])
-  h <- silverman(NULL, T, p)
-  m <- ncol(local_factors)
   
   # Global factor analysis
-  my_svd_global <- svd(returns, nu=m, nv=m)  # only compute top-m components
+  my_svd_global <- svd(returns, nu = m, nv = m)  # Only compute top-m components
   U_m <- my_svd_global$u   # T x m
   D   <- my_svd_global$d   # length(min(T,p))
   V_m <- my_svd_global$v   # p x m
   
-  # match local style:
-  F_global <- sqrt(T)* U_m              # T x m
-  B_global_t <- (1/T)* t(F_global) %*% returns  # (m x p)
-  B_global <- t(B_global_t)            # p x m
+  # Match local style:
+  F_global <- sqrt(T) * U_m              # T x m
+  B_global <- t((1/T) * t(F_global) %*% returns)  # (p x m)
+  
   
   # Residuals
   res <- residuals(local_factors, local_loadings, returns)
-
-  # Compute test statistics
+  sigma_0 <- compute_sigma_0(res, T, p)
+  
+  # Compute test statistic
   M_hat <- compute_M_hat(local_factors, F_global, local_loadings, B_global, T, p, m)
   B_pT <- compute_B_pT(local_factors, F_global, res, h, T, p, kernel_func)
   V_pT <- compute_V_pT(local_factors, res, h, T, p, kernel_func)
   J_pT <- (T * sqrt(p) * sqrt(h) * M_hat - B_pT) / sqrt(V_pT)
-
-  # Determine and print the hypothesis test result
-  if (J_pT > 1.96) {
-    message(sprintf("J_pT = %.4f > 1.96: The covariance is time-varying.", J_pT))
+  
+  # Step 2-4: Bootstrap procedure using sapply()
+  J_pT_bootstrap <- sapply(1:B, function(b) {
+    # Step 2: Generate bootstrap error e*_it
+    zeta_star <- matrix(rnorm(T * p, mean = 0, sd = 1), nrow = T, ncol = p)  # IID N(0,1)
+    e_star <- t(sqrt_matrix(sigma_0) %*% t(zeta_star))  # Ensure T × p
+    
+    # Step 3: Generate new sample X*_it
+    X_star <- F_global %*% t(B_global) + e_star 
+    
+    # Re-run PCA for bootstrapped data
+    svd_star <- svd(X_star, nu = m, nv = m)
+    F_global_star <- sqrt(T) * svd_star$u
+    B_global_star <- t((1/T) * t(F_global_star) %*% X_star)  # p × m
+    
+    # Re-run local PCA for bootstrapped data
+    star_local_PCA <- localPCA(X_star, h, m)
+    local_factors_star <- star_local_PCA$f_hat
+    local_loadings_star <- star_local_PCA$loadings
+    
+    # Compute new residuals
+    res_star <- residuals(local_factors_star, local_loadings_star, X_star)
+    
+    # Compute bootstrap test statistic J_pT*
+    M_hat_star <- compute_M_hat(local_factors_star, F_global_star, local_loadings_star, B_global_star, T, p, m)
+    B_pT_star <- compute_B_pT(local_factors_star, F_global_star, res_star, h, T, p, kernel_func)
+    V_pT_star <- compute_V_pT(local_factors_star, res_star, h, T, p, kernel_func)
+    return((T * sqrt(p) * sqrt(h) * M_hat_star - B_pT_star) / sqrt(V_pT_star))
+  })
+  J_pT_bootstrap <- as.numeric(unlist(J_pT_bootstrap))
+  J_pT <- as.numeric(J_pT)
+  
+  # Step 4: Compute bootstrap p-value
+  p_value <- mean(J_pT_bootstrap >= J_pT)
+  
+  if (p_value < 0.05) {
+    message(sprintf("J_pT = %.4f, p-value = %.4f: Strong evidence that the covariance is time-varying.", J_pT, p_value))
+  } else if (p_value < 0.10) {
+    message(sprintf("J_pT = %.4f, p-value = %.4f: Some evidence of time-variation, but not strong.", J_pT, p_value))
   } else {
-    message(sprintf("J_pT = %.4f < 1.96: No evidence that the covariance is time-varying.", J_pT))
+    message(sprintf("J_pT = %.4f, p-value = %.4f: No significant evidence of time-varying covariance.", J_pT, p_value))
   }
-
-
-  # Return the J_pT value
-  return(list(J_pT=J_pT, M_hat=M_hat, B_pT=B_pT, V_pT=V_pT))
+  
+  return(list(J_NT = J_pT, p_value = p_value, J_pT_bootstrap = J_pT_bootstrap))
 }
