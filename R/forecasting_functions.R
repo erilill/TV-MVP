@@ -4,8 +4,9 @@ rolling_time_varying_mvp <- function(
     initial_window  ,  # how many periods in the initial “estimation”
     rebal_period    ,  # holding window length (HT in the paper)
     max_factors     ,
+    return_type    = "daily",
     kernel_func    = epanechnikov_kernel,
-    bandwidth_func = cv_bandwidth) {
+    bandwidth_func = silverman) {
   T <- nrow(returns)
   p <- ncol(returns)
   rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
@@ -24,27 +25,28 @@ rolling_time_varying_mvp <- function(
     if (identical(bandwidth_func, silverman)) {
       bandwidth <- silverman(est_data)
     } else {
-      bandwidth <- handle_cv_bandwidth(returns, m, seq(0.05, 0.95, 0.05), kernel_func)
+      bandwidth <- handle_cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)
     }
     
 
-    local_res <- localPCA(est_data, bandwidth, m, kernel_func)
-    factor_cov   <- t(local_res$factors)%*%local_res$factors*(1/nrow(est_data))
-    residuals    <- residuals(local_res$factors, local_res$loadings, est_data)
-    residual_cov <- estimate_residual_cov(residuals)
+    # Local PCA
+    local_res <- local_pca(est_data, nrow(est_data), bandwidth, m, kernel_func)
 
-    last_t <- nrow(est_data)
-    loadings_mid <- local_res$loadings[[last_t]]
+    # Compute covariance
+    Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
 
-    Sigma_hat <- loadings_mid %*% factor_cov %*% t(loadings_mid) + residual_cov
-
-    w_hat <- solve_minvar_portfolio(Sigma_hat)
+    # Compute weights
+    inv_cov <- solve(Sigma_hat)
+    ones <- rep(1, p)
+    w_gmv_unnorm <- inv_cov %*% ones
+    w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
 
     weights[l, ] <- w_hat
 
     hold_end <- min(reb_t + rebal_period - 1, T)
     port_ret_window <- returns[reb_t:hold_end, , drop=FALSE] %*% w_hat
 
+    # Daily realized returns
     daily_port_ret <- c(daily_port_ret, port_ret_window)
     if (l == 1) {
       cum_rebal_returns[l] <- sum(port_ret_window)
@@ -54,15 +56,27 @@ rolling_time_varying_mvp <- function(
   }
 
 
+  # Cumulative returns
   N <- length(daily_port_ret)
-
   CER <- sum(daily_port_ret)
 
+  # Metrics
   mean_val <- CER / N
   devs <- daily_port_ret - mean_val
   stdev <- sqrt( sum(devs^2) / (N - 1) )
-
-  SR <- (1/N) * (CER / stdev)
+  SR <- mean(daily_port_ret) / stdev
+  
+  # Set annualization factor based on return frequency
+  annualization_factor <- switch(return_type,
+                                 "daily" = sqrt(252),  # Daily returns
+                                 "monthly" = sqrt(12), # Monthly returns
+                                 "weekly" = sqrt(52),  # Weekly returns
+                                 stop("Invalid return type! Choose 'daily', 'monthly', or 'weekly'.")
+  )
+  
+  stdev_annualized <- stdev*annualization_factor
+  SR_annualized <- SR*annualization_factor
+  
 
   list(
     rebal_dates              = rebalance_dates,
@@ -71,10 +85,11 @@ rolling_time_varying_mvp <- function(
     cum_rebal_returns        = cum_rebal_returns,
     cumulative_excess_return = CER,
     standard_deviation       = stdev,
-    sharpe_ratio             = SR
+    sharpe_ratio             = SR,
+    standard_deviation_annualized = stdev_annualized,
+    sharpe_ratio_annualized = SR_annualized
   )
 }
-#' @import quadprog
 #' @export
 predict_portfolio <- function(
     returns,
@@ -82,7 +97,6 @@ predict_portfolio <- function(
     bandwidth_func = cv_bandwidth,
     max_factors = 3,
     kernel_func = epanechnikov_kernel,
-    lambda = 0.1,
     min_return = NULL
 ) {
   T <- nrow(returns)
@@ -95,44 +109,36 @@ predict_portfolio <- function(
   if (identical(bandwidth_func, silverman)) {
     bandwidth <- silverman(returns)
   } else {
-    bandwidth <- cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
+    bandwidth <- cv_bandwidth(returns, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
     }
 
-  # Perform Local PCA
-  local_res <- localPCA(returns, bandwidth, m, kernel_func)
+  # Local PCA
+  local_res <- local_pca(returns, nrow(returns), bandwidth, m, kernel_func)
+  
+  # Compute covariance
+  Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
 
-  # Estimate covariance matrices
-  factor_cov <- t(local_res$factors) %*% local_res$factors / T
-  res <- residuals(local_res$factors, local_res$loadings, returns)
-  residual_cov <- estimate_residual_cov(res, lambda)
+  # Expected returns
+  mean_returns <- tcrossprod(local_res$loadings, local_res$f_hat) #Correct?
 
-  # Compute Sigma_hat
-  loadings_last <- local_res$loadings[[T]]
-  Sigma_hat <- loadings_last %*% factor_cov %*% t(loadings_last) + residual_cov
-
-  # **Corrected Mean Returns Calculation**
-  mean_returns <- as.vector(t(loadings_last %*% local_res$factors[T,]))  # Ensures 1 x p
-
-  ### **Global Minimum Variance Portfolio (GMVP)**
+  ## Global Minimum Variance Portfolio (GMVP)
   inv_cov <- solve(Sigma_hat)
   ones <- rep(1, p)
   w_gmv_unnorm <- inv_cov %*% ones
   w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
 
-  # Compute GMVP Expected Return and Risk
+  ## Compute GMVP Expected Return and Risk
   expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
   risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
 
   ### **Minimum Variance Portfolio with Return Constraint**
   if (!is.null(min_return)) {
-    Dmat <- as.matrix(Sigma_hat) + diag(1e-6, p)  # Regularization
-    dvec <- rep(0, p)  # Corrected vector format
-    Amat <- cbind(rep(1, p), mean_returns)  # Constraints matrix (p x 2)
-    bvec <- c(1, min_return / horizon)  # Constraint values
-    meq <- 2  # **Two equality constraints**
-
-    result <- solve.QP(Dmat, dvec, Amat, bvec, meq = meq)
-    w_constrained <- as.numeric(result$solution)  # Extract optimized weights
+    A  <- cbind(rep(1, p), mean_returns)  # Constraints matrix (p x 2)
+    b  <- c(1, min_return / horizon)  # Constraint values
+    
+    A_Sigma_inv_A <- solve(t(A) %*% inv_cov %*% A)
+    
+    w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
 
     # Compute Expected Return and Risk for Constrained Portfolio
     expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
