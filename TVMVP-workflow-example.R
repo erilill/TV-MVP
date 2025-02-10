@@ -24,15 +24,17 @@ hyptest1(returns = returns,
          B = 199,
          kernel_func = epanechnikov_kernel
 )
+# E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
 
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(
   returns        = returns,
   initial_window = 60,
   rebal_period   = 5,
-  max_factors    = 10,
+  max_factors    = 8,
+  return_type    = "daily",
   kernel_func    = epanechnikov_kernel,
-  bandwidth_func = cv_bandwidth
+  bandwidth_func = silverman
 )
 ## K: some problem with non-conformable arguments
 ## K: Error in factors_t %*% t(loadings_t) : non-conformable arguments
