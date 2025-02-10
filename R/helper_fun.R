@@ -1,21 +1,3 @@
-#' @import quadprog
-#' 
-solve_minvar_portfolio <- function(Sigma) {
-  p <- ncol(Sigma)
-  ones <- matrix(1, nrow = p, ncol = 1)
-  
-  # Solve using quadprog
-  result <- solve.QP(
-    Dmat = as.matrix(Sigma),
-    dvec = rep(0, p),
-    Amat = ones,
-    bvec = 1,
-    meq = 1
-  )
-  
-  return(result$solution)  # Extract optimal weights
-}
-
 #'
 find_smallest_matrix <- function(matrix_list) {
   if (length(matrix_list) == 0) {
