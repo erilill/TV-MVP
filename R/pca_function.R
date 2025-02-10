@@ -41,7 +41,7 @@ determine_factors <- function(returns, max_R, bandwidth) {
   }
   # Step 4: Determine optimal number of factors
   optimal_R <- which.min(IC_values)
-  message(sprintf("Optimal number of factors is %s.", optimal_R))
+  #message(sprintf("Optimal number of factors is %s.", optimal_R))
   return(list(optimal_R = optimal_R, IC_values = IC_values))
 }
 #' Perform Local Principal Component Analysis (PCA)
