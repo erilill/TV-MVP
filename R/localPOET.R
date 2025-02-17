@@ -2,7 +2,8 @@
 estimate_residual_cov_poet_local <- function(localPCA_results, 
                                              returns,
                                              M0 = 10, 
-                                             rho_grid = seq(0.001, 1, length.out = 20)) {
+                                             rho_grid = seq(0.001, 1, length.out = 20),
+                                             floor_value = 1e-12) {
 
   # This function:
   #   1. Form local residuals u_t = R_local - F(z_t) * B(z_t)ᵀ
@@ -45,15 +46,27 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
     diag(S_u_shrunk) <- diag(S_u_raw)
     
     # 5. Final local covariance = factor part + shrunk residual
-    Sigma_X_t <- tcrossprod(Lambda_t) + S_u_shrunk  # p x p
+    Sigma_R_t <- tcrossprod(Lambda_t) + S_u_shrunk  # p x p
+    
+    #Please check /Erik
+    ############################################################################
+    # Final PSD repair
+    e_decomp <- eigen(Sigma_R_t, symmetric = TRUE)
+    eigvals  <- e_decomp$values
+    eigvecs  <- e_decomp$vectors
+    eigvals_floored <- ifelse(eigvals < floor_value, floor_value, eigvals)
+    Sigma_R_t <- eigvecs %*% diag(eigvals_floored) %*% t(eigvecs) # reconstruct sigma
+    Sigma_R_t <- 0.5 * (Sigma_R_t + t(Sigma_R_t)) #Symmetrize
+    ############################################################################
+    
     
     # store results
     output_list <- list(
       best_rho        = best_rho_t,
-      residual_cov    = S_u_shrunk,  # Σ̂_u(z_t)
-      total_cov       = Sigma_X_t,   # Σ̂_X(z_t)
+      residual_cov    = S_u_shrunk,  # Σ̂e(T)
+      total_cov       = Sigma_R_t,   # Σ̂_R(T)
       loadings        = Lambda_t,
-      naive_resid_cov = S_u_raw      # in case you want the pre-shrink version
+      naive_resid_cov = S_u_raw 
     )
   
   
