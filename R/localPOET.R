@@ -64,7 +64,7 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 
 #' @export
 adaptive_poet_rho <- function(R, M0 = 10,
-                                     rho_grid = seq(0.001, 1, length.out = 20),
+                                     rho_grid = seq(0.001, 2, length.out = 20),
                                      epsilon2 = 1e-6) {
   # R: data matrix, dimension T x p
   # M0: number of observations to leave out between the two sub-samples
@@ -150,9 +150,9 @@ adaptive_poet_rho <- function(R, M0 = 10,
   best_rho <- NA
   min_val  <- Inf
   lambda_min_all <- numeric(length(rho_grid))
-  for (rho in rho_grid){
-    rho_result <- frob_sum_for_rho(rho)
-    lambda_min_all[rho] <- min(rho_result$lambda_min_vals, na.rm=T)
+  for (i in seq_along(rho_grid)){
+    rho_result <- frob_sum_for_rho(rho_grid[i])
+    lambda_min_all[i] <- min(rho_result$lambda_min_vals, na.rm=T)
   }
   
   # Compute rho_1
