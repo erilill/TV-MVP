@@ -74,8 +74,8 @@ rolling_time_varying_mvp <- function(
                                  stop("Invalid return type! Choose 'daily', 'monthly', or 'weekly'.")
   )
   
-  stdev_annualized <- stdev*annualization_factor
-  SR_annualized <- SR*annualization_factor
+  stdev_annualized <- stdev*annualization_factor #wrong
+  SR_annualized <- SR*annualization_factor #wrong
   
 
   list(
@@ -119,7 +119,7 @@ predict_portfolio <- function(
   Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
 
   # Expected returns
-  mean_returns <- tcrossprod(local_res$loadings, local_res$f_hat) #Correct?
+  mean_returns <- tcrossprod(local_res$loadings, local_res$f_hat)/T*bandwidth #Correct?
 
   ## Global Minimum Variance Portfolio (GMVP)
   inv_cov <- solve(Sigma_hat)
