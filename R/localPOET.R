@@ -18,10 +18,11 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
     # 1. Extract local loadings, factors, and row indices
     Lambda_t <- localPCA_results$loadings  # p x K
     F_t <- localPCA_results$factors   # T_t x K
+    w_t <- localPCA_results$w_r
     idx <- t  # subset of rows in 'returns' for this window
     
     # 2. residuals
-    U_local <- returns - tcrossprod(F_t, Lambda_t)  # T_t x p
+    U_local <- crossprod(returns, w_t) - tcrossprod(F_t, Lambda_t)  # T_t x p
     
     # 3. Pick best rho for these local residuals using Chen–Leng–style grouping
     #    (See the 'adaptive_poet_rho()' function you already have.)
