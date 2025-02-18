@@ -36,7 +36,7 @@ rolling_time_varying_mvp <- function(
     Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
 
     # Compute weights
-    inv_cov <- solve(Sigma_hat)
+    inv_cov <- chol2inv(chol(Sigma_hat))
     ones <- rep(1, p)
     w_gmv_unnorm <- inv_cov %*% ones
     w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
@@ -119,10 +119,10 @@ predict_portfolio <- function(
   Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
 
   # Expected returns
-  mean_returns <- tcrossprod(local_res$loadings, local_res$f_hat) #Correct? Different from Fan et al.
+  mean_returns <- colMeans(returns) #Correct? Different from Fan et al.
 
   ## Global Minimum Variance Portfolio (GMVP)
-  inv_cov <- solve(Sigma_hat)
+  inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, p)
   w_gmv_unnorm <- inv_cov %*% ones
   w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
