@@ -91,7 +91,7 @@ rolling_time_varying_mvp <- function(
   sample_sd <- sd(excess_ret)
   sample_SR <- mean(excess_ret) / sample_sd
   RMSE <- sqrt(mean((excess_ret - (theoretical_mu - rf_daily))^2))  
-  avg_risk_diff <- sample_sd - mean(theoretical_risk)
+  avg_risk_diff <- abs(sample_sd - mean(theoretical_risk))
   
   # Set annualization factor based on return frequency
   annualization_factor <- switch(return_type,
