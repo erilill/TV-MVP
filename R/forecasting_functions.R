@@ -29,12 +29,12 @@ rolling_time_varying_mvp <- function(
     stop("Invalid return_type!")
   )
   
+  # Determine number of factors <- would be good to re-compute yearly
+  m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  
   for (l in seq_len(RT)) {
     reb_t <- rebalance_dates[l]
     est_data <- returns[1:(reb_t - 1), , drop=FALSE]
-
-    m <- determine_factors(est_data, max_factors, silverman(est_data))$optimal_R
-
 
     if (identical(bandwidth_func, silverman)) {
       bandwidth <- silverman(est_data)
