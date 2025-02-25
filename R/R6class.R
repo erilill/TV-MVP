@@ -11,7 +11,10 @@ TVMVP <- R6::R6Class(
   public = list(
     
     initialize = function(data = NULL) {
-      self$data <- data
+      if(is_tibble(data)){
+        self$data <- data
+      } esle{
+      }
     }
     
   ),
@@ -20,7 +23,7 @@ TVMVP <- R6::R6Class(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
     
-    data <- NULL,
+    data <- NULL
     
   )
 )
