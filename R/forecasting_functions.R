@@ -6,7 +6,6 @@ rolling_time_varying_mvp <- function(
     max_factors     ,
     return_type    = "daily",
     kernel_func    = epanechnikov_kernel,
-    bandwidth_func = silverman,
     annual_rf = 0) {
   T <- nrow(returns)
   p <- ncol(returns)
@@ -35,16 +34,8 @@ rolling_time_varying_mvp <- function(
   for (l in seq_len(RT)) {
     reb_t <- rebalance_dates[l]
     est_data <- returns[1:(reb_t - 1), , drop=FALSE]
-
-    if (identical(bandwidth_func, silverman)) {
-      bandwidth <- silverman(est_data)
-    } else {
-      bandwidth <- cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)
-    }
+    bandwidth <- silverman(returns)
     
-    bandwidth <- 1.059*nrow(est_data)^(-1/5)
-    
-
     # Local PCA
     local_res <- local_pca(est_data, nrow(est_data), bandwidth, m, kernel_func)
 
@@ -127,7 +118,6 @@ rolling_time_varying_mvp <- function(
 predict_portfolio <- function(
     returns,
     horizon = 1,
-    bandwidth_func = cv_bandwidth,
     max_factors = 3,
     kernel_func = epanechnikov_kernel,
     min_return = NULL
@@ -139,11 +129,7 @@ predict_portfolio <- function(
   m <- determine_factors(returns, max_factors, silverman(returns))$optimal_R
 
   # Select bandwidth
-  if (identical(bandwidth_func, silverman)) {
-    bandwidth <- silverman(returns)
-  } else {
-    bandwidth <- cv_bandwidth(returns, m, seq(0.05, 0.95, 0.05), kernel_func)$optimal_h
-    }
+  bandwidth <- silverman(returns)
 
   # Local PCA
   local_res <- local_pca(returns, nrow(returns), bandwidth, m, kernel_func)
