@@ -13,5 +13,6 @@ Imports:
     quadprog,
     spcov,
     R6,
-    tibble
+    tibble,
+    cli
 RoxygenNote: 7.3.2
