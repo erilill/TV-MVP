@@ -11,5 +11,8 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     quadprog,
-    spcov
+    spcov,
+    R6,
+    tibble,
+    cli
 RoxygenNote: 7.3.2
