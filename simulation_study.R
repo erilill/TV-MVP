@@ -805,7 +805,6 @@ returns <- as.matrix(diff(log(swe_stock_prices))[-1])
 
 pred <-predict_portfolio(returns[,1:100], 21, bandwidth_func = silverman, min_return = 0.05)
 rolpred <- rolling_time_varying_mvp(returns[,1:100], 200, 5, 5)
-rolpred_3 <- rolling_time_varying_mvp(returns[,1:100], 200, 5, 5,bandwidth_func = silverman)
 
 ## simulation using stock data
 
