@@ -63,7 +63,7 @@ generate_DGP3 <- function(p, T, F){
 }
 
 # DGP 4 Single structural brake
-generate_DGP4 <- function(p, T, F, b = 1) {
+generate_DGP4 <- function(p, T, F, b = 2) {
   X <- matrix(NA, nrow=T, ncol=p)
   for (t in 1:T){
     Lambda <- matrix(rnorm(p * 2, mean = 1, sd = 1), ncol = 2)
@@ -81,7 +81,7 @@ generate_DGP4 <- function(p, T, F, b = 1) {
 
 
 # DGP 5 Multiple Structural Breaks
-generate_DGP5 <- function(p, T, F, b = 1) {
+generate_DGP5 <- function(p, T, F, b = 2) {
   X <- matrix(NA, nrow=T, ncol=p)
   for (t in 1:T) {
     Lambda1 <- matrix(rnorm(p , mean = 1, sd = 1), ncol = 1)
@@ -103,12 +103,12 @@ generate_DGP5 <- function(p, T, F, b = 1) {
 generate_DGP6 <- function(p, T, b = 1) {
   X <- matrix(NA, nrow=T, ncol=p)
   
-  G <- function(x, a, b) exp(-a * (x - b)^2)  # Smooth transition function
+  G <- function(x, a, b) exp(-a * (x - b)^-1)  # Smooth transition function
   
   for (t in 1:T) {
     Lambda <- matrix(rnorm(p * 2, mean = 0, sd = 1), ncol = 2)
     for (i in 1:p) {
-      Lambda[i, 2] <- b * G(10 * t / T, 2, 5 * i / p + 2)
+      Lambda[i, 2] <- b*G(10 * t / T, 2, 5 * i / p + 2)
     }
     e <- rnorm(p, mean=0, sd=1)
     X[t,] <- t(Lambda %*% F[t,] + e)
@@ -127,7 +127,7 @@ R <- 500
 m <- 2
 B <- 200
 
-# Generate factors (assumed to be defined elsewhere)
+# Generate factors
 F_t <- generate_factors(T)
 
 ##############
@@ -289,6 +289,112 @@ hist(test_results_dgp3$p_value, breaks = 20, col = "lightblue",
 # Optionally, print the rejection rate
 print(sprintf("Rejection rate: %.4f", rejection_rate))
 
+##############
+#    DGP4    #
+##############
+
+# Set up a cluster using all available cores
+cl <- makeCluster(detectCores()-1)
+
+# Export required functions and objects to the cluster's environment.
+# Make sure to include all functions (generate_DGP1, hyptest1, etc.) 
+# and objects (F_t, T, p, m, B) that will be used inside the worker function.
+clusterExport(cl, varlist = c("generate_DGP4", "residuals","sqrt_matrix", "hyptest1", "compute_sigma_0", "silverman", "local_pca", "localPCA", "two_fold_convolution_kernel", "boundary_kernel", "compute_B_pT", "compute_M_hat", "compute_V_pT", "epanechnikov_kernel", "F_t", "T", "p", "m", "B", "R"))
+clusterEvalQ(cl, {
+  library(TVMVP)
+  library(MASS)
+})
+
+start.time <- Sys.time()
+# Run the simulation in parallel using parLapply.
+# Each worker generates synthetic data and runs the hypothesis test.
+results_list_dgp4 <- parLapply(cl, 1:R, function(r) {
+  # Generate synthetic data for replication r
+  X_sim <- generate_DGP4(p, T, F_t)
+  
+  # Run the hypothesis test on the synthetic data
+  test_result <- hyptest1(X_sim, m, B)
+  
+  # Return the relevant results as a list
+  list(
+    J_NT = test_result$J_NT,
+    p_value = test_result$p_value,
+    reject_H0 = test_result$p_value < 0.05
+  )
+})
+# Shut down the cluster
+stopCluster(cl)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
+
+# Combine the list of results into a data frame
+test_results_dgp4 <- do.call(rbind, lapply(results_list_dgp4, as.data.frame))
+
+# Compute the rejection rate
+rejection_rate <- mean(test_results_dgp4$reject_H0)
+
+# Print summary statistics and a histogram of p-values
+print(summary(test_results_dgp4$p_value))
+hist(test_results_dgp4$p_value, breaks = 20, col = "lightblue", 
+     main = "Histogram of p-values", xlab = "p-value", ylab = "Frequency", border = "black")
+
+# Optionally, print the rejection rate
+print(sprintf("Rejection rate: %.4f", rejection_rate))
+
+##############
+#    DGP5    #
+##############
+
+# Set up a cluster using all available cores
+cl <- makeCluster(detectCores()-1)
+
+# Export required functions and objects to the cluster's environment.
+# Make sure to include all functions (generate_DGP1, hyptest1, etc.) 
+# and objects (F_t, T, p, m, B) that will be used inside the worker function.
+clusterExport(cl, varlist = c("generate_DGP5", "residuals","sqrt_matrix", "hyptest1", "compute_sigma_0", "silverman", "local_pca", "localPCA", "two_fold_convolution_kernel", "boundary_kernel", "compute_B_pT", "compute_M_hat", "compute_V_pT", "epanechnikov_kernel", "F_t", "T", "p", "m", "B", "R"))
+clusterEvalQ(cl, {
+  library(TVMVP)
+  library(MASS)
+})
+
+start.time <- Sys.time()
+# Run the simulation in parallel using parLapply.
+# Each worker generates synthetic data and runs the hypothesis test.
+results_list_dgp5 <- parLapply(cl, 1:R, function(r) {
+  # Generate synthetic data for replication r
+  X_sim <- generate_DGP5(p, T, F_t)
+  
+  # Run the hypothesis test on the synthetic data
+  test_result <- hyptest1(X_sim, m, B)
+  
+  # Return the relevant results as a list
+  list(
+    J_NT = test_result$J_NT,
+    p_value = test_result$p_value,
+    reject_H0 = test_result$p_value < 0.05
+  )
+})
+# Shut down the cluster
+stopCluster(cl)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
+
+# Combine the list of results into a data frame
+test_results_dgp5 <- do.call(rbind, lapply(results_list_dgp5, as.data.frame))
+
+# Compute the rejection rate
+rejection_rate <- mean(test_results_dgp5$reject_H0)
+
+# Print summary statistics and a histogram of p-values
+print(summary(test_results_dgp5$p_value))
+hist(test_results_dgp5$p_value, breaks = 20, col = "lightblue", 
+     main = "Histogram of p-values", xlab = "p-value", ylab = "Frequency", border = "black")
+
+# Optionally, print the rejection rate
+print(sprintf("Rejection rate: %.4f", rejection_rate))
+
 
 
 ################################################################################
@@ -321,7 +427,6 @@ swe_stocks <- c("ATCO-A.ST",
                 "SKF-B.ST",
                 "TREL-B.ST",
                 "VOLV-A.ST",
-                "VOLV-B.ST",
                 "BERG-B.ST",
                 "HEXA-B.ST",
                 "LATO-B.ST",
@@ -367,7 +472,6 @@ swe_stocks <- c("ATCO-A.ST",
                 "RROS.ST",
                 "BONG.ST",
                 "HAV-B.ST",
-                "XANO-B.ST",
                 "ELAN-B.ST",
                 "SSAB-A.ST",
                 "SSAB-B.ST",
@@ -380,7 +484,6 @@ swe_stocks <- c("ATCO-A.ST",
                 "FPAR-A.ST",
                 "EKTA-B.ST",
                 "CNCJO-B.ST",
-                "SWED-A.ST",
                 "HEBA-B.ST",
                 "SKIS-B.ST",
                 "ATRLJ-B.ST",
@@ -424,7 +527,6 @@ swe_stocks <- c("ATCO-A.ST",
                 "STE-R.ST",
                 "IAR-B.ST",
                 "SECT-B.ST",
-                "MEAB-B.ST",
                 "ARBO-A.ST",
                 "AZN.ST",
                 "SAGA-A.ST",
@@ -699,7 +801,21 @@ swe_stocks <- c("ATCO-A.ST",
 stock_env <- new.env() # avoid cluttering environment
 getSymbols(swe_stocks, src = "yahoo", from = "2022-06-30", to = "2023-06-30", env = stock_env)
 swe_stock_prices <- do.call(merge, lapply(swe_stocks, function(x) Cl(get(x, envir = stock_env))))
-returns <- as.matrix(log(diff(swe_stock_prices)[-1]))
+returns <- as.matrix(diff(log(swe_stock_prices))[-1])
 
 pred <-predict_portfolio(returns[,1:100], 21, bandwidth_func = silverman, min_return = 0.05)
-rolpred <- rolling_time_varying_mvp(returns[,1:100], 50, 5, 5)
+rolpred <- rolling_time_varying_mvp(returns[,1:100], 200, 5, 5)
+rolpred_3 <- rolling_time_varying_mvp(returns[,1:100], 200, 5, 5,bandwidth_func = silverman)
+
+## simulation using stock data
+
+# Run PCA to get factors and loadings which will be used for simulation
+swe_pca <- localPCA(returns[,1:100], silverman(returns[,1:100]), 2)
+
+swe_sim <- function(swe_pca){
+  for (t in nrow(swe_pca$factors[[1]])){
+    residual_cov <- 
+    pred <- tcrossprod(swe_pca$factors[[t]], swe_pca$loadings)
+    
+  }
+}
