@@ -38,18 +38,18 @@ rolling_time_varying_mvp <- function(
     
     # Local PCA
     local_res <- local_pca(est_data, nrow(est_data), bandwidth, m, kernel_func)
-
+    
     # Compute covariance
     Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
-
+    
     # Compute weights
     inv_cov <- chol2inv(chol(Sigma_hat))
     ones <- rep(1, p)
     w_gmv_unnorm <- inv_cov %*% ones
     w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
-
+    
     weights[[l]] <- w_hat
-
+    
     hold_end <- min(reb_t + rebal_period - 1, T)
     port_ret_window <- returns[reb_t:hold_end, , drop=FALSE] %*% w_hat
     
@@ -72,13 +72,13 @@ rolling_time_varying_mvp <- function(
       cum_rebal_returns[l] <- cum_rebal_returns[l - 1] + sum(port_ret_window)
     }
   }
-
-
+  
+  
   # Cumulative returns
   N <- length(daily_port_ret)
   excess_ret <- daily_port_ret - rf_daily
   CER <- sum(excess_ret)
-
+  
   # Metrics
   mean_val <- CER / N
   sample_sd <- sd(excess_ret)
@@ -97,7 +97,7 @@ rolling_time_varying_mvp <- function(
   sample_sd_annualized <- sample_sd*annualization_factor #wrong?
   sample_SR_annualized <- sample_SR*annualization_factor # wrong?
   
-
+  
   list(
     rebal_dates              = rebalance_dates,
     weights                  = weights,
@@ -124,32 +124,32 @@ predict_portfolio <- function(
 ) {
   T <- nrow(returns)
   p <- ncol(returns)
-
+  
   # Determine optimal number of factors using Silverman’s bandwidth
   m <- determine_factors(returns, max_factors, silverman(returns))$optimal_R
-
+  
   # Select bandwidth
   bandwidth <- silverman(returns)
-
+  
   # Local PCA
   local_res <- local_pca(returns, nrow(returns), bandwidth, m, kernel_func)
   
   # Compute covariance
   Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
-
+  
   # Expected returns
   mean_returns <- colMeans(returns) # place holder, might change
-
+  
   ## Global Minimum Variance Portfolio (GMVP)
   inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, p)
   w_gmv_unnorm <- inv_cov %*% ones
   w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
-
+  
   ## Compute GMVP Expected Return and Risk
   expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
   risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
-
+  
   ### **Minimum Variance Portfolio with Return Constraint**
   if (!is.null(min_return)) {
     A  <- cbind(rep(1, p), mean_returns)  # Constraints matrix (p x 2)
@@ -158,11 +158,11 @@ predict_portfolio <- function(
     A_Sigma_inv_A <- solve(t(A) %*% inv_cov %*% A)
     
     w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
-
+    
     # Compute Expected Return and Risk for Constrained Portfolio
     expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
     risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
-
+    
     return(list(
       GMV = list(
         weights = w_gmv,
