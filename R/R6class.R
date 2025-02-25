@@ -17,6 +17,7 @@ TVMVP <- R6::R6Class(
         # can also give the information of the data set
         # for example, the size in MB, row and column numbers etc.
       } esle{
+        cli_alert_info("The data set is not tibble!")
       }
     }
     
