@@ -39,8 +39,10 @@ rolling_time_varying_mvp <- function(
     if (identical(bandwidth_func, silverman)) {
       bandwidth <- silverman(est_data)
     } else {
-      bandwidth <- handle_cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)
+      bandwidth <- cv_bandwidth(est_data, m, seq(0.05, 0.95, 0.05), kernel_func)
     }
+    
+    bandwidth <- 1.059*nrow(est_data)^(-1/5)
     
 
     # Local PCA
