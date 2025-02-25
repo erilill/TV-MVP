@@ -6,21 +6,35 @@ rolling_time_varying_mvp <- function(
     max_factors     ,
     return_type    = "daily",
     kernel_func    = epanechnikov_kernel,
-    bandwidth_func = silverman) {
+    bandwidth_func = silverman,
+    annual_rf = 0) {
   T <- nrow(returns)
   p <- ncol(returns)
   rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
   RT <- length(rebalance_dates)
-  weights <- matrix(NA, nrow = RT, ncol = p)
-
+  
+  # Initialize storage
+  weights <- list()
   cum_rebal_returns <- numeric(RT)
   daily_port_ret <- numeric(0)
+  theoretical_risk <- numeric(0) # sqrt(w' Sigma w)
+  theoretical_mu  <- numeric(0) 
+  
+  # Convert annual risk-free rate to daily/weekly/monthly, etc.
+  rf_daily <- switch(
+    return_type,
+    "daily"   = annual_rf / 252,
+    "weekly"  = annual_rf / 52,
+    "monthly" = annual_rf / 12,
+    stop("Invalid return_type!")
+  )
+  
+  # Determine number of factors <- would be good to re-compute yearly
+  m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  
   for (l in seq_len(RT)) {
     reb_t <- rebalance_dates[l]
     est_data <- returns[1:(reb_t - 1), , drop=FALSE]
-
-    m <- determine_factors(est_data, max_factors, silverman(est_data))$optimal_R
-
 
     if (identical(bandwidth_func, silverman)) {
       bandwidth <- silverman(est_data)
@@ -36,16 +50,27 @@ rolling_time_varying_mvp <- function(
     Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
 
     # Compute weights
-    inv_cov <- solve(Sigma_hat)
+    inv_cov <- chol2inv(chol(Sigma_hat))
     ones <- rep(1, p)
     w_gmv_unnorm <- inv_cov %*% ones
     w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
 
-    weights[l, ] <- w_hat
+    weights[[l]] <- w_hat
 
     hold_end <- min(reb_t + rebal_period - 1, T)
     port_ret_window <- returns[reb_t:hold_end, , drop=FALSE] %*% w_hat
-
+    
+    ## Theoretical metrics
+    # Expected returns
+    mean_returns <- colMeans(est_data) # place holder, might change
+    
+    ## Compute Expected Return and Risk
+    mu <- sum(w_hat * mean_returns)
+    risk <- sqrt(as.numeric(t(w_hat) %*% Sigma_hat %*% w_hat))
+    L <- hold_end - reb_t+1
+    theoretical_mu <- c(theoretical_mu, mu*(1:L))
+    theoretical_risk <- c(theoretical_risk, risk*sqrt(1:L))
+    
     # Daily realized returns
     daily_port_ret <- c(daily_port_ret, port_ret_window)
     if (l == 1) {
@@ -58,13 +83,15 @@ rolling_time_varying_mvp <- function(
 
   # Cumulative returns
   N <- length(daily_port_ret)
-  CER <- sum(daily_port_ret)
+  excess_ret <- daily_port_ret - rf_daily
+  CER <- sum(excess_ret)
 
   # Metrics
   mean_val <- CER / N
-  devs <- daily_port_ret - mean_val
-  stdev <- sqrt( sum(devs^2) / (N - 1) )
-  SR <- mean(daily_port_ret) / stdev
+  sample_sd <- sd(excess_ret)
+  sample_SR <- mean(excess_ret) / sample_sd
+  RMSE <- sqrt(mean((excess_ret - (theoretical_mu - rf_daily))^2))  
+  avg_risk_diff <- abs(sample_sd - mean(theoretical_risk))
   
   # Set annualization factor based on return frequency
   annualization_factor <- switch(return_type,
@@ -74,20 +101,24 @@ rolling_time_varying_mvp <- function(
                                  stop("Invalid return type! Choose 'daily', 'monthly', or 'weekly'.")
   )
   
-  stdev_annualized <- stdev*annualization_factor
-  SR_annualized <- SR*annualization_factor
+  sample_sd_annualized <- sample_sd*annualization_factor #wrong?
+  sample_SR_annualized <- sample_SR*annualization_factor # wrong?
   
 
   list(
     rebal_dates              = rebalance_dates,
     weights                  = weights,
-    daily_portfolio_returns  = daily_port_ret,
+    excess_returns           = excess_ret,
     cum_rebal_returns        = cum_rebal_returns,
     cumulative_excess_return = CER,
-    standard_deviation       = stdev,
-    sharpe_ratio             = SR,
-    standard_deviation_annualized = stdev_annualized,
-    sharpe_ratio_annualized = SR_annualized
+    standard_deviation       = sample_sd,
+    sharpe_ratio             = sample_SR,
+    RMSE                     = RMSE,
+    standard_deviation_annualized = sample_sd_annualized,
+    sharpe_ratio_annualized = sample_SR_annualized,
+    theoretical_mu = theoretical_mu,
+    theoretical_risk = theoretical_risk,
+    avg.risk_diff = avg_risk_diff
   )
 }
 #' @export
@@ -119,10 +150,10 @@ predict_portfolio <- function(
   Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
 
   # Expected returns
-  mean_returns <- tcrossprod(local_res$loadings, local_res$f_hat) #Correct?
+  mean_returns <- colMeans(returns) # place holder, might change
 
   ## Global Minimum Variance Portfolio (GMVP)
-  inv_cov <- solve(Sigma_hat)
+  inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, p)
   w_gmv_unnorm <- inv_cov %*% ones
   w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
