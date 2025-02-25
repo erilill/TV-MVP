@@ -11,8 +11,11 @@ TVMVP <- R6::R6Class(
   public = list(
     
     initialize = function(data = NULL) {
-      if(is_tibble(data)){
+      if(tibble::is_tibble(data)){
         self$data <- data
+        cli::cli_alert_success("Tibble data set successfully loaded.")
+        # can also give the information of the data set
+        # for example, the size in MB, row and column numbers etc.
       } esle{
       }
     }
