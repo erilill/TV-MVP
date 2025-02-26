@@ -36,11 +36,9 @@
 #' print(bw_direct)
 #'
 #' @export
-silverman <- function(returns, T=NULL, p=NULL){
-  if (!is.null(returns)){
-    p <- ncol(returns)
-    T <- nrow(returns)
-  }
-  bandwidth <- (2.35/sqrt(12)) * T^(-0.2) * p^(-0.1)
+silverman <- function(returns){
+    ip <- ncol(returns)
+    iT <- nrow(returns)
+  bandwidth <- (2.35/sqrt(12)) * iT^(-0.2) * ip^(-0.1)
   return(bandwidth)
 }
