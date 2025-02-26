@@ -26,6 +26,9 @@ TVMVP <- R6::R6Class(
     # set functions
 
     set_data <- function(data){
+      # for set_data function, the argument data should not be missing
+      # this is why I use missing(data) for checking without setting any default value of it
+      # note that this is different from initialize function where data can be missing with default value NULL
       if(missing(data)){
         cli::cli_alert_warning("You forgot input the data!")
       } else{
