@@ -14,6 +14,10 @@ TVMVP <- R6::R6Class(
       if(!is.null(data)){
         if(tibble::is_tibble(data)){
           private$data <- data
+          private$iT <- nrow(data)
+          private$ip <- ncol(data)
+
+          tsize <- get_object_size(private$data)
           cli::cli_alert_success("Tibble data set successfully loaded.")
           # can also give the information of the data set
           # for example, the size in MB, row and column numbers etc.
@@ -33,6 +37,9 @@ TVMVP <- R6::R6Class(
         cli::cli_alert_warning("You forgot input the data!")
       } else{
         private$data <- data
+        private$iT <- nrow(data)
+        private$ip <- ncol(data)
+
         cli_alert_success("Data changed.")
       }
 
@@ -52,7 +59,9 @@ TVMVP <- R6::R6Class(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
 
-    data <- NULL
+    data <- NULL # data tibble
+    iT <- NULL # integer of the sample size (time)
+    ip <- NULL # integer of the number of stocks
 
   )
 )
