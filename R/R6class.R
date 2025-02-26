@@ -32,6 +32,8 @@ TVMVP <- R6::R6Class(
         private$data <- data
         cli_alert_success("Data changed.")
       }
+
+      invisible(self)  # Enables chaining
     }
 
     # get functions
