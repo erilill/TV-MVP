@@ -24,7 +24,7 @@ TVMVP <- R6::R6Class(
           cli_alert_info("The data set is not tibble! The data is empty now.")
         }
       }
-    }
+    },
 
     # set functions
 
@@ -45,7 +45,7 @@ TVMVP <- R6::R6Class(
       }
 
       invisible(self)  # Enables chaining
-    }
+    },
 
     # get functions
 
@@ -60,8 +60,8 @@ TVMVP <- R6::R6Class(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
 
-    data <- NULL # data tibble
-    iT <- NULL # integer of the sample size (time)
+    data <- NULL, # data tibble
+    iT <- NULL, # integer of the sample size (time)
     ip <- NULL # integer of the number of stocks
 
   )
