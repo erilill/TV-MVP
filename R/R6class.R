@@ -17,7 +17,8 @@ TVMVP <- R6::R6Class(
           private$iT <- nrow(data)
           private$ip <- ncol(data)
 
-          tsize <- get_object_size(private$data)
+          #tmp_size <- get_object_size(private$data)
+          tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
           cli::cli_alert_success("Tibble data set successfully loaded.")
           # can also give the information of the data set
           # for example, the size in MB, row and column numbers etc.
