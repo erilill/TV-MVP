@@ -7,11 +7,11 @@
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
-  
+
   public = list(
-    
+
     initialize = function(data = NULL) {
-      if(tibble::is_tibble(data)){
+      if(!is.null(data)) if(tibble::is_tibble(data)){
         self$data <- data
         cli::cli_alert_success("Tibble data set successfully loaded.")
         # can also give the information of the data set
@@ -20,14 +20,14 @@ TVMVP <- R6::R6Class(
         cli_alert_info("The data set is not tibble!")
       }
     }
-    
+
   ),
-  
+
   private = list(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
-    
+
     data <- NULL
-    
+
   )
 )
