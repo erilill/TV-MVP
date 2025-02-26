@@ -26,7 +26,7 @@ TVMVP <- R6::R6Class(
     # set functions
 
     set_data <- function(data){
-      if(!missing(data)){
+      if(missing(data)){
         cli::cli_alert_warning("You forgot input the data!")
       } else{
         private$data <- data
