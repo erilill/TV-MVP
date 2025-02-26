@@ -1,0 +1,11 @@
+citEntry(
+  entry  = "Manual",
+  title  = "Package Name: An R Package for ...",
+  author = c(
+    person("Erik", "Lillrank"),
+    person("Yukai", "Yang")
+  ),
+  year   = "2025",
+  note   = "R package version 1.0.0",
+  url    = "https://CRAN.R-project.org/package=yourpackage"
+)
