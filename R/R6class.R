@@ -38,6 +38,11 @@ TVMVP <- R6::R6Class(
 
     # get functions
 
+    get_data <- function(){
+      return(private$data)
+      # make a copy of the data and return it
+    }
+
   ),
 
   private = list(
