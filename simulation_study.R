@@ -100,7 +100,7 @@ generate_DGP5 <- function(p, T, F, b = 2) {
 }
 
 # DGP 6 Smooth Structural Changes I
-generate_DGP6 <- function(p, T, b = 1) {
+generate_DGP6 <- function(p, T, b = 2) {
   X <- matrix(NA, nrow=T, ncol=p)
   
   G <- function(x, a, b) exp(-a * (x - b)^-1)  # Smooth transition function
@@ -395,6 +395,58 @@ hist(test_results_dgp5$p_value, breaks = 20, col = "lightblue",
 # Optionally, print the rejection rate
 print(sprintf("Rejection rate: %.4f", rejection_rate))
 
+##############
+#    DGP6    #
+##############
+
+# Set up a cluster using all available cores
+cl <- makeCluster(detectCores()-1)
+
+# Export required functions and objects to the cluster's environment.
+# Make sure to include all functions (generate_DGP1, hyptest1, etc.) 
+# and objects (F_t, T, p, m, B) that will be used inside the worker function.
+clusterExport(cl, varlist = c("generate_DGP6", "residuals","sqrt_matrix", "hyptest1", "compute_sigma_0", "silverman", "local_pca", "localPCA", "two_fold_convolution_kernel", "boundary_kernel", "compute_B_pT", "compute_M_hat", "compute_V_pT", "epanechnikov_kernel", "F_t", "T", "p", "m", "B", "R"))
+clusterEvalQ(cl, {
+  library(TVMVP)
+  library(MASS)
+})
+
+start.time <- Sys.time()
+# Run the simulation in parallel using parLapply.
+# Each worker generates synthetic data and runs the hypothesis test.
+results_list_dgp6 <- parLapply(cl, 1:R, function(r) {
+  # Generate synthetic data for replication r
+  X_sim <- generate_DGP6(p, T, F_t)
+  
+  # Run the hypothesis test on the synthetic data
+  test_result <- hyptest1(X_sim, m, B)
+  
+  # Return the relevant results as a list
+  list(
+    J_NT = test_result$J_NT,
+    p_value = test_result$p_value,
+    reject_H0 = test_result$p_value < 0.05
+  )
+})
+# Shut down the cluster
+stopCluster(cl)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+time.taken
+
+# Combine the list of results into a data frame
+test_results_dgp6 <- do.call(rbind, lapply(results_list_dgp6, as.data.frame))
+
+# Compute the rejection rate
+rejection_rate <- mean(test_results_dgp6$reject_H0)
+
+# Print summary statistics and a histogram of p-values
+print(summary(test_results_dgp6$p_value))
+hist(test_results_dgp6$p_value, breaks = 20, col = "lightblue", 
+     main = "Histogram of p-values", xlab = "p-value", ylab = "Frequency", border = "black")
+
+# Optionally, print the rejection rate
+print(sprintf("Rejection rate: %.4f", rejection_rate))
 
 
 ################################################################################
