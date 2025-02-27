@@ -1,5 +1,5 @@
 citEntry(
-  entry  = "Manual",
+  entry  = "software",
   title  = "Package Name: An R Package for ...",
   author = c(
     person("Erik", "Lillrank"),
