@@ -36,90 +36,9 @@
 #' print(bw_direct)
 #'
 #' @export
-silverman <- function(returns, T=NULL, p=NULL){
-  if (!is.null(returns)){
-    p <- ncol(returns)
-    T <- nrow(returns)
-  }
-  bandwidth <- (2.35/sqrt(12)) * T^(-0.2) * p^(-0.1)
+silverman <- function(returns){
+    ip <- ncol(returns)
+    iT <- nrow(returns)
+  bandwidth <- (2.35/sqrt(12)) * iT^(-0.2) * ip^(-0.1)
   return(bandwidth)
-}
-#'
-#' @export
-cv_bandwidth <- function(returns, m, candidate_h, kernel_func) {
-  P <- ncol(returns)
-  T <- nrow(returns)
-
-  if (P / T + 0.1 > 0.7) {
-    p_T <- P / T
-    test_loop <- round((1 - P / T - 0.1) / 0.1)
-  } else {
-    p_T <- 0.6
-    test_loop <- 3
-  }
-
-  testing_set_list <- vector("list", test_loop)
-  training_set_list <- vector("list", test_loop)
-  loadings_list <- list()
-
-  for (kk in 1:test_loop) {
-    start_test <- floor(T * (p_T + 0.1 * kk)) + 1
-    end_test <- ifelse(p_T + 0.1 * (kk + 1) > 1, T, floor(T * (p_T + 0.1 * (kk + 1))))
-
-    testing_set_list[[kk]] <- returns[start_test:end_test, ]
-    training_set_list[[kk]] <- returns[1:(start_test - 1), ]
-  }
-
-  scores <- numeric(length(candidate_h))
-
-  for (h_i in seq_along(candidate_h)) {
-    h_val <- candidate_h[h_i]
-    sr_sum <- 0
-
-    for (j in seq_len(test_loop)) {
-
-      train_data <- training_set_list[[j]]
-      test_data  <- testing_set_list[[j]]
-
-      local_pca_train <- localPCA(train_data, bandwidth = h_val, m = m, kernel_func = kernel_func)
-      factor_cov <- cov(local_pca_train$f_hat)
-      
-      # Check Effective m
-      min_m_eff <- (find_smallest_matrix(local_pca_train$loadings)[2])
-      if (min_m_eff < m) {
-        stop(sprintf("Effective m (%d) is smaller than m (%d).", min_m_eff, m))
-      }
-
-      res <- residuals(local_pca_train$f_hat, local_pca_train$loadings, train_data)
-      residual_cov <- tryCatch({
-        estimate_residual_cov(res)
-      }, error = function(e) {
-        message("Warning: Singular residual covariance, using identity matrix.")
-        diag(P)  # Use identity matrix if estimation fails
-      })
-
-      valid_loadings <- Filter(function(x) !anyNA(x), local_pca_train$loadings)
-      avg_loadings <- Reduce(`+`, valid_loadings) / length(valid_loadings)
-
-      Sigma_hat <- avg_loadings %*% factor_cov %*% t(avg_loadings) + residual_cov
-
-      Sigma_hat <- Sigma_hat + diag(1e-6, P)
-
-      inv_cov <- solve(Sigma_hat + diag(1e-6, P))  # Regularization
-      ones <- rep(1, P)
-      w_hat <- as.numeric(inv_cov %*% ones / sum(inv_cov %*% ones))
-
-      real_returns <- rowSums(test_data * w_hat)
-      sr_test <- mean(real_returns) / sd(real_returns)
-      sr_sum <- sr_sum + sr_test
-    }
-
-    scores[h_i] <- sr_sum
-  }
-
-  # Select the best bandwidth
-  best_idx <- which.max(scores)
-  h_cv <- candidate_h[best_idx]
-
-  return(list(optimal_h = h_cv, scores = scores))
 }
