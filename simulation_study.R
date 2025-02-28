@@ -600,6 +600,6 @@ test_sample <- omx[, c(random100)]
 returns <- as.matrix(diff(log(test_sample))[-1,])
 risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
 
-pred <-predict_portfolio(returns[,1:100], 21, min_return = 0.05)
+pred <-predict_portfolio(returns[,1:100], 21, min_return = 0.05, rf=risk_free)
 
 rolpred <- rolling_time_varying_mvp(returns[,1:100], 510, 5, 5, rf=risk_free[511:522])
