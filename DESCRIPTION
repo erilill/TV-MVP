@@ -14,5 +14,6 @@ Imports:
     spcov,
     R6,
     tibble,
-    cli
+    cli,
+    prettyunits
 RoxygenNote: 7.3.2

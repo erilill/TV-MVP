@@ -7,27 +7,62 @@
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
-  
+
   public = list(
-    
-    initialize = function(data = NULL) {
-      if(tibble::is_tibble(data)){
-        self$data <- data
-        cli::cli_alert_success("Tibble data set successfully loaded.")
-        # can also give the information of the data set
-        # for example, the size in MB, row and column numbers etc.
-      } esle{
-        cli_alert_info("The data set is not tibble!")
+
+    initialize <- function(data = NULL) {
+      if(!is.null(data)){
+        if(tibble::is_tibble(data)){
+          private$data <- data
+          private$iT <- nrow(data)
+          private$ip <- ncol(data)
+
+          #tmp_size <- get_object_size(private$data)
+          tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
+          cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
+        } esle{
+          cli_alert_info("The data set is not tibble! The data is empty now.")
+        }
       }
+    },
+
+    # set functions
+
+    set_data <- function(data){
+      # for set_data function, the argument data should not be missing
+      # this is why I use missing(data) for checking without setting any default value of it
+      # note that this is different from initialize function where data can be missing with default value NULL
+      if(missing(data)){
+        cli::cli_alert_warning("You forgot input the data!")
+      } else{
+        private$data <- data
+        private$iT <- nrow(data)
+        private$ip <- ncol(data)
+
+        #tmp_size <- get_object_size(private$data)
+        tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
+        cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
+      }
+
+      invisible(self)  # Enables chaining
+    },
+
+    # get functions
+
+    get_data <- function(){
+      return(private$data)
+      # make a copy of the data and return it
     }
-    
+
   ),
-  
+
   private = list(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
-    
-    data <- NULL
-    
+
+    data <- NULL, # data tibble
+    iT <- NULL, # integer of the sample size (time)
+    ip <- NULL # integer of the number of stocks
+
   )
 )
