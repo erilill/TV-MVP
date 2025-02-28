@@ -112,7 +112,8 @@ predict_portfolio <- function(
     horizon = 1,
     max_factors = 3,
     kernel_func = epanechnikov_kernel,
-    min_return = NULL
+    min_return = NULL,
+    rf = NULL
 ) {
   T <- nrow(returns)
   p <- ncol(returns)
@@ -130,7 +131,7 @@ predict_portfolio <- function(
   Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
   
   # Expected returns
-  mean_returns <- colMeans(returns) # place holder, might change
+  mean_returns <- colMeans(returns) - rf[T] # place holder, might change
   
   ## Global Minimum Variance Portfolio (GMVP)
   inv_cov <- chol2inv(chol(Sigma_hat))
