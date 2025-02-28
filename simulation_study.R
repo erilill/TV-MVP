@@ -600,6 +600,189 @@ test_sample <- omx[, c(random100)]
 returns <- as.matrix(diff(log(test_sample))[-1,])
 risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
 
-pred <-predict_portfolio(returns[,1:100], 21, min_return = 0.05, rf=risk_free)
+# Data set includes "röda dagar" which need to be removed
+# Find indices of rows where all elements are zero
+zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
 
+# Remove "röda dagar"
+returns <- returns[-zero_rows,]
+risk_free <- risk_free[-zero_rows]
+
+
+# testing functions
+pred <-predict_portfolio(returns[,1:100], 21, min_return = 0.05, rf=risk_free)
 rolpred <- rolling_time_varying_mvp(returns[,1:100], 510, 5, 5, rf=risk_free[511:522])
+
+# Constructing function for rolling window comparison, not for package
+# Compare TVMVP with MVP constructed with other methods, i.e. sample cov, poet, EMWA, shrinkage, etc
+library(corpcor) # sh
+library(POET)
+library(PortfolioMoments)
+
+mega_rol_pred <- function(returns,
+                          initial_window,   # number of periods for initial estimation
+                          rebal_period,     # rebalancing (holding window) length
+                          max_factors,
+                          rf = 0) {         # risk-free rate (daily, in decimal)
+  # Dimensions and rebalancing dates
+  T <- nrow(returns)
+  p <- ncol(returns)
+  rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
+  RT <- length(rebalance_dates)
+  if (!is.null(rf)){rf <- rf[initial_window+1:T]}
+  
+  # Choose number of factors
+  
+  # Determine optimal number of factors using Silverman’s bandwidth
+  m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  
+  # Initialize storage for daily portfolio returns for each method
+  daily_ret_equal   <- numeric(0)
+  daily_ret_sample  <- numeric(0)
+  daily_ret_shrink  <- numeric(0)
+  daily_ret_emwa    <- numeric(0)
+  daily_ret_POET    <- numeric(0)
+  daily_ret_glasso  <- numeric(0)
+  daily_ret_tvmvp   <- numeric(0)
+  
+  # Loop over rebalancing dates
+  for (l in seq_len(RT)) {
+    reb_t <- rebalance_dates[l]
+    est_data <- returns[1:(reb_t - 1), , drop = FALSE]
+    
+    # 1) 1/N Equal-Weight Portfolio
+    w_equal <- rep(1 / p, p)
+    
+    # 2) Sample Covariance GMVP
+    Sigma_sample <- cov(est_data)
+    inv_sample <- solve(Sigma_sample)
+    w_sample <- as.numeric(inv_sample %*% rep(1, p))
+    w_sample <- w_sample / sum(w_sample)
+    
+    # 3) Shrinkage Covariance GMVP (corpcor)
+    library(corpcor)
+    Sigma_shrink <- cov.shrink(est_data)
+    inv_shrink <- solve(Sigma_shrink)
+    w_shrink <- as.numeric(inv_shrink %*% rep(1, p))
+    w_shrink <- w_shrink / sum(w_shrink)
+    
+    # 4) EWMA Covariance GMVP (PortfolioMoments)
+    library(PortfolioMoments)
+    lambda <- 0.94
+    Sigma_emwa <- cov_ewma(est_data, lambda = lambda)
+    inv_emwa <- solve(Sigma_emwa)
+    w_emwa <- as.numeric(inv_emwa %*% rep(1, p))
+    w_emwa <- w_emwa / sum(w_emwa)
+    
+    # 5) POET Covariance GMVP (POET package)
+    library(POET)
+    # Here we use r = 3 as an example; adjust as needed.
+    poet_res <- POET(t(est_data), m)
+    Sigma_POET <- poet_res$SigmaY
+    inv_POET <- solve(Sigma_POET)
+    w_POET <- as.numeric(inv_POET %*% rep(1, p))
+    w_POET <- w_POET / sum(w_POET)
+    
+    # 6) Glasso Covariance GMVP (glasso package)
+    library(glasso)
+    S <- cov(est_data)
+    glasso_res <- glasso(S, rho = 0.01)
+    Sigma_glasso <- glasso_res$w
+    inv_glasso <- solve(Sigma_glasso)
+    w_glasso <- as.numeric(inv_glasso %*% rep(1, p))
+    w_glasso <- w_glasso / sum(w_glasso)
+    
+    # 7) TV-MVP
+    # Local PCA
+    local_res <- local_pca(returns, nrow(returns), silverman(returns), m, epanechnikov_kernel)
+    # Compute covariance
+    Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
+    ## Global Minimum Variance Portfolio (GMVP)
+    inv_cov <- chol2inv(chol(Sigma_hat))
+    ones <- rep(1, p)
+    w_gmv_unnorm <- inv_cov %*% ones
+    w_tvmvp <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
+    
+    # Define the holding window for returns
+    hold_end <- min(reb_t + rebal_period - 1, T)
+    ret_window <- returns[reb_t:hold_end, , drop = FALSE]
+    
+    # Compute daily portfolio returns for each method
+    daily_ret_equal   <- c(daily_ret_equal,   ret_window %*% w_equal)
+    daily_ret_sample  <- c(daily_ret_sample,  ret_window %*% w_sample)
+    daily_ret_shrink  <- c(daily_ret_shrink,  ret_window %*% w_shrink)
+    daily_ret_emwa    <- c(daily_ret_emwa,    ret_window %*% w_emwa)
+    daily_ret_POET    <- c(daily_ret_POET,    ret_window %*% w_POET)
+    daily_ret_glasso  <- c(daily_ret_glasso,  ret_window %*% w_glasso)
+    daily_ret_tvmvp   <- c(daily_ret_tvmvp,   ret_window %*% w_tvmvp)
+  }
+  
+  # Total number of daily returns across all rebalancing windows
+  N <- length(daily_ret_equal)
+  rf_vec <- if (length(rf) == 1) rep(rf, N) else rf[1:N]
+  
+  # Compute excess returns (daily)
+  er_equal   <- daily_ret_equal   - rf_vec
+  er_sample  <- daily_ret_sample  - rf_vec
+  er_shrink  <- daily_ret_shrink  - rf_vec
+  er_emwa    <- daily_ret_emwa    - rf_vec
+  er_POET    <- daily_ret_POET    - rf_vec
+  er_glasso  <- daily_ret_glasso  - rf_vec
+  er_tvmvp   <- daily_ret_tvmvp   - rf_vec
+  
+  # Function to compute performance metrics from excess returns
+  compute_metrics <- function(er) {
+    mu <- mean(er)
+    sd_ <- sd(er)
+    sharpe <- mu / sd_
+    list(mean_excess = mu, sd = sd_, sharpe = sharpe)
+  }
+  
+  stats_equal  <- compute_metrics(er_equal)
+  stats_sample <- compute_metrics(er_sample)
+  stats_shrink <- compute_metrics(er_shrink)
+  stats_emwa   <- compute_metrics(er_emwa)
+  stats_POET   <- compute_metrics(er_POET)
+  stats_glasso <- compute_metrics(er_glasso)
+  stats_tvmvp  <- compute_metrics(er_tvmvp)
+  
+  methods_stats <- data.frame(
+    method      = c("1/N", "SampleCov", "ShrinkCov", "EWMA", "POET", "Glasso", "TV-MVP"),
+    mean_excess = c(stats_equal$mean_excess,
+                    stats_sample$mean_excess,
+                    stats_shrink$mean_excess,
+                    stats_emwa$mean_excess,
+                    stats_POET$mean_excess,
+                    stats_glasso$mean_excess,
+                    stats_tvmvp$mean_excess),
+    sd          = c(stats_equal$sd,
+                    stats_sample$sd,
+                    stats_shrink$sd,
+                    stats_emwa$sd,
+                    stats_POET$sd,
+                    stats_glasso$sd,
+                    stats_tvmvp$sd),
+    sharpe      = c(stats_equal$sharpe,
+                    stats_sample$sharpe,
+                    stats_shrink$sharpe,
+                    stats_emwa$sharpe,
+                    stats_POET$sharpe,
+                    stats_glasso$sharpe,
+                    stats_tvmvp$sharpe)
+  )
+  
+  list(
+    daily_returns = list(
+      equal       = daily_ret_equal,
+      sample_cov  = daily_ret_sample,
+      shrink_cov  = daily_ret_shrink,
+      EWMA        = daily_ret_emwa,
+      POET        = daily_ret_POET,
+      glasso      = daily_ret_glasso,
+      tvmvp       = daily_ret_tvmvp
+    ),
+    stats = methods_stats
+  )
+}
+
+rolling_window_results <- mega_rol_pred(returns, 250, 5, rf=risk_free, max_factors = 5)
