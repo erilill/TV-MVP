@@ -6,7 +6,7 @@ rolling_time_varying_mvp <- function(
     max_factors     ,
     return_type    = "daily",
     kernel_func    = epanechnikov_kernel,
-    annual_rf = 0) {
+    rf             = NULL ) {
   T <- nrow(returns)
   p <- ncol(returns)
   rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
@@ -18,15 +18,6 @@ rolling_time_varying_mvp <- function(
   daily_port_ret <- numeric(0)
   theoretical_risk <- numeric(0) # sqrt(w' Sigma w)
   theoretical_mu  <- numeric(0) 
-  
-  # Convert annual risk-free rate to daily/weekly/monthly, etc.
-  rf_daily <- switch(
-    return_type,
-    "daily"   = annual_rf / 252,
-    "weekly"  = annual_rf / 52,
-    "monthly" = annual_rf / 12,
-    stop("Invalid return_type!")
-  )
   
   # Determine number of factors <- would be good to re-compute yearly
   m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_R
@@ -76,14 +67,15 @@ rolling_time_varying_mvp <- function(
   
   # Cumulative returns
   N <- length(daily_port_ret)
-  excess_ret <- daily_port_ret - rf_daily
+  excess_ret <- daily_port_ret - rf
   CER <- sum(excess_ret)
+  theoretical_mu <- theoretical_mu - rf
   
   # Metrics
   mean_val <- CER / N
   sample_sd <- sd(excess_ret)
   sample_SR <- mean(excess_ret) / sample_sd
-  RMSE <- sqrt(mean((excess_ret - (theoretical_mu - rf_daily))^2))  
+  RMSE <- sqrt(mean((excess_ret - (theoretical_mu))^2))  
   avg_risk_diff <- abs(sample_sd - mean(theoretical_risk))
   
   # Set annualization factor based on return frequency
