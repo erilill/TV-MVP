@@ -100,15 +100,10 @@ generate_DGP5 <- function(p, T, F, b = 2) {
 }
 
 # DGP 6 Smooth Structural Changes I
-generate_DGP6 <- function(p, T, F, b = 2) {
+generate_DGP6 <- function(p, T, b = 2) {
   X <- matrix(NA, nrow=T, ncol=p)
   
-  G <- function(z, kappa, gamma) {
-    exponent <- -kappa * prod(z - gamma)
-    return(1 / (1 + exp(exponent)))
-  }
-  
-  # Smooth transition function
+  G <- function(x, a, b) exp(-a * (x - b)^-1)  # Smooth transition function
   
   for (t in 1:T) {
     Lambda <- matrix(rnorm(p * 2, mean = 0, sd = 1), ncol = 2)
@@ -421,7 +416,7 @@ start.time <- Sys.time()
 # Each worker generates synthetic data and runs the hypothesis test.
 results_list_dgp6 <- parLapply(cl, 1:R, function(r) {
   # Generate synthetic data for replication r
-  X_sim <- generate_DGP6(p, T, F_t, b=1)
+  X_sim <- generate_DGP6(p, T, F_t)
   
   # Run the hypothesis test on the synthetic data
   test_result <- hyptest1(X_sim, m, B)
@@ -605,6 +600,6 @@ test_sample <- omx[, c(random100)]
 returns <- as.matrix(diff(log(test_sample))[-1,])
 risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
 
-pred <-predict_portfolio(returns[,1:100], 21, bandwidth_func = silverman, min_return = 0.05)
+pred <-predict_portfolio(returns[,1:100], 21, min_return = 0.05)
 
-rolpred <- rolling_time_varying_mvp(returns[,1:100], 510, 5, 5, rf=risk_free[510:522, ])
+rolpred <- rolling_time_varying_mvp(returns[,1:100], 510, 5, 5, rf=risk_free[511:522])
