@@ -811,7 +811,7 @@ rolling_window_results_month_p <- mega_rol_pred_parallel(returns, 250, 21, rf=ri
 
 
 test_rolpred <- rolling_time_varying_mvp(returns, 250, 5, 10, rf=risk_free[251:502])
-test_pred <- predict_portfolio()
+test_pred <- predict_portfolio(returns, rf=risk_free)
 
 
 
