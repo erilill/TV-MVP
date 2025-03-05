@@ -6,11 +6,21 @@ rolling_time_varying_mvp <- function(
     max_factors     ,
     return_type    = "daily",
     kernel_func    = epanechnikov_kernel,
-    rf             = NULL ) {
+    rf             = NULL,
+    M0             = 10, #Cov func
+    rho_grid = seq(0.005, 2, length.out = 30), #Cov func
+    floor_value    = 1e-12, #Cov func
+    epsilon2       = 1e-6) { #Cov func
   T <- nrow(returns)
   p <- ncol(returns)
   rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
   RT <- length(rebalance_dates)
+  
+  if (is.null(rf)) {
+    rf_vec <- rep(0, (T-initial_window))
+  } else {
+    rf_vec <- if (length(rf) == 1) rep(rf, N) else rf
+  }
   
   # Initialize storage
   weights <- list()
@@ -31,7 +41,12 @@ rolling_time_varying_mvp <- function(
     local_res <- localPCA(est_data, bandwidth, m, kernel_func)
     
     # Compute covariance
-    Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
+    Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results =  local_res,
+                                                  returns = est_data,
+                                                  M0 = 10, 
+                                                  rho_grid = seq(0.005, 2, length.out = 30),
+                                                  floor_value = 1e-12,
+                                                  epsilon2 = 1e-6)$total_cov
     
     # Compute weights
     inv_cov <- chol2inv(chol(Sigma_hat))
@@ -67,9 +82,9 @@ rolling_time_varying_mvp <- function(
   
   # Cumulative returns
   N <- length(daily_port_ret)
-  excess_ret <- daily_port_ret - rf
-  theoretical_mu <- theoretical_mu - rf
+  excess_ret <- daily_port_ret - rf_vec
   CER <- sum(excess_ret)
+  theoretical_mu <- theoretical_mu - rf_vec
   
   # Metrics
   mean_val <- CER / N
@@ -128,10 +143,20 @@ predict_portfolio <- function(
   local_res <- localPCA(returns, bandwidth, m, kernel_func)
   
   # Compute covariance
-  Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov
+  Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results =  local_res,
+                                                returns = returns,
+                                                M0 = 10, 
+                                                rho_grid = seq(0.005, 2, length.out = 30),
+                                                floor_value = 1e-12,
+                                                epsilon2 = 1e-6)$total_cov
   
   # Expected returns
-  mean_returns <- colMeans(returns) - rf[T] # place holder, might change
+  if (is.null(rf)) {
+    mean_returns <- colMeans(returns)
+  } else {
+    mean_returns <- colMeans(returns) - rf
+  }
+  
   
   ## Global Minimum Variance Portfolio (GMVP)
   inv_cov <- chol2inv(chol(Sigma_hat))
