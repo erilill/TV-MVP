@@ -5,7 +5,7 @@
 \title{Work in progress
 Compute Bandwidth Parameter Using Silverman's Rule of Thumb}
 \usage{
-silverman(returns, T = NULL, p = NULL)
+silverman(returns)
 }
 \arguments{
 \item{returns}{A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).}
