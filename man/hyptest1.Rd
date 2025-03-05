@@ -4,16 +4,12 @@
 \alias{hyptest1}
 \title{Perform Hypothesis Test for Time-Varying Covariance Matrix}
 \usage{
-hyptest1(
-  local_factors,
-  global_factors,
-  local_loadings,
-  global_loadings,
-  residuals,
-  kernel_func = epanechnikov_kernel
-)
+hyptest1(returns, m, B = 199, kernel_func = epanechnikov_kernel)
 }
 \arguments{
+\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
+Epanechnikov kernel or another boundary kernel function. Defaults to \code{epanechnikov_kernel}.}
+
 \item{local_factors}{A list where each element is a numeric matrix representing the
 local factor scores for a specific time period. Each matrix should have \eqn{m} columns
 (factors) and as many rows as time periods.}
@@ -29,9 +25,6 @@ rows (assets) and \eqn{m} columns (factors).}
 (assets) and \eqn{m} columns (factors).}
 
 \item{residuals}{A numeric matrix of residuals with \eqn{T} rows (time periods) and \eqn{p} columns (assets).}
-
-\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
-Epanechnikov kernel or another boundary kernel function. Defaults to \code{epanechnikov_kernel}.}
 }
 \value{
 A numeric scalar \eqn{J_{pT}} representing the computed test statistic.
