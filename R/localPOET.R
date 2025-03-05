@@ -3,7 +3,8 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
                                              returns,
                                              M0 = 10, 
                                              rho_grid = seq(0.005, 2, length.out = 30),
-                                             floor_value = 1e-12) {
+                                             floor_value = 1e-12,
+                                             epsilon2 = 1e-6) {
 
   # This function:
   #   1. Form local residuals u_t = R_local - F(z_t) * B(z_t)ᵀ
@@ -29,7 +30,8 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
     #    This returns (best_rho = ..., min_Fnorm = ...)
     rho_result <- adaptive_poet_rho(U_local,
                                            M0 = M0,
-                                           rho_grid = rho_grid)
+                                           rho_grid = rho_grid,
+                                           epsilon2 = epsilon2)
     best_rho_t <- rho_result$best_rho
     
     # 4. Compute the naive residual covariance, then shrink once
