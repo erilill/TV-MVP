@@ -34,11 +34,16 @@ mvp_result <- rolling_time_varying_mvp(
   max_factors    = 10,
   return_type    = "daily",
   kernel_func    = epanechnikov_kernel,
-  bandwidth_func = silverman
+  rf             = NULL
 )
 ## K: some problem with non-conformable arguments
 ## K: Error in factors_t %*% t(loadings_t) : non-conformable arguments
 ## E: When initial_window is small, and m is large, the effective rank in the cv_bandwidth becomes < m which causes problems
 ## E: Tried to fix it. I am not sure if this is a valid solution to the problem.
 
-prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
+prediction <- predict_portfolio(returns, 
+                                horizon = 21, 
+                                max_factors = 10,
+                                kernel_func = epanechnikov_kernel,
+                                min_return=0.5,
+                                rf = NULL)

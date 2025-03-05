@@ -68,8 +68,8 @@ rolling_time_varying_mvp <- function(
   # Cumulative returns
   N <- length(daily_port_ret)
   excess_ret <- daily_port_ret - rf
-  CER <- sum(excess_ret)
   theoretical_mu <- theoretical_mu - rf
+  CER <- sum(excess_ret)
   
   # Metrics
   mean_val <- CER / N
