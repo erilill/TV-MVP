@@ -1,8 +1,8 @@
 
 #' @export
 determine_factors <- function(returns, max_R, bandwidth) {
-  T <- nrow(returns)
-  N <- ncol(returns)
+  iT <- nrow(returns)
+  ip <- ncol(returns)
 
   # Initialize storage
   V <- numeric(max_R)
@@ -11,9 +11,9 @@ determine_factors <- function(returns, max_R, bandwidth) {
 
   # Loop over possible number of factors (R)
   for (R in 1:max_R) {
-    residuals <- matrix(NA, nrow = T, ncol = N)
+    residuals <- matrix(NA, nrow = iT, ncol = ip)
     prev_F = NULL
-    for (r in 1:T){
+    for (r in 1:iT){
       # Step 1: Perform PCA with R factors
       pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth, 
                                        m = R, kernel_func = epanechnikov_kernel, 
@@ -24,10 +24,10 @@ determine_factors <- function(returns, max_R, bandwidth) {
       }
                              
 
-      X_r <- matrix(0, nrow = T, ncol = N)
+      X_r <- matrix(0, nrow = iT, ncol = ip)
       X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
-      scaled_loadings <- sqrt(N) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
-      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%scaled_loadings)
+      scaled_loadings <- sqrt(ip) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
+      Lambda_breve_R <- t((1/(iT*ip))*t(X_r)%*%X_r%*%scaled_loadings)
       F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
 
       # Step 2: Compute SSR (Sum of Squared Residuals)
@@ -35,8 +35,8 @@ determine_factors <- function(returns, max_R, bandwidth) {
 
       prev_F <- pca_result$F_hat_r
     }
-    V[R] <- sum(residuals^2) / (N * T)
-    penalty[R] <- R * ((N+T*bandwidth)/(N*T*bandwidth))*log((N*T*bandwidth)/(N+T*bandwidth))
+    V[R] <- sum(residuals^2) / (ip * iT)
+    penalty[R] <- R * ((ip+iT*bandwidth)/(ip*iT*bandwidth))*log((ip*iT*bandwidth)/(ip+iT*bandwidth))
     IC_values[R] <- log(V[R]) + penalty[R]
   }
   # Step 4: Determine optimal number of factors
@@ -98,11 +98,11 @@ determine_factors <- function(returns, max_R, bandwidth) {
 #'
 #' @export
 local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
-  T <- nrow(returns)
-  p <- ncol(returns)
+  iT <- nrow(returns)
+  ip <- ncol(returns)
 
   # Compute Kernel Weights
-  k_h <- sapply(1:T, function(t) boundary_kernel(r, t, T, bandwidth, kernel_func))
+  k_h <- sapply(1:iT, function(t) boundary_kernel(r, t, iT, bandwidth, kernel_func))
   X_r <- sweep(returns, 1, sqrt(k_h), `*`)  # Weighted returns
 
   # Compute Eigen Decomposition
@@ -112,7 +112,7 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
   eigvecs <- eigen_txr_xr$vectors[, idx]
 
   # Enforce Orthonormality of Factors (F_r)
-  F_hat_r <- sqrt(T) * eigvecs[, 1:m, drop = FALSE]  # (T x m)
+  F_hat_r <- sqrt(iT) * eigvecs[, 1:m, drop = FALSE]  # (T x m)
 
   # Align eigenvector directions if previous factors exist
   if (!is.null(prev_F)) {
@@ -124,7 +124,7 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
   }
 
   # Compute Loadings: Lambda_r
-  t_lambda_hat_r <- t(F_hat_r) %*% (X_r) / T  # (m x p)
+  t_lambda_hat_r <- t(F_hat_r) %*% (X_r) / iT  # (m x p)
   loadings <- t(t_lambda_hat_r)
     
   # Second pass to compute F_r_hat
@@ -203,19 +203,19 @@ localPCA <- function(returns,
                      bandwidth,
                      m,
                      kernel_func = epanechnikov_kernel) {
-  p <- ncol(returns)
-  T <- nrow(returns)
+  ip <- ncol(returns)
+  iT <- nrow(returns)
 
   # Initialize storage
-  factors <- vector("list", T)
-  loadings <- vector("list", T)
-  weights_list <- vector("list", T)
-  f_hat <- matrix(NA, nrow=T, ncol=m)
+  factors <- vector("list", iT)
+  loadings <- vector("list", iT)
+  weights_list <- vector("list", iT)
+  f_hat <- matrix(NA, nrow=iT, ncol=m)
 
   prev_F <- NULL
 
   # For each time t, do local PCA
-  for (t_i in 1:T) {
+  for (t_i in 1:iT) {
     local_result <- local_pca(returns, t_i, bandwidth, m, kernel_func, prev_F)
     factors[[t_i]] <- local_result$factors
     loadings[[t_i]] <- local_result$loadings

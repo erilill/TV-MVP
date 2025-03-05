@@ -3,7 +3,8 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
                                              returns,
                                              M0 = 10, 
                                              rho_grid = seq(0.005, 2, length.out = 30),
-                                             floor_value = 1e-12) {
+                                             floor_value = 1e-12,
+                                             epsilon2 = 1e-6) {
 
   # This function:
   #   1. Form local residuals u_t = R_local - F(z_t) * B(z_t)ᵀ
@@ -29,7 +30,8 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
     #    This returns (best_rho = ..., min_Fnorm = ...)
     rho_result <- adaptive_poet_rho(U_local,
                                            M0 = M0,
-                                           rho_grid = rho_grid)
+                                           rho_grid = rho_grid,
+                                           epsilon2 = epsilon2)
     best_rho_t <- rho_result$best_rho
     
     # 4. Compute the naive residual covariance, then shrink once
@@ -84,19 +86,19 @@ adaptive_poet_rho <- function(R, M0 = 10,
   # M0: number of observations to leave out between the two sub-samples
   # rho_grid: grid of possible rho values
   
-  T <- nrow(R)
-  p <- ncol(R)
+  iT <- nrow(R)
+  ip <- ncol(R)
   
   # Half of the sample size (floored)
-  halfT <- floor(T / 2)
+  halfT <- floor(iT / 2)
   
   # Define T1 and T2 for the sub-samples
-  T1 <- floor(halfT * (1 - 1 / log(T)))
+  T1 <- floor(halfT * (1 - 1 / log(iT)))
   T2 <- halfT - T1  # ensures T1 + T2 = floor(T/2)
   
   # Number of groups as per Chen et al. (2019), p. 61:
   # "we divide the full sample into floor(T/(2*M0)) groups"
-  num_groups <- floor(T / (2 * M0))
+  num_groups <- floor(iT / (2 * M0))
   
   if (num_groups < 1) {
     stop("Not enough data for adaptive rho selection. Increase T or reduce M0.")
@@ -122,7 +124,7 @@ adaptive_poet_rho <- function(R, M0 = 10,
       
       start_idx <- (m - 1) * M0 + 1
       end_idx   <- (m - 1) * M0 + (halfT + M0)
-      if (end_idx > T) break  # guard for edge cases
+      if (end_idx > iT) break  # guard for edge cases
       
       # Sub-sample 1: first T1 observations of the group
       sub1_start <- start_idx
@@ -166,7 +168,7 @@ adaptive_poet_rho <- function(R, M0 = 10,
   lambda_min_all <- numeric(length(rho_grid))
   for (i in seq_along(rho_grid)){
     rho_result <- frob_sum_for_rho(rho_grid[i])
-    lambda_min_all[i] <- min(rho_result$lambda_min_vals, na.rm=T)
+    lambda_min_all[i] <- min(rho_result$lambda_min_vals, na.rm=iT)
   }
   
   # Compute rho_1

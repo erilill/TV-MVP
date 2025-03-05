@@ -1,15 +1,15 @@
-sqrt_matrix <- function(A) {
-  eig <- eigen(A)
+sqrt_matrix <- function(Amat) {
+  eig <- eigen(Amat)
   eig_values_sqrt <- diag(sqrt(abs(eig$values)))  # Ensure non-negative eigenvalues
   return(eig$vectors %*% eig_values_sqrt %*% t(eig$vectors))
 }
 
 #'
-compute_sigma_0 <- function(res_set, T, p) {
-  sigma_0 <- crossprod(res_set) / T
+compute_sigma_0 <- function(res_set, iT, ip) {
+  sigma_0 <- crossprod(res_set) / iT
 
-  for (i in 1:(p - 1)) {
-    for (j in (i + 1):p) {
+  for (i in 1:(ip - 1)) {
+    for (j in (i + 1):ip) {
       sigma_0[i, j] <- sigma_0[i, j] * ((1 - 0.01)^(j - i))
       sigma_0[j, i] <- sigma_0[i, j]
     }
