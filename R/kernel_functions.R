@@ -139,3 +139,4 @@ two_fold_convolution_kernel <- function(u, kernel_func) {
   )
   return(result)
 }
+

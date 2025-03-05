@@ -28,7 +28,7 @@ rolling_time_varying_mvp <- function(
     bandwidth <- silverman(returns)
     
     # Local PCA
-    local_res <- local_pca(est_data, nrow(est_data), bandwidth, m, kernel_func)
+    local_res <- localPCA(est_data, bandwidth, m, kernel_func)
     
     # Compute covariance
     Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
@@ -125,7 +125,7 @@ predict_portfolio <- function(
   bandwidth <- silverman(returns)
   
   # Local PCA
-  local_res <- local_pca(returns, nrow(returns), bandwidth, m, kernel_func)
+  local_res <- localPCA(returns, bandwidth, m, kernel_func)
   
   # Compute covariance
   Sigma_hat <- estimate_residual_cov_poet_local(local_res, returns)$total_cov

@@ -2,7 +2,7 @@
 estimate_residual_cov_poet_local <- function(localPCA_results, 
                                              returns,
                                              M0 = 10, 
-                                             rho_grid = seq(0.001, 1, length.out = 20),
+                                             rho_grid = seq(0.005, 2, length.out = 30),
                                              floor_value = 1e-12) {
 
   # This function:
@@ -16,13 +16,13 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 
   
     # 1. Extract local loadings, factors, and row indices
-    Lambda_t <- localPCA_results$loadings  # p x K
-    F_t <- localPCA_results$factors   # T_t x K
-    w_t <- localPCA_results$w_r
+    Lambda_t <- localPCA_results$loadings[[nrow(returns)]]  # p x K
+    F_t <- localPCA_results$f_hat   # T_t x K
+    w_t <- localPCA_results$weights[[nrow(returns)]]
     idx <- t  # subset of rows in 'returns' for this window
     
     # 2. residuals
-    U_local <- sweep(returns, 1, w_t, "*") - tcrossprod(F_t, Lambda_t)  # T_t x p
+    U_local <- residuals(F_t, localPCA_results$loadings, returns)  # T_t x p
     
     # 3. Pick best rho for these local residuals using Chen–Leng–style grouping
     #    (See the 'adaptive_poet_rho()' function you already have.)
@@ -47,7 +47,7 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
     diag(S_u_shrunk) <- diag(S_u_raw)
     
     # 5. Final local covariance = factor part + shrunk residual
-    Sigma_R_t <- tcrossprod(Lambda_t) + S_u_shrunk  # p x p
+    Sigma_R_t <- Lambda_t%*%(crossprod(F_t)/nrow(returns))%*%t(Lambda_t) + S_u_shrunk  # p x p
     
     #Please check /Erik
     ############################################################################
