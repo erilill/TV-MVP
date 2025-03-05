@@ -10,7 +10,7 @@ TVMVP <- R6::R6Class(
 
   public = list(
 
-    initialize <- function(data = NULL) {
+    initialize = function(data = NULL) {
       if(!is.null(data)){
         if(tibble::is_tibble(data)){
           private$data <- data
@@ -20,7 +20,7 @@ TVMVP <- R6::R6Class(
           #tmp_size <- get_object_size(private$data)
           tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
           cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
-        } esle{
+        } else{
           cli_alert_info("The data set is not tibble! The data is empty now.")
         }
       }
@@ -28,7 +28,7 @@ TVMVP <- R6::R6Class(
 
     # set functions
 
-    set_data <- function(data){
+    set_data = function(data){
       # for set_data function, the argument data should not be missing
       # this is why I use missing(data) for checking without setting any default value of it
       # note that this is different from initialize function where data can be missing with default value NULL
@@ -49,7 +49,7 @@ TVMVP <- R6::R6Class(
 
     # get functions
 
-    get_data <- function(){
+    get_data = function(){
       return(private$data)
       # make a copy of the data and return it
     }
@@ -60,9 +60,9 @@ TVMVP <- R6::R6Class(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
 
-    data <- NULL, # data tibble
-    iT <- NULL, # integer of the sample size (time)
-    ip <- NULL # integer of the number of stocks
+    data = NULL, # data tibble
+    iT = NULL, # integer of the sample size (time)
+    ip = NULL # integer of the number of stocks
 
   )
 )
