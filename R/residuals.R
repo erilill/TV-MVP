@@ -42,12 +42,12 @@
 #'
 #' @export
 residuals <- function(factors, loadings_list, returns) {
-  T <- nrow(returns)
-  p <- ncol(returns)
+  iT <- nrow(returns)
+  ip <- ncol(returns)
   
-  residuals <- matrix(NA, nrow = T, ncol = p)
+  residuals <- matrix(NA, nrow = iT, ncol = ip)
   
-  for (t in 1:T) {
+  for (t in 1:iT) {
     factors_t <- factors[t, , drop = FALSE]
     loadings_t <- (loadings_list[[t]])
     

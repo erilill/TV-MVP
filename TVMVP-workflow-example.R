@@ -7,9 +7,9 @@ library(TVMVP)
 # - local_pca: Worked a lot in order to get this to work properly, still not sure.
 
 set.seed(123)
-T <- 100  # Number of time periods
-p <- 20   # Number of assets
-returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
+uT <- 100  # Number of time periods
+up <- 20   # Number of assets
+returns <- matrix(rnorm(uT * up, mean = 0.001, sd = 0.02), ncol = up)
 
 # Number of factors
 m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization

@@ -72,20 +72,20 @@ epanechnikov_kernel <- function(u) {
 #' print(weight)
 #'
 #' @export
-boundary_kernel <- function(t, r, T, h, kernel_func) {
-  scaled_diff <- (t - r) / (T * h)
+boundary_kernel <- function(t, r, iT, h, kernel_func) {
+  scaled_diff <- (t - r) / (iT * h)
   k_val <- kernel_func(scaled_diff) / h
 
   # Determine the region of r
-  Th_floor <- floor(T * h)
+  Th_floor <- floor(iT * h)
 
   if (r < Th_floor) {
     # Lower boundary case
-    integral_val <- integrate(kernel_func, lower = -r / (T * h), upper = 1)$value
+    integral_val <- integrate(kernel_func, lower = -r / (iT * h), upper = 1)$value
     return(k_val / integral_val)
-  } else if (r > (T - Th_floor)) {
+  } else if (r > (iT - Th_floor)) {
     # Upper boundary case
-    integral_val <- integrate(kernel_func, lower = -1, upper = (1 - r / T) / h)$value
+    integral_val <- integrate(kernel_func, lower = -1, upper = (1 - r / iT) / h)$value
     return(k_val / integral_val)
   } else {
     # Middle region

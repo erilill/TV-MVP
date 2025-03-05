@@ -11,15 +11,15 @@ rolling_time_varying_mvp <- function(
     rho_grid = seq(0.005, 2, length.out = 30), #Cov func
     floor_value    = 1e-12, #Cov func
     epsilon2       = 1e-6) { #Cov func
-  T <- nrow(returns)
-  p <- ncol(returns)
-  rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
+  iT <- nrow(returns)
+  ip <- ncol(returns)
+  rebalance_dates <- seq(initial_window + 1, iT, by = rebal_period)
   RT <- length(rebalance_dates)
   
   if (is.null(rf)) {
-    rf_vec <- rep(0, (T-initial_window))
+    rf_vec <- rep(0, (iT-initial_window))
   } else {
-    rf_vec <- if (length(rf) == 1) rep(rf, N) else rf
+    rf_vec <- if (length(rf) == 1) rep(rf, (iT-initial_window)) else rf
   }
   
   # Initialize storage
@@ -50,13 +50,13 @@ rolling_time_varying_mvp <- function(
     
     # Compute weights
     inv_cov <- chol2inv(chol(Sigma_hat))
-    ones <- rep(1, p)
+    ones <- rep(1, ip)
     w_gmv_unnorm <- inv_cov %*% ones
     w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
     
     weights[[l]] <- w_hat
     
-    hold_end <- min(reb_t + rebal_period - 1, T)
+    hold_end <- min(reb_t + rebal_period - 1, iT)
     port_ret_window <- returns[reb_t:hold_end, , drop=FALSE] %*% w_hat
     
     ## Theoretical metrics
@@ -130,8 +130,8 @@ predict_portfolio <- function(
     min_return = NULL,
     rf = NULL
 ) {
-  T <- nrow(returns)
-  p <- ncol(returns)
+  iT <- nrow(returns)
+  ip <- ncol(returns)
   
   # Determine optimal number of factors using Silverman’s bandwidth
   m <- determine_factors(returns, max_factors, silverman(returns))$optimal_R
@@ -160,7 +160,7 @@ predict_portfolio <- function(
   
   ## Global Minimum Variance Portfolio (GMVP)
   inv_cov <- chol2inv(chol(Sigma_hat))
-  ones <- rep(1, p)
+  ones <- rep(1, ip)
   w_gmv_unnorm <- inv_cov %*% ones
   w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
   
@@ -170,7 +170,7 @@ predict_portfolio <- function(
   
   ### **Minimum Variance Portfolio with Return Constraint**
   if (!is.null(min_return)) {
-    A  <- cbind(rep(1, p), mean_returns)  # Constraints matrix (p x 2)
+    A  <- cbind(rep(1, ip), mean_returns)  # Constraints matrix (p x 2)
     b  <- c(1, min_return / horizon)  # Constraint values
     
     A_Sigma_inv_A <- solve(t(A) %*% inv_cov %*% A)
