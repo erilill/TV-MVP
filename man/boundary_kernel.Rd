@@ -13,8 +13,7 @@ boundary_kernel(t, r, iT, h, kernel_func)
 
 \item{h}{A numeric value representing the bandwidth parameter for the kernel function.}
 
-\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
-Epanechnikov kernel or another boundary kernel function.}
+\item{kernel_func}{A function representing the kernel used for weighting.}
 
 \item{T}{An integer indicating the total number of time periods in the dataset.}
 }
@@ -40,6 +39,7 @@ edge effects commonly encountered in kernel-based methods. The function performs
 }
 }
 \examples{
+\dontrun{
 # Define the Epanechnikov kernel function
 epanechnikov_kernel <- function(u) {
   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
@@ -48,5 +48,5 @@ epanechnikov_kernel <- function(u) {
 # Compute boundary kernel weight for time period t = 5, reference r = 5, T = 100, h = 0.1
 weight <- boundary_kernel(t = 5, r = 5, T = 100, h = 0.1, kernel_func = epanechnikov_kernel)
 print(weight)
-
+}
 }
