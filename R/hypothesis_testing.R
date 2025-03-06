@@ -222,49 +222,6 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
   V_pT <- (2 / (iT^2 * ip * h)) * V_pT
   return(V_pT)
 }
-#' Compute \eqn{J_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing
-#'
-#' This function calculates the \eqn{J_{pT}} statistic, which is used to test the null
-#' hypothesis that the covariance matrix of asset returns is not time-varying. The statistic
-#' compares the scaled \eqn{M_{\hat{}}} and \eqn{B_{pT}} against the square root of \eqn{V_{pT}}.
-#'
-#' @param B_pT A numeric scalar representing the \eqn{B_{pT}} statistic.
-#' @param V_pT A numeric scalar representing the \eqn{V_{pT}} statistic.
-#' @param M_hat A numeric scalar representing the \eqn{M_{\hat{}}} statistic.
-#' @param T An integer specifying the number of time periods.
-#' @param p An integer specifying the number of assets.
-#' @param h A numeric value indicating the bandwidth parameter used in kernel functions.
-#'
-#' @return A numeric scalar \eqn{J_{pT}} representing the computed test statistic.
-#'
-#' @details
-#' The \eqn{J_{pT}} statistic is computed using the formula:
-#' \deqn{
-#' J_{pT} = \frac{T \sqrt{p} \sqrt{h} M_{\hat{}} - B_{pT}}{\sqrt{V_{pT}}}
-#' }
-#'
-#' This statistic is used to assess whether there is significant evidence to reject the null
-#' hypothesis of time-invariant covariance matrices. Typically, if \eqn{J_{pT}} exceeds
-#' the critical value (e.g., 1.96 for a 5\% significance level), the null hypothesis is rejected.
-#'
-#' @examples
-#' # Example values
-#' B_pT <- 0.5
-#' V_pT <- 0.1
-#' M_hat <- 0.3
-#' T <- 100
-#' p <- 50
-#' h <- 0.1
-#'
-#' # Compute J_pT
-#' J_pT <- compute_J_pT(B_pT, V_pT, M_hat, T, p, h)
-#' print(J_pT)
-#'
-#' @export
-compute_J_pT <- function(B_pT, V_pT, M_hat, iT, ip, h) {
-  J_pT <- (iT * sqrt(ip) * sqrt(h) * M_hat - B_pT) / sqrt(V_pT)
-  return(J_pT)
-}
 #' Perform Hypothesis Test for Time-Varying Covariance Matrix
 #'
 #' This function conducts a hypothesis test to determine whether the covariance matrix of
