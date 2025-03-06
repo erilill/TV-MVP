@@ -45,6 +45,10 @@ TVMVP <- R6::R6Class(
           cli_alert_info("The data set is not tibble! The data is empty now.")
         }
       }
+    },
+    
+    determine_factors = function(max_R, bandwidth) {
+      p_determine_factors(self, private, max_R, bandwidth)
     }
   ),
 
