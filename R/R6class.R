@@ -1,18 +1,36 @@
 ## In this file, we define the R6 type class of the package
 
 #' Time Varying Minimum Variance Portfolio (TVMVP) Class
-#'
+#' 
+#' @description
 #' This class implements a time-varying mean-variance portfolio model.
 #'
+#' @section Usage:
+#' ```
+#' ```
+#' @section Arguments:
+#' * `data`: A tibble matrix for the data matrix.
+#' 
+#'
+#' @section Methods:
+#' - `$new(data = NULL)`: Initialize the class.
+#' 
+#' - `$set_data(data)`: Set the data.
+#' 
+#' - `$get_data()`: Get the data.
+#'
+#' @name TVMVP
+#'
+#' @docType class
+NULL
+
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
-
+  cloneable = FALSE,
   public = list(
 
-    #' @description Initialize the class.
-    #' @param data A tibble matrix for the data matrix or NULL by default.
-    #' @return An instance of the TVMVP class.
+    
     initialize = function(data = NULL) {
       if(!is.null(data)){
         if(tibble::is_tibble(data)){
@@ -27,45 +45,7 @@ TVMVP <- R6::R6Class(
           cli_alert_info("The data set is not tibble! The data is empty now.")
         }
       }
-    },
-
-    # set functions
-
-    #' @description Set the data.
-    #' @param data A tibble of the data matrix.
-    #' @return An instance of the TVMVP class.
-    set_data = function(data){
-      # for set_data function, the argument data should not be missing
-      # this is why I use missing(data) for checking without setting any default value of it
-      # note that this is different from initialize function where data can be missing with default value NULL
-      if(missing(data)){
-        cli::cli_alert_warning("The data is empty.")
-      } else{
-        private$data <- data
-        private$iT <- nrow(data)
-        private$ip <- ncol(data)
-
-        #tmp_size <- get_object_size(private$data)
-        tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
-        cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
-      }
-
-      invisible(self)  # Enables chaining
-    },
-
-    # get functions
-
-    #' @description Get the data.
-    #' @return A tibble of the data matrix.
-    get_data = function(){
-      if(is.null(private$data)){
-        cli::cli_alert_warning("The data is empty.")
-        return(invisible(NULL))
-      }
-      return(private$data)
-      # make a copy of the data and return it
     }
-
   ),
 
   private = list(
