@@ -9,8 +9,8 @@ compute_M_hat(
   global_factors,
   local_loadings,
   global_loadings,
-  T,
-  N,
+  iT,
+  ip,
   m
 )
 }
@@ -29,11 +29,11 @@ rows (assets) and \eqn{m} columns (factors).}
 \item{global_loadings}{A numeric matrix of global factor loadings with \eqn{N} rows
 (assets) and \eqn{m} columns (factors).}
 
+\item{m}{An integer specifying the number of factors.}
+
 \item{T}{An integer specifying the number of time periods.}
 
 \item{N}{An integer specifying the number of assets.}
-
-\item{m}{An integer specifying the number of factors.}
 }
 \value{
 A numeric scalar \eqn{M_{\hat{}}} representing the average squared discrepancy

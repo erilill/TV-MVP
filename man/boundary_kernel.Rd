@@ -4,19 +4,19 @@
 \alias{boundary_kernel}
 \title{Boundary Kernel Function}
 \usage{
-boundary_kernel(t, r, T, h, kernel_func)
+boundary_kernel(t, r, iT, h, kernel_func)
 }
 \arguments{
 \item{t}{An integer specifying the current time period for which the kernel weights are computed.}
 
 \item{r}{An integer representing the reference time period.}
 
-\item{T}{An integer indicating the total number of time periods in the dataset.}
-
 \item{h}{A numeric value representing the bandwidth parameter for the kernel function.}
 
 \item{kernel_func}{A function representing the kernel used for weighting. Typically, an
 Epanechnikov kernel or another boundary kernel function.}
+
+\item{T}{An integer indicating the total number of time periods in the dataset.}
 }
 \value{
 A numeric scalar representing the boundary-adjusted kernel weight for the given time period.

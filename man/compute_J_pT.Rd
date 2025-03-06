@@ -4,7 +4,7 @@
 \alias{compute_J_pT}
 \title{Compute \eqn{J_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing}
 \usage{
-compute_J_pT(B_pT, V_pT, M_hat, T, p, h)
+compute_J_pT(B_pT, V_pT, M_hat, iT, ip, h)
 }
 \arguments{
 \item{B_pT}{A numeric scalar representing the \eqn{B_{pT}} statistic.}
@@ -13,11 +13,11 @@ compute_J_pT(B_pT, V_pT, M_hat, T, p, h)
 
 \item{M_hat}{A numeric scalar representing the \eqn{M_{\hat{}}} statistic.}
 
+\item{h}{A numeric value indicating the bandwidth parameter used in kernel functions.}
+
 \item{T}{An integer specifying the number of time periods.}
 
 \item{p}{An integer specifying the number of assets.}
-
-\item{h}{A numeric value indicating the bandwidth parameter used in kernel functions.}
 }
 \value{
 A numeric scalar \eqn{J_{pT}} representing the computed test statistic.
