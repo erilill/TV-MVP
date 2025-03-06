@@ -46,31 +46,4 @@ The function performs the following steps:
   \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
 }
 }
-\examples{
-# Example parameters
-T <- 100  # Number of time periods
-p <- 50   # Number of assets
-m <- 3    # Number of factors
-h <- 0.1  # Bandwidth parameter
-
-# Simulate local factors
-local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-
-# Simulate residuals
-residuals <- matrix(rnorm(T * p, mean=0, sd=0.01), nrow=T, ncol=p)
-
-# Simulate factor covariance matrix
-factor_cov <- matrix(c(1, 0.5, 0.3,
-                       0.5, 1, 0.4,
-                       0.3, 0.4, 1), nrow=3, byrow=TRUE)
-
-# Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-epanechnikov_kernel <- function(u) {
-  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-}
-
-# Compute V_pT
-V_pT <- compute_V_pT(local_factors, residuals, h, T, p, factor_cov, epanechnikov_kernel)
-print(V_pT)
-
-}
+\keyword{internal}
