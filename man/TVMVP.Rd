@@ -4,6 +4,11 @@
 \alias{TVMVP}
 \title{Time Varying Minimum Variance Portfolio (TVMVP) Class}
 \description{
+Time Varying Minimum Variance Portfolio (TVMVP) Class
+
+Time Varying Minimum Variance Portfolio (TVMVP) Class
+}
+\details{
 This class implements a time-varying mean-variance portfolio model.
 }
 \section{Methods}{
@@ -19,28 +24,54 @@ This class implements a time-varying mean-variance portfolio model.
 \if{html}{\out{<a id="method-TVMVP-new"></a>}}
 \if{latex}{\out{\hypertarget{method-TVMVP-new}{}}}
 \subsection{Method \code{new()}}{
+Initialize the class.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TVMVP$new(data = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{A tibble matrix for the data matrix or NULL by default.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+An instance of the TVMVP class.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TVMVP-set_data"></a>}}
 \if{latex}{\out{\hypertarget{method-TVMVP-set_data}{}}}
 \subsection{Method \code{set_data()}}{
+Set the data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TVMVP$set_data(data)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{data}}{A tibble of the data matrix.}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+An instance of the TVMVP class.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TVMVP-get_data"></a>}}
 \if{latex}{\out{\hypertarget{method-TVMVP-get_data}{}}}
 \subsection{Method \code{get_data()}}{
+Get the data.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{TVMVP$get_data()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+A tibble of the data matrix.
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-TVMVP-clone"></a>}}

@@ -10,6 +10,9 @@ TVMVP <- R6::R6Class(
 
   public = list(
 
+    #' @description Initialize the class.
+    #' @param data A tibble matrix for the data matrix or NULL by default.
+    #' @return An instance of the TVMVP class.
     initialize = function(data = NULL) {
       if(!is.null(data)){
         if(tibble::is_tibble(data)){
@@ -28,6 +31,9 @@ TVMVP <- R6::R6Class(
 
     # set functions
 
+    #' @description Set the data.
+    #' @param data A tibble of the data matrix.
+    #' @return An instance of the TVMVP class.
     set_data = function(data){
       # for set_data function, the argument data should not be missing
       # this is why I use missing(data) for checking without setting any default value of it
@@ -49,6 +55,8 @@ TVMVP <- R6::R6Class(
 
     # get functions
 
+    #' @description Get the data.
+    #' @return A tibble of the data matrix.
     get_data = function(){
       if(is.null(private$data)){
         cli::cli_alert_warning("The data is empty.")
