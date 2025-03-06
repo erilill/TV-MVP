@@ -2,65 +2,78 @@
 % Please edit documentation in R/pca_function.R
 \name{local_pca}
 \alias{local_pca}
-\title{Perform Local Principal Component Analysis (PCA)}
+\title{Perform Local Principal Component Analysis}
 \usage{
 local_pca(returns, r, bandwidth, m, kernel_func, prev_F = NULL)
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).}
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.}
 
-\item{r}{An integer specifying the current time period for which to perform PCA.}
+\item{r}{Integer. The current time index at which to perform the local PCA.}
 
-\item{bandwidth}{A numeric value indicating the bandwidth parameter defining the window
-around time period \code{r}.}
+\item{bandwidth}{Numeric. The bandwidth used in the kernel weighting.}
 
-\item{m}{An integer specifying the number of principal components (factors) to extract.}
+\item{m}{Integer. The number of factors to extract.}
 
-\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
-Epanechnikov kernel or another boundary kernel function.}
+\item{kernel_func}{Function. The kernel function used for weighting observations (e.g., \code{epanechnikov_kernel}).}
+
+\item{prev_F}{Optional. A numeric matrix of previously estimated factors (with dimensions \eqn{T \times m}) used for aligning eigenvector directions. Default is \code{NULL}.}
 }
 \value{
-A list containing:
-\describe{
-  \item{\code{factors_full}}{Numeric matrix. Factor scores for the extracted principal components.}
-  \item{\code{loadings_full}}{Numeric matrix. Loadings corresponding to the extracted principal components.}
+A list with the following components:
+\itemize{
+  \item \code{factors}: A \eqn{T \times m} matrix of local factors estimated from the weighted returns.
+  \item \code{f_hat}: A \eqn{1 \times m} vector containing the factor estimate for time \eqn{r}.
+  \item \code{loadings}: A \eqn{p \times m} matrix of factor loadings.
+  \item \code{w_r}: A numeric vector of kernel weights used in the computation.
 }
 }
 \description{
-This function conducts a local PCA on asset returns within a specified bandwidth around a
-given time point. It extracts a defined number of principal components (factors) and
-corresponding loadings for portfolio optimization.
+This function performs a local principal component analysis (PCA) on asset returns,
+weighted by a specified kernel function. It extracts local factors and loadings from the weighted
+returns and computes a factor estimate. Optionally, previously estimated factors can
+be provided to align the new factors' directions.
 }
 \details{
-The function performs the following steps:
+The function operates in the following steps:
+
 \enumerate{
-  \item Computes boundary kernel weights \eqn{w_r} for the current time period \code{r} using the
-  specified \code{kernel_func} and \code{bandwidth}.
-  \item Normalizes the weights so that they sum to 1.
-  \item Applies the square root of the weights to the returns matrix to obtain weighted returns.
-  \item Performs PCA on the weighted returns to extract the first \code{m} principal components.
-  \item Normalizes the factor scores and extracts the corresponding loadings.
+  \item **Kernel Weight Computation:**  
+        For each time point \eqn{t = 1, \dots, T}, the kernel weight is computed using 
+        \code{boundary_kernel(r, t, T, bandwidth, kernel_func)}. The weighted returns are given by
+        \deqn{X_r = \text{returns} \odot \sqrt{k_h},}
+        where \(\odot\) denotes element-wise multiplication and \(k_h\) is the vector of kernel weights.
+
+  \item **Eigen Decomposition:**  
+        The function computes the eigen decomposition of the matrix \eqn{X_r X_r^\top} and orders the eigenvalues in
+        descending order. The top \eqn{m} eigenvectors are scaled by \(\sqrt{T}\) to form the local factors:
+        \deqn{\hat{F}_r = \sqrt{T} \, \text{eigvecs}_{1:m}.}
+
+  \item **Direction Alignment:**  
+        If previous factors (\code{prev_F}) are provided, the function aligns the signs of the new factors with the previous ones 
+        by checking the correlation and flipping the sign if the correlation is negative.
+
+  \item **Loadings Computation:**  
+        The loadings are computed by projecting the weighted returns onto the factors:
+        \deqn{\Lambda_r = \frac{1}{T} X_r^\top \hat{F}_r,}
+        where the result is transposed to yield a \eqn{p \times m} matrix.
+
+  \item **One-Step-Ahead Factor Estimation:**  
+        A second pass computes the factor estimate for the current time index \eqn{r} by solving
+        \deqn{\hat{F}_r = \left(\Lambda_r^\top \Lambda_r\right)^{-1} \Lambda_r^\top R_r,}
+        where \(R_r\) is the return vector at time \eqn{r}.
 }
-If the number of extracted principal components is less than 1, the function returns \code{NULL}.
 }
 \examples{
-# Load necessary library
-library(ggplot2)
-
-# Simulate data for 50 assets over 200 time periods
+\dontrun{
+# Simulate asset returns for 250 periods and 10 assets:
 set.seed(123)
-T <- 200
-p <- 50
-returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
+returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
 
-# Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-epanechnikov_kernel <- function(u) {
-  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
+# Perform local PCA at time index 100 using 4 factors and the Epanechnikov kernel:
+result <- local_pca(returns, r = 100, bandwidth = 0.2, m = 4, kernel_func = epanechnikov_kernel)
+str(result)
 }
 
-# Perform local PCA for time period r = 100 with bandwidth = 10 and m = 5 factors
-local_pca_result <- local_pca(returns, r = 100, bandwidth = 10, m = 5, kernel_func = epanechnikov_kernel)
-print(local_pca_result$factors_full)
-print(local_pca_result$loadings_full)
-
 }
+\keyword{internal}
