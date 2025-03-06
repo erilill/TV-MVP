@@ -2,19 +2,12 @@
 % Please edit documentation in R/bandwidth.R
 \name{silverman}
 \alias{silverman}
-\title{Work in progress
-Compute Bandwidth Parameter Using Silverman's Rule of Thumb}
+\title{Compute Bandwidth Parameter Using Silverman's Rule of Thumb}
 \usage{
 silverman(returns)
 }
 \arguments{
 \item{returns}{A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).}
-
-\item{T}{An optional integer specifying the number of time periods. If provided, it overrides
-\code{returns}.}
-
-\item{p}{An optional integer specifying the number of assets. If provided, it overrides
-\code{returns}.}
 }
 \value{
 A numeric value representing the computed bandwidth parameter based on Silverman's rule.
@@ -41,9 +34,5 @@ returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 # Compute bandwidth using Silverman's rule of thumb
 bw <- silverman(returns)
 print(bw)
-
-# Alternatively, provide T and p directly
-bw_direct <- silverman(returns = NULL, T = 200, p = 50)
-print(bw_direct)
 
 }
