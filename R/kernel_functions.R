@@ -20,15 +20,14 @@
 #' This function applies the above formula to each element of the input vector \code{u}.
 #'
 #' @examples
+#' \dontrun{
 #' # Define a range of u values
 #' u_values <- seq(-1.5, 1.5, by = 0.1)
 #'
 #' # Compute Epanechnikov kernel values
 #' kernel_values <- epanechnikov_kernel(u_values)
 #'
-#' # Plot the kernel
-#' plot(u_values, kernel_values, type = "l", main = "Epanechnikov Kernel", xlab = "u", ylab = "K(u)")
-#'
+#' }
 #' @export
 epanechnikov_kernel <- function(u) {
   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
@@ -43,8 +42,7 @@ epanechnikov_kernel <- function(u) {
 #' @param r An integer representing the reference time period.
 #' @param T An integer indicating the total number of time periods in the dataset.
 #' @param h A numeric value representing the bandwidth parameter for the kernel function.
-#' @param kernel_func A function representing the kernel used for weighting. Typically, an
-#' Epanechnikov kernel or another boundary kernel function.
+#' @param kernel_func A function representing the kernel used for weighting.
 #'
 #' @return A numeric scalar representing the boundary-adjusted kernel weight for the given time period.
 #'
@@ -62,6 +60,7 @@ epanechnikov_kernel <- function(u) {
 #' }
 #'
 #' @examples
+#' \dontrun{
 #' # Define the Epanechnikov kernel function
 #' epanechnikov_kernel <- function(u) {
 #'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
@@ -70,7 +69,7 @@ epanechnikov_kernel <- function(u) {
 #' # Compute boundary kernel weight for time period t = 5, reference r = 5, T = 100, h = 0.1
 #' weight <- boundary_kernel(t = 5, r = 5, T = 100, h = 0.1, kernel_func = epanechnikov_kernel)
 #' print(weight)
-#'
+#' }
 #' @export
 boundary_kernel <- function(t, r, iT, h, kernel_func) {
   scaled_diff <- (t - r) / (iT * h)
@@ -99,8 +98,7 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #' the interval \([-2, 2]\).
 #'
 #' @param u A numeric vector of points at which the two-fold convolution kernel is evaluated.
-#' @param kernel_func A function representing the kernel to be convolved. Typically, an
-#' Epanechnikov kernel or another boundary kernel function.
+#' @param kernel_func A function representing the kernel to be convolved. 
 #'
 #' @return A numeric vector of two-fold convolution kernel values corresponding to each input \code{u}.
 #'
@@ -113,6 +111,7 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #' input \code{u} within the interval \([-2, 2]\) and sets it to zero outside this range.
 #'
 #' @examples
+#' \dontrun
 #' # Define the Epanechnikov kernel function
 #' epanechnikov_kernel <- function(u) {
 #'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
@@ -124,8 +123,7 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #' # Compute two-fold convolution kernel values
 #' conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanechnikov_kernel)
 #'
-#' # Plot the two-fold convolution kernel
-#' plot(u_values, conv_kernel_values, type = "l", main = "Two-Fold Convolution Kernel", xlab = "u", ylab = "K^{(2)}(u)")
+#' }
 #'
 #' @export
 two_fold_convolution_kernel <- function(u, kernel_func) {

@@ -7,14 +7,13 @@
 residuals(factors, loadings_list, returns)
 }
 \arguments{
+\item{factors}{A matrix containing the step-ahead-factors of from the \code{localPCA} function.}
+
 \item{loadings_list}{A list where each element is a matrix of loadings corresponding
 to the factors for each time period.}
 
 \item{returns}{A matrix of asset returns with rows representing time periods and
 columns representing assets.}
-
-\item{factors_list}{A list where each element is a matrix representing factor data
-for a specific time period.}
 }
 \value{
 A matrix of residuals where each row corresponds to a time period and each
@@ -27,28 +26,10 @@ of factor-driven returns.
 \details{
 For each time period \eqn{t}, the function models the asset returns as:
 \deqn{R_t = F_t \Lambda_t + \epsilon_t}
-where \eqn{R_t} is the vector of asset returns, \eqn{F_t} is the factor matrix,
+where \eqn{R_t} is the vector of asset returns, \eqn{F_t} is the t'th row of the factor matrix,
 \eqn{\Lambda_t} is the loadings matrix, and \eqn{\epsilon_t} represents the residuals.
 
 The residuals are computed as the difference between actual returns and the modeled
 returns.
 }
-\examples{
-# Example factors and loadings
-factors_list <- list(
-  matrix(rnorm(100), ncol = 5),
-  matrix(rnorm(100), ncol = 5)
-)
-loadings_list <- list(
-  matrix(runif(25), ncol = 5),
-  matrix(runif(25), ncol = 5)
-)
-
-# Simulate returns matrix
-returns <- matrix(rnorm(200 * 5, mean = 0.01, sd = 0.02), ncol = 5)
-
-# Estimate residuals
-resid <- residuals(factors_list, loadings_list, returns)
-head(resid)
-
-}
+\keyword{internal}

@@ -4,7 +4,7 @@
 \alias{compute_B_pT}
 \title{Compute \eqn{B_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing}
 \usage{
-compute_B_pT(local_factors, global_factors, residuals, h, T, p, kernel_func)
+compute_B_pT(local_factors, global_factors, residuals, h, iT, ip, kernel_func)
 }
 \arguments{
 \item{local_factors}{A list where each element is a numeric matrix representing the
@@ -18,12 +18,12 @@ local factor scores for a specific time period. Each matrix should have \eqn{T} 
 
 \item{h}{A numeric value indicating the bandwidth parameter for the kernel function.}
 
+\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
+Epanechnikov kernel or another boundary kernel function.}
+
 \item{T}{An integer specifying the number of time periods.}
 
 \item{p}{An integer specifying the number of assets.}
-
-\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
-Epanechnikov kernel or another boundary kernel function.}
 }
 \value{
 A numeric scalar \eqn{B_{pT}} representing the computed statistic based on
@@ -49,30 +49,4 @@ The function performs the following steps:
   \item Scales the aggregated value by \eqn{\frac{\sqrt{h}}{T^2 \sqrt{p}}} to obtain \eqn{B_{pT}}.
 }
 }
-\examples{
-# Example parameters
-T <- 100  # Number of time periods
-p <- 50   # Number of assets
-m <- 3    # Number of factors
-h <- 0.1  # Bandwidth parameter
-
-# Simulate local factors and loadings
-local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-local_loadings <- lapply(1:T, function(t) matrix(runif(p * m), nrow=p, ncol=m))
-
-# Simulate global factors
-global_factors <- matrix(rnorm(T * m), nrow=T, ncol=m)
-
-# Simulate residuals
-residuals <- matrix(rnorm(T * p, mean=0, sd=0.01), nrow=T, ncol=p)
-
-# Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-epanechnikov_kernel <- function(u) {
-  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-}
-
-# Compute B_pT
-B_pT <- compute_B_pT(local_factors, global_factors, residuals, h, T, p, epanechnikov_kernel)
-print(B_pT)
-
-}
+\keyword{internal}

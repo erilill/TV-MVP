@@ -4,7 +4,7 @@
 \alias{compute_V_pT}
 \title{Compute \eqn{V_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing}
 \usage{
-compute_V_pT(local_factors, residuals, h, T, p, kernel_func)
+compute_V_pT(local_factors, residuals, h, iT, ip, kernel_func)
 }
 \arguments{
 \item{local_factors}{A list where each element is a numeric matrix representing the
@@ -15,12 +15,12 @@ local factor scores for a specific time period. Each matrix should have \eqn{T} 
 
 \item{h}{A numeric value indicating the bandwidth parameter for the kernel function.}
 
+\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
+Epanechnikov kernel or another boundary kernel function.}
+
 \item{T}{An integer specifying the number of time periods.}
 
 \item{p}{An integer specifying the number of assets.}
-
-\item{kernel_func}{A function representing the kernel used for weighting. Typically, an
-Epanechnikov kernel or another boundary kernel function.}
 
 \item{factor_cov}{A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.}
 }
@@ -46,31 +46,4 @@ The function performs the following steps:
   \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
 }
 }
-\examples{
-# Example parameters
-T <- 100  # Number of time periods
-p <- 50   # Number of assets
-m <- 3    # Number of factors
-h <- 0.1  # Bandwidth parameter
-
-# Simulate local factors
-local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-
-# Simulate residuals
-residuals <- matrix(rnorm(T * p, mean=0, sd=0.01), nrow=T, ncol=p)
-
-# Simulate factor covariance matrix
-factor_cov <- matrix(c(1, 0.5, 0.3,
-                       0.5, 1, 0.4,
-                       0.3, 0.4, 1), nrow=3, byrow=TRUE)
-
-# Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-epanechnikov_kernel <- function(u) {
-  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-}
-
-# Compute V_pT
-V_pT <- compute_V_pT(local_factors, residuals, h, T, p, factor_cov, epanechnikov_kernel)
-print(V_pT)
-
-}
+\keyword{internal}

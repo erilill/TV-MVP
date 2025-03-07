@@ -1,4 +1,52 @@
-
+#' Determine the Optimal Number of Factors via an Information Criterion
+#'
+#' This function selects the optimal number of factors for a local principal component
+#' analysis (PCA) model of asset returns. It computes an BIC-type information criterion (IC) for each candidate
+#' number of factors, based on the sum of squared residuals (SSR) from the PCA reconstruction and a
+#' penalty term that increases with the number of factors. The optimal number of factors is chosen as the
+#' one that minimizes the IC.
+#'
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.
+#' @param max_R Integer. The maximum number of factors to consider.
+#' @param bandwidth Numeric. The bandwidth used in the kernel weighting for the local PCA.
+#'
+#' @return A list with two components:
+#' \itemize{
+#'   \item \code{optimal_R}: The optimal number of factors (an integer) that minimizes the information criterion.
+#'   \item \code{IC_values}: A numeric vector of length \code{max_R} containing the information criterion values
+#'         for each candidate number of factors.
+#' }
+#'
+#' @details
+#' For each candidate number of factors \eqn{R} (from 1 to \code{max_R}), the function:
+#'
+#' \enumerate{
+#'   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{R} factors.
+#'   \item Computes a reconstruction of the returns and the corresponding residuals:
+#'         \deqn{\text{Residual}_r = R_r - F_r \Lambda_r,}
+#'         where \eqn{R_r} is the return at time \eqn{r}, and \eqn{F_r} and \(\Lambda_r\) are the local factors and loadings, respectively.
+#'   \item Computes the average sum of squared residuals (SSR) as:
+#'         \deqn{V(R) = \frac{1}{pT} \sum_{r=1}^{T} \| \text{Residual}_r \|^2.}
+#'   \item Adds a penalty term that increases with \eqn{R}:
+#'         \deqn{\text{Penalty}(R) = R \times \frac{(p + T \times \text{bandwidth})}{(pT \times \text{bandwidth})} \log\left(\frac{pT \times \text{bandwidth}}{(p + T \times \text{bandwidth})}\right).}
+#'   \item The information criterion is defined as:
+#'         \deqn{\text{IC}(R) = \log\big(V(R)\big) + \text{Penalty}(R).}
+#' }
+#'
+#' The optimal number of factors is then chosen as the value of \eqn{R} that minimizes \(\text{IC}(R)\).
+#'
+#' @examples
+#' \dontrun{
+#' # Simulate a returns matrix with 200 observations and 10 assets
+#' set.seed(123)
+#' returns <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
+#'
+#' # Determine the optimal number of factors (up to 5) using a specified bandwidth.
+#' result <- determine_factors(returns, max_R = 5, bandwidth = 0.2)
+#' print(result$optimal_R)
+#' print(result$IC_values)
+#' }
+#'
 #' @export
 determine_factors <- function(returns, max_R, bandwidth) {
   iT <- nrow(returns)
@@ -44,58 +92,70 @@ determine_factors <- function(returns, max_R, bandwidth) {
   #message(sprintf("Optimal number of factors is %s.", optimal_R))
   return(list(optimal_R = optimal_R, IC_values = IC_values))
 }
-#' Perform Local Principal Component Analysis (PCA)
+#' Perform Local Principal Component Analysis
 #'
-#' This function conducts a local PCA on asset returns within a specified bandwidth around a
-#' given time point. It extracts a defined number of principal components (factors) and
-#' corresponding loadings for portfolio optimization.
+#' This function performs a local principal component analysis (PCA) on asset returns,
+#' weighted by a specified kernel function. It extracts local factors and loadings from the weighted
+#' returns and computes a factor estimate. Optionally, previously estimated factors can
+#' be provided to align the new factors' directions.
 #'
-#' @param returns A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
-#' @param r An integer specifying the current time period for which to perform PCA.
-#' @param bandwidth A numeric value indicating the bandwidth parameter defining the window
-#' around time period \code{r}.
-#' @param m An integer specifying the number of principal components (factors) to extract.
-#' @param kernel_func A function representing the kernel used for weighting. Typically, an
-#' Epanechnikov kernel or another boundary kernel function.
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.
+#' @param r Integer. The current time index at which to perform the local PCA.
+#' @param bandwidth Numeric. The bandwidth used in the kernel weighting.
+#' @param m Integer. The number of factors to extract.
+#' @param kernel_func Function. The kernel function used for weighting observations (e.g., \code{epanechnikov_kernel}).
+#' @param prev_F Optional. A numeric matrix of previously estimated factors (with dimensions \eqn{T \times m}) used for aligning eigenvector directions. Default is \code{NULL}.
 #'
-#' @return A list containing:
-#' \describe{
-#'   \item{\code{factors_full}}{Numeric matrix. Factor scores for the extracted principal components.}
-#'   \item{\code{loadings_full}}{Numeric matrix. Loadings corresponding to the extracted principal components.}
+#' @return A list with the following components:
+#' \itemize{
+#'   \item \code{factors}: A \eqn{T \times m} matrix of local factors estimated from the weighted returns.
+#'   \item \code{f_hat}: A \eqn{1 \times m} vector containing the factor estimate for time \eqn{r}.
+#'   \item \code{loadings}: A \eqn{p \times m} matrix of factor loadings.
+#'   \item \code{w_r}: A numeric vector of kernel weights used in the computation.
 #' }
 #'
 #' @details
-#' The function performs the following steps:
+#' The function operates in the following steps:
+#'
 #' \enumerate{
-#'   \item Computes boundary kernel weights \eqn{w_r} for the current time period \code{r} using the
-#'   specified \code{kernel_func} and \code{bandwidth}.
-#'   \item Normalizes the weights so that they sum to 1.
-#'   \item Applies the square root of the weights to the returns matrix to obtain weighted returns.
-#'   \item Performs PCA on the weighted returns to extract the first \code{m} principal components.
-#'   \item Normalizes the factor scores and extracts the corresponding loadings.
+#'   \item **Kernel Weight Computation:**  
+#'         For each time point \eqn{t = 1, \dots, T}, the kernel weight is computed using 
+#'         \code{boundary_kernel(r, t, T, bandwidth, kernel_func)}. The weighted returns are given by
+#'         \deqn{X_r = \text{returns} \odot \sqrt{k_h},}
+#'         where \(\odot\) denotes element-wise multiplication and \(k_h\) is the vector of kernel weights.
+#'
+#'   \item **Eigen Decomposition:**  
+#'         The function computes the eigen decomposition of the matrix \eqn{X_r X_r^\top} and orders the eigenvalues in
+#'         descending order. The top \eqn{m} eigenvectors are scaled by \(\sqrt{T}\) to form the local factors:
+#'         \deqn{\hat{F}_r = \sqrt{T} \, \text{eigvecs}_{1:m}.}
+#'
+#'   \item **Direction Alignment:**  
+#'         If previous factors (\code{prev_F}) are provided, the function aligns the signs of the new factors with the previous ones 
+#'         by checking the correlation and flipping the sign if the correlation is negative.
+#'
+#'   \item **Loadings Computation:**  
+#'         The loadings are computed by projecting the weighted returns onto the factors:
+#'         \deqn{\Lambda_r = \frac{1}{T} X_r^\top \hat{F}_r,}
+#'         where the result is transposed to yield a \eqn{p \times m} matrix.
+#'
+#'   \item **One-Step-Ahead Factor Estimation:**  
+#'         A second pass computes the factor estimate for the current time index \eqn{r} by solving
+#'         \deqn{\hat{F}_r = \left(\Lambda_r^\top \Lambda_r\right)^{-1} \Lambda_r^\top R_r,}
+#'         where \(R_r\) is the return vector at time \eqn{r}.
 #' }
-#' If the number of extracted principal components is less than 1, the function returns \code{NULL}.
 #'
 #' @examples
-#' # Load necessary library
-#' library(ggplot2)
-#'
-#' # Simulate data for 50 assets over 200 time periods
+#' \dontrun{
+#' # Simulate asset returns for 250 periods and 10 assets:
 #' set.seed(123)
-#' T <- 200
-#' p <- 50
-#' returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
+#' returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
 #'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
+#' # Perform local PCA at time index 100 using 4 factors and the Epanechnikov kernel:
+#' result <- local_pca(returns, r = 100, bandwidth = 0.2, m = 4, kernel_func = epanechnikov_kernel)
+#' str(result)
 #' }
 #'
-#' # Perform local PCA for time period r = 100 with bandwidth = 10 and m = 5 factors
-#' local_pca_result <- local_pca(returns, r = 100, bandwidth = 10, m = 5, kernel_func = epanechnikov_kernel)
-#' print(local_pca_result$factors_full)
-#' print(local_pca_result$loadings_full)
-#'
+#'@keywords internal
 #' @export
 local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
   iT <- nrow(returns)
@@ -139,64 +199,54 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
     w_r = as.matrix(k_h)
   ))
 }
-#' Perform Local Principal Component Analysis (PCA) with Optimal Factor Selection
+#' Perform Local PCA Over Time
 #'
-#' This function conducts a comprehensive local PCA on asset returns by first selecting
-#' the optimal number of factors using an information criterion and then extracting the
-#' corresponding factor scores and loadings for each time period within a specified bandwidth.
+#' This function performs a local principal component analysis (PCA) on asset returns for each time 
+#' period, aggregating the results over time. It calls an internal function \code{local_pca()} at each 
+#' time index to extract local factors, loadings, and one-step-ahead factor estimates, and stores these 
+#' results in lists. It uses previously computed factors to align the sign of the new factors.
 #'
-#' @param returns A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
-#' @param bandwidth A numeric value indicating the bandwidth parameter defining the window around each time period.
-#' Defaults to the value computed using Silverman's rule of thumb.
-#' @param m An integer specifying the maximum number of factors to consider during optimal factor selection. Defaults to \code{10}.
-#' @param kernel_func A function representing the kernel used for weighting. Typically, an
-#' Epanechnikov kernel or another boundary kernel function. Defaults to \code{epanechnikov_kernel}.
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the 
+#' number of time periods and \eqn{p} is the number of assets.
+#' @param bandwidth Numeric. The bandwidth parameter used in the kernel weighting for the local PCA.
+#' @param m Integer. The number of factors to extract.
+#' @param kernel_func Function. The kernel function used for weighting observations. Default is 
+#' \code{epanechnikov_kernel}.
 #'
-#' @return A list containing:
-#' \describe{
-#'   \item{\code{factors_list}}{List of numeric matrices. Each element corresponds to the factor scores
-#'   for a specific time period beyond the initial window.}
-#'   \item{\code{loadings_list}}{List of numeric matrices. Each element corresponds to the factor loadings
-#'   for a specific time period beyond the initial window.}
+#' @return A list with the following components:
+#' \itemize{
+#'   \item \code{factors}: A list of length \eqn{T}, where each element is a \eqn{T \times m} matrix of local factors.
+#'   \item \code{loadings}: A list of length \eqn{T}, where each element is a \eqn{p \times m} matrix of factor loadings.
+#'   \item \code{m}: The number of factors extracted.
+#'   \item \code{weights}: A list of length \eqn{T}, where each element is a vector of kernel weights used at that time point.
+#'   \item \code{f_hat}: A \eqn{T \times m} matrix of one-step-ahead factor estimates.
 #' }
 #'
 #' @details
-#' The function performs the following steps:
+#' The function processes the input returns over \eqn{T} time periods by iteratively calling the 
+#' \code{local_pca()} function. For each time \eqn{t_i}:
+#'
 #' \enumerate{
-#'   \item Computes the optimal number of factors (\code{m}) by minimizing an information criterion
-#'   using the \code{select_optimal_factors} function.
-#'   \item Iterates over each time period beyond the initial window defined by \code{bandwidth}.
-#'   \item For each time period \eqn{t}, performs a local PCA using the \code{local_pca} function
-#'   to extract factor scores and loadings.
-#'   \item Aggregates the factor scores and loadings into \code{factors_list} and \code{loadings_list}, respectively.
+#'   \item Kernel weights are computed using the specified \code{kernel_func} and \code{bandwidth}.
+#'   \item The returns are weighted by the square root of these kernel weights.
+#'   \item An eigen decomposition is performed on the weighted returns' covariance matrix to extract the 
+#'         top \eqn{m} eigenvectors, which are scaled by \(\sqrt{T}\) to form the local factors.
+#'   \item The signs of the new factors are aligned with those of the previous factors.
+#'   \item The factor loadings are computed by projecting the weighted returns onto the local factors, 
+#'         normalized by \eqn{T}.
+#'   \item A second pass computes a one-step-ahead factor estimate for the current time period.
 #' }
-#' The function also provides informative messages regarding the number of factors selected.
 #'
 #' @examples
-#' # Load necessary libraries
-#' library(ggplot2)
-#'
-#' # Simulate data for 50 assets over 200 time periods
+#' \dontrun{
+#' # Generate simulated returns for 250 periods and 10 assets
 #' set.seed(123)
-#' T <- 200
-#' p <- 50
-#' returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
+#' returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
 #'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
+#' # Perform local PCA with a bandwidth of 0.2 and 4 factors using the default Epanechnikov kernel
+#' results <- localPCA(returns, bandwidth = 0.2, m = 4)
+#' str(results$f_hat)
 #' }
-#'
-#' # Perform local PCA with default parameters
-#' pca_results <- localPCA(returns)
-#'
-#' # Access factor scores and loadings for time period 100
-#' factors_time_100 <- pca_results$factors_list[[100]]
-#' loadings_time_100 <- pca_results$loadings_list[[100]]
-#'
-#' # Display the results
-#' print(factors_time_100)
-#' print(loadings_time_100)
 #'
 #' @export
 localPCA <- function(returns,

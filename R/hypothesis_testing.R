@@ -38,25 +38,9 @@
 #'   \item After all iterations, normalizes \eqn{M_{\hat{}}} by dividing by the product of \eqn{N} and \eqn{T}.
 #' }
 #'
-#' @examples
-#' # Example parameters
-#' T <- 100  # Number of time periods
-#' N <- 50   # Number of assets
-#' m <- 3    # Number of factors
+#
 #'
-#' # Simulate local factors and loadings
-#' local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-#' local_loadings <- lapply(1:T, function(t) matrix(runif(N * m), nrow=N, ncol=m))
-#'
-#' # Simulate global factors and loadings
-#' global_factors <- matrix(rnorm(T * m), nrow=T, ncol=m)
-#' global_loadings <- matrix(runif(N * m), nrow=N, ncol=m)
-#'
-#' # Compute M_hat
-#' M_hat <- compute_M_hat(local_factors, global_factors, local_loadings, global_loadings, T, N, m)
-#' print(M_hat)
-#'
-#' @export
+#' @keywords internal
 compute_M_hat <- function(local_factors, global_factors, local_loadings, global_loadings, iT, ip, m) {
   M_hat <- 0
   if (m == 1){
@@ -110,33 +94,8 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
 #'   \item Scales the aggregated value by \eqn{\frac{\sqrt{h}}{T^2 \sqrt{p}}} to obtain \eqn{B_{pT}}.
 #' }
 #'
-#' @examples
-#' # Example parameters
-#' T <- 100  # Number of time periods
-#' p <- 50   # Number of assets
-#' m <- 3    # Number of factors
-#' h <- 0.1  # Bandwidth parameter
 #'
-#' # Simulate local factors and loadings
-#' local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-#' local_loadings <- lapply(1:T, function(t) matrix(runif(p * m), nrow=p, ncol=m))
-#'
-#' # Simulate global factors
-#' global_factors <- matrix(rnorm(T * m), nrow=T, ncol=m)
-#'
-#' # Simulate residuals
-#' residuals <- matrix(rnorm(T * p, mean=0, sd=0.01), nrow=T, ncol=p)
-#'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-#' }
-#'
-#' # Compute B_pT
-#' B_pT <- compute_B_pT(local_factors, global_factors, residuals, h, T, p, epanechnikov_kernel)
-#' print(B_pT)
-#'
-#' @export
+#' @keywords internal
 compute_B_pT <- function(local_factors, global_factors, residuals, h, iT, ip, kernel_func) {
   res2 <- rowSums(residuals^2)
   K <- outer(1:iT, 1:iT, Vectorize(function(s, t) boundary_kernel(s, t, iT, h, kernel_func)))
@@ -182,34 +141,8 @@ compute_B_pT <- function(local_factors, global_factors, residuals, h, iT, ip, ke
 #'   \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
 #' }
 #'
-#' @examples
-#' # Example parameters
-#' T <- 100  # Number of time periods
-#' p <- 50   # Number of assets
-#' m <- 3    # Number of factors
-#' h <- 0.1  # Bandwidth parameter
 #'
-#' # Simulate local factors
-#' local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-#'
-#' # Simulate residuals
-#' residuals <- matrix(rnorm(T * p, mean=0, sd=0.01), nrow=T, ncol=p)
-#'
-#' # Simulate factor covariance matrix
-#' factor_cov <- matrix(c(1, 0.5, 0.3,
-#'                        0.5, 1, 0.4,
-#'                        0.3, 0.4, 1), nrow=3, byrow=TRUE)
-#'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-#' }
-#'
-#' # Compute V_pT
-#' V_pT <- compute_V_pT(local_factors, residuals, h, T, p, factor_cov, epanechnikov_kernel)
-#' print(V_pT)
-#'
-#' @export
+#' @keywords internal
 compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
   V_pT <- 0
   for (s in 1:(iT - 1)) {
@@ -222,118 +155,65 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
   V_pT <- (2 / (iT^2 * ip * h)) * V_pT
   return(V_pT)
 }
-#' Compute \eqn{J_{pT}} Statistic for Covariance Time-Variation Hypothesis Testing
+#' Test for Time-Varying Covariance via Local PCA and Bootstrap
 #'
-#' This function calculates the \eqn{J_{pT}} statistic, which is used to test the null
-#' hypothesis that the covariance matrix of asset returns is not time-varying. The statistic
-#' compares the scaled \eqn{M_{\hat{}}} and \eqn{B_{pT}} against the square root of \eqn{V_{pT}}.
+#' This function performs a hypothesis test for time-varying covariance in asset returns based on Su and Wang (2017).
+#' It first standardizes the input returns and then computes a time-varying covariance estimator
+#' using a local principal component analysis (Local PCA) approach. The test statistic \(J_{pT}\)
+#' is computed and its significance is assessed using a bootstrap procedure.
 #'
-#' @param B_pT A numeric scalar representing the \eqn{B_{pT}} statistic.
-#' @param V_pT A numeric scalar representing the \eqn{V_{pT}} statistic.
-#' @param M_hat A numeric scalar representing the \eqn{M_{\hat{}}} statistic.
-#' @param T An integer specifying the number of time periods.
-#' @param p An integer specifying the number of assets.
-#' @param h A numeric value indicating the bandwidth parameter used in kernel functions.
+#' @param returns A numeric matrix of asset returns with dimensions \(T \times p\) (time periods by assets).
+#' @param m Integer. The number of factors to extract in the local PCA.
+#' @param B Integer. The number of bootstrap replications to perform. Default is 199.
+#' @param kernel_func Function. A kernel function for weighting observations in the local PCA. Default is \code{epanechnikov_kernel}.
 #'
-#' @return A numeric scalar \eqn{J_{pT}} representing the computed test statistic.
-#'
-#' @details
-#' The \eqn{J_{pT}} statistic is computed using the formula:
-#' \deqn{
-#' J_{pT} = \frac{T \sqrt{p} \sqrt{h} M_{\hat{}} - B_{pT}}{\sqrt{V_{pT}}}
-#' }
-#'
-#' This statistic is used to assess whether there is significant evidence to reject the null
-#' hypothesis of time-invariant covariance matrices. Typically, if \eqn{J_{pT}} exceeds
-#' the critical value (e.g., 1.96 for a 5\% significance level), the null hypothesis is rejected.
-#'
-#' @examples
-#' # Example values
-#' B_pT <- 0.5
-#' V_pT <- 0.1
-#' M_hat <- 0.3
-#' T <- 100
-#' p <- 50
-#' h <- 0.1
-#'
-#' # Compute J_pT
-#' J_pT <- compute_J_pT(B_pT, V_pT, M_hat, T, p, h)
-#' print(J_pT)
-#'
-#' @export
-compute_J_pT <- function(B_pT, V_pT, M_hat, iT, ip, h) {
-  J_pT <- (iT * sqrt(ip) * sqrt(h) * M_hat - B_pT) / sqrt(V_pT)
-  return(J_pT)
-}
-#' Perform Hypothesis Test for Time-Varying Covariance Matrix
-#'
-#' This function conducts a hypothesis test to determine whether the covariance matrix of
-#' asset returns is time-varying. It computes relevant test statistics and outputs the
-#' test result based on the \eqn{J_{pT}} statistic.
-#'
-#' @param local_factors A list where each element is a numeric matrix representing the
-#' local factor scores for a specific time period. Each matrix should have \eqn{m} columns
-#' (factors) and as many rows as time periods.
-#' @param global_factors A numeric matrix of global factor scores with \eqn{T} rows
-#' (time periods) and \eqn{m} columns (factors).
-#' @param local_loadings A list where each element is a numeric matrix representing the
-#' local factor loadings for a specific time period. Each matrix should have \eqn{p}
-#' rows (assets) and \eqn{m} columns (factors).
-#' @param global_loadings A numeric matrix of global factor loadings with \eqn{p} rows
-#' (assets) and \eqn{m} columns (factors).
-#' @param residuals A numeric matrix of residuals with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
-#' @param kernel_func A function representing the kernel used for weighting. Typically, an
-#' Epanechnikov kernel or another boundary kernel function. Defaults to \code{epanechnikov_kernel}.
-#'
-#' @return A numeric scalar \eqn{J_{pT}} representing the computed test statistic.
+#' @return A list containing:
+#' \item{J_NT}{The test statistic \(J_{pT}\) computed on the original data.}
+#' \item{p_value}{The bootstrap p-value, indicating the significance of time variation in covariance.}
+#' \item{J_pT_bootstrap}{A numeric vector of bootstrap test statistics from each replication.}
 #'
 #' @details
-#' The function performs the following steps:
+#' The function follows the steps below:
+#' 
 #' \enumerate{
-#'   \item Computes the factor covariance matrix by aggregating the local factors across all time periods.
-#'   \item Determines the optimal bandwidth parameter \code{h} using Silverman's rule of thumb via the \code{silverman} function.
-#'   \item Identifies the number of factors \eqn{m} based on the dimensionality of the local factors.
-#'   \item Computes the \code{M_hat} statistic using \code{compute_M_hat}.
-#'   \item Computes the \code{B_pT} statistic using \code{compute_B_pT}.
-#'   \item Computes the \code{V_pT} statistic using \code{compute_V_pT}.
-#'   \item Calculates the \code{J_pT} statistic using \code{compute_J_pT}.
-#'   \item Outputs a message indicating whether there is evidence that the covariance is time-varying based on the \eqn{J_{pT}} value.
+#'   \item Standardizes the returns.
+#'   \item Computes the optimal bandwidth using the Silverman rule.
+#'   \item Performs a local PCA on the standardized returns to extract local factors and loadings.
+#'   \item Computes a global factor model via singular value decomposition (SVD) to obtain global factors.
+#'   \item Calculates residuals by comparing the local PCA reconstruction to the standardized returns.
+#'   \item Computes a test statistic \eqn{J_{pT}} based on a function of the residuals and covariance estimates as:
+#' 
+#'   \deqn{\hat{J}_{pT} = \frac{T p^{1/2} h^{1/2} \hat{M} - \hat{\mathbb{B}}_{pT}}{\sqrt{\hat{\mathbb{V}}_{pT}}},}
+#' 
+#'   where:
+#' 
+#'   \deqn{\hat{M} = \frac{1}{pT} \sum_{i=1}^p \sum_{t=1}^T \left(\hat{\lambda}_{it}' \hat{F}_t - \tilde{\lambda}_{i0}' \tilde{F}_t\right),}
+#' 
+#'   \deqn{\hat{\mathbb{B}}_{pT} = \frac{h^{1/2}}{T^2 p^{1/2}} \sum_{i=1}^p \sum_{t=1}^T \sum_{s=1}^T \left(k_{h,st} \hat{F}_s' \hat{F}_t - \tilde{F}_s' \tilde{F}_t\right)^2 \hat{e}_{is}^2,}
+#' 
+#'   and
+#' 
+#'   \deqn{\hat{\mathbb{V}}_{pT} = \frac{2}{p h T^2} \sum_{1\leq s \neq r \leq T} \bar{k}_{sr}^2 \left(\hat{F}_s' \hat{\Sigma}_F \hat{F}_r \right)^2 \left(\hat{e}_r' \hat{e}_s \right)^2.}
+#' 
+#'   \item A bootstrap procedure is then used to compute the distribution of \eqn{J_{pT}} and derive a p-value.
 #' }
+
 #'
-#' The hypothesis test follows:
-#' \itemize{
-#'   \item \strong{Null Hypothesis (\eqn{H_0}):} Covariance matrix is time-invariant.
-#'   \item \strong{Alternative Hypothesis (\eqn{H_1}):} Covariance matrix is time-varying.
-#' }
-#'
-#' The test uses the standard normal critical value of 1.96 at the 5\% significance level.
+#' The function prints a message indicating the strength of evidence for time-varying covariance based on the p-value.
 #'
 #' @examples
-#' # Example parameters
-#' T <- 100  # Number of time periods
-#' p <- 50   # Number of assets
-#' m <- 3    # Number of factors
+#' \dontrun{
+#' # Simulate some random returns (e.g., 500 periods, 10 assets)
+#' set.seed(123)
+#' returns <- matrix(rnorm(500*10, mean = 0, sd = 0.02), nrow = 500, ncol = 10)
 #'
-#' # Simulate local factors and loadings
-#' local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-#' local_loadings <- lapply(1:T, function(t) matrix(runif(p * m), nrow=p, ncol=m))
+#' # Test for time-varying covariance using 3 factors and 199 bootstrap replications
+#' test_result <- hyptest1(returns, m = 3, B = 199, kernel_func = epanechnikov_kernel)
 #'
-#' # Simulate global factors and loadings
-#' global_factors <- matrix(rnorm(T * m), nrow=T, ncol=m)
-#' global_loadings <- matrix(runif(p * m), nrow=p, ncol=m)
-#'
-#' # Simulate residuals
-#' residuals <- matrix(rnorm(T * p, mean=0, sd=0.01), nrow=T, ncol=p)
-#'
-#' # Define an Epanechnikov kernel function (assuming it's defined elsewhere)
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
+#' # Print test statistic and p-value
+#' print(test_result$J_NT)
+#' print(test_result$p_value)
 #' }
-#'
-#' # Perform hypothesis test
-#' J_pT_value <- hyptest1(local_factors, global_factors, local_loadings, global_loadings,
-#'                        residuals, kernel_func = epanechnikov_kernel)
-#' print(J_pT_value)
 #'
 #' @export
 hyptest1 <- function(returns, m, B = 199, kernel_func = epanechnikov_kernel) {

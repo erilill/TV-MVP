@@ -29,13 +29,12 @@ K(u) = \begin{cases}
 This function applies the above formula to each element of the input vector \code{u}.
 }
 \examples{
+\dontrun{
 # Define a range of u values
 u_values <- seq(-1.5, 1.5, by = 0.1)
 
 # Compute Epanechnikov kernel values
 kernel_values <- epanechnikov_kernel(u_values)
 
-# Plot the kernel
-plot(u_values, kernel_values, type = "l", main = "Epanechnikov Kernel", xlab = "u", ylab = "K(u)")
-
+}
 }

@@ -9,8 +9,8 @@ compute_M_hat(
   global_factors,
   local_loadings,
   global_loadings,
-  T,
-  N,
+  iT,
+  ip,
   m
 )
 }
@@ -29,11 +29,11 @@ rows (assets) and \eqn{m} columns (factors).}
 \item{global_loadings}{A numeric matrix of global factor loadings with \eqn{N} rows
 (assets) and \eqn{m} columns (factors).}
 
+\item{m}{An integer specifying the number of factors.}
+
 \item{T}{An integer specifying the number of time periods.}
 
 \item{N}{An integer specifying the number of assets.}
-
-\item{m}{An integer specifying the number of factors.}
 }
 \value{
 A numeric scalar \eqn{M_{\hat{}}} representing the average squared discrepancy
@@ -61,22 +61,4 @@ The function performs the following steps:
   \item After all iterations, normalizes \eqn{M_{\hat{}}} by dividing by the product of \eqn{N} and \eqn{T}.
 }
 }
-\examples{
-# Example parameters
-T <- 100  # Number of time periods
-N <- 50   # Number of assets
-m <- 3    # Number of factors
-
-# Simulate local factors and loadings
-local_factors <- lapply(1:T, function(t) matrix(rnorm(m), nrow=1))
-local_loadings <- lapply(1:T, function(t) matrix(runif(N * m), nrow=N, ncol=m))
-
-# Simulate global factors and loadings
-global_factors <- matrix(rnorm(T * m), nrow=T, ncol=m)
-global_loadings <- matrix(runif(N * m), nrow=N, ncol=m)
-
-# Compute M_hat
-M_hat <- compute_M_hat(local_factors, global_factors, local_loadings, global_loadings, T, N, m)
-print(M_hat)
-
-}
+\keyword{internal}
