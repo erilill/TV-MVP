@@ -24,12 +24,8 @@
 #' \item{cumulative_excess_return}{Total cumulative excess return over the period.}
 #' \item{standard_deviation}{Standard deviation of the excess returns.}
 #' \item{sharpe_ratio}{Sharpe ratio of the strategy.}
-#' \item{RMSE}{Root mean squared error between realized and theoretical excess returns.}
 #' \item{standard_deviation_annualized}{Annualized standard deviation of returns.}
 #' \item{sharpe_ratio_annualized}{Annualized Sharpe ratio.}
-#' \item{theoretical_mu}{Vector of theoretical expected returns over time.}
-#' \item{theoretical_risk}{Vector of theoretical risk estimates over time.}
-#' \item{avg.risk_diff}{Absolute difference between realized and theoretical risk estimates.}
 #'
 #' @details
 #' The function implements a rolling time-varying PCA approach to estimate latent factor structures 
@@ -123,16 +119,7 @@ rolling_time_varying_mvp <- function(
     hold_end <- min(reb_t + rebal_period - 1, iT)
     port_ret_window <- returns[reb_t:hold_end, , drop=FALSE] %*% w_hat
     
-    ## Theoretical metrics
-    # Expected returns
-    mean_returns <- colMeans(est_data) # place holder, might change
-    
-    ## Compute Expected Return and Risk
-    mu <- sum(w_hat * mean_returns)
-    risk <- sqrt(as.numeric(t(w_hat) %*% Sigma_hat %*% w_hat))
     L <- hold_end - reb_t+1
-    theoretical_mu <- c(theoretical_mu, mu*(1:L))
-    theoretical_risk <- c(theoretical_risk, risk*sqrt(1:L))
     
     # Daily realized returns
     daily_port_ret <- c(daily_port_ret, port_ret_window)
@@ -148,14 +135,11 @@ rolling_time_varying_mvp <- function(
   N <- length(daily_port_ret)
   excess_ret <- daily_port_ret - rf_vec
   CER <- sum(excess_ret)
-  theoretical_mu <- theoretical_mu - rf_vec
   
   # Metrics
   mean_val <- CER / N
   sample_sd <- sd(excess_ret)
   sample_SR <- mean(excess_ret) / sample_sd
-  RMSE <- sqrt(mean((excess_ret - (theoretical_mu))^2))  
-  avg_risk_diff <- abs(sample_sd - mean(theoretical_risk))
   
   # Set annualization factor based on return frequency
   annualization_factor <- switch(return_type,
@@ -177,12 +161,8 @@ rolling_time_varying_mvp <- function(
     cumulative_excess_return = CER,
     standard_deviation       = sample_sd,
     sharpe_ratio             = sample_SR,
-    RMSE                     = RMSE,
     standard_deviation_annualized = sample_sd_annualized,
-    sharpe_ratio_annualized = sample_SR_annualized,
-    theoretical_mu = theoretical_mu,
-    theoretical_risk = theoretical_risk,
-    avg.risk_diff = avg_risk_diff
+    sharpe_ratio_annualized = sample_SR_annualized
   )
 }
 #' Predict Optimal Portfolio Weights Using Time-Varying Covariance Estimation
