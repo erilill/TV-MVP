@@ -164,7 +164,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #'
 #' @param returns A numeric matrix of asset returns with dimensions \(T \times p\) (time periods by assets).
 #' @param m Integer. The number of factors to extract in the local PCA.
-#' @param B Integer. The number of bootstrap replications to perform. Default is 199.
+#' @param B Integer. The number of bootstrap replications to perform. Default is 200
 #' @param kernel_func Function. A kernel function for weighting observations in the local PCA. Default is \code{epanechnikov_kernel}.
 #'
 #' @return A list containing:
@@ -207,8 +207,8 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' set.seed(123)
 #' returns <- matrix(rnorm(500*10, mean = 0, sd = 0.02), nrow = 500, ncol = 10)
 #'
-#' # Test for time-varying covariance using 3 factors and 199 bootstrap replications
-#' test_result <- hyptest1(returns, m = 3, B = 199, kernel_func = epanechnikov_kernel)
+#' # Test for time-varying covariance using 3 factors and 200 bootstrap replications
+#' test_result <- hyptest1(returns, m = 3, B = 200, kernel_func = epanechnikov_kernel)
 #'
 #' # Print test statistic and p-value
 #' print(test_result$J_NT)
