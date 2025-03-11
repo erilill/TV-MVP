@@ -48,7 +48,7 @@
 #' }
 #'
 #' @export
-determine_factors <- function(returns, max_R, bandwidth) {
+determine_factors <- function(returns, max_m, bandwidth) {
   iT <- nrow(returns)
   ip <- ncol(returns)
 
@@ -58,13 +58,13 @@ determine_factors <- function(returns, max_R, bandwidth) {
   IC_values <- numeric(max_R)
 
   # Loop over possible number of factors (R)
-  for (R in 1:max_R) {
+  for (mi in 1:max_m) {
     residuals <- matrix(NA, nrow = iT, ncol = ip)
     prev_F = NULL
     for (r in 1:iT){
       # Step 1: Perform PCA with R factors
       pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth, 
-                                       m = R, kernel_func = epanechnikov_kernel, 
+                                       m = mi, kernel_func = epanechnikov_kernel, 
                                        prev_F))
       if("try-error" %in% class(pca_result))
       {
@@ -83,14 +83,14 @@ determine_factors <- function(returns, max_R, bandwidth) {
 
       prev_F <- pca_result$F_hat_r
     }
-    V[R] <- sum(residuals^2) / (ip * iT)
-    penalty[R] <- R * ((ip+iT*bandwidth)/(ip*iT*bandwidth))*log((ip*iT*bandwidth)/(ip+iT*bandwidth))
-    IC_values[R] <- log(V[R]) + penalty[R]
+    V[mi] <- sum(residuals^2) / (ip * iT)
+    penalty[mi] <- mi * ((ip+iT*bandwidth)/(ip*iT*bandwidth))*log((ip*iT*bandwidth)/(ip+iT*bandwidth))
+    IC_values[mi] <- log(V[mi]) + penalty[mi]
   }
   # Step 4: Determine optimal number of factors
   optimal_R <- which.min(IC_values)
   #message(sprintf("Optimal number of factors is %s.", optimal_R))
-  return(list(optimal_R = optimal_R, IC_values = IC_values))
+  return(list(optimal_m = optimal_m, IC_values = IC_values))
 }
 #' Perform Local Principal Component Analysis
 #'
