@@ -216,7 +216,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' }
 #'
 #' @export
-hyptest1 <- function(returns, m, B = 199, kernel_func = epanechnikov_kernel) {
+hyptest1 <- function(returns, m, B = 200, kernel_func = epanechnikov_kernel) {
   # Standardize returns
   returns <- scale(returns)
   
