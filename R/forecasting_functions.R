@@ -60,7 +60,7 @@
 #'
 #' @export
 rolling_time_varying_mvp <- function(
-    returns         ,
+    returns         ,  # Arithmetic
     initial_window  ,  # how many periods in the initial “estimation”
     rebal_period    ,  # holding window length (HT in the paper)
     max_factors     ,
@@ -119,22 +119,15 @@ rolling_time_varying_mvp <- function(
     hold_end <- min(reb_t + rebal_period - 1, iT)
     port_ret_window <- returns[reb_t:hold_end, , drop=FALSE] %*% w_hat
     
-    L <- hold_end - reb_t+1
-    
-    # Daily realized returns
     daily_port_ret <- c(daily_port_ret, port_ret_window)
-    if (l == 1) {
-      cum_rebal_returns[l] <- sum(port_ret_window)
-    } else {
-      cum_rebal_returns[l] <- cum_rebal_returns[l - 1] + sum(port_ret_window)
-    }
   }
   
   
   # Cumulative returns
   N <- length(daily_port_ret)
   excess_ret <- daily_port_ret - rf_vec
-  CER <- sum(excess_ret)
+  cum_rebal_returns <- cumprod(1 + excess_ret)
+  CER <- tail(cum_rebal_returns, 1) - 1
   
   # Metrics
   mean_val <- CER / N
@@ -149,8 +142,9 @@ rolling_time_varying_mvp <- function(
                                  stop("Invalid return type! Choose 'daily', 'monthly', or 'weekly'.")
   )
   
-  sample_sd_annualized <- sample_sd*annualization_factor #wrong?
-  sample_SR_annualized <- sample_SR*annualization_factor # wrong?
+  mean_annualized      <- mean(excess_ret)*(annualization_factor^2)
+  sample_sd_annualized <- sample_sd*annualization_factor
+  sample_SR_annualized <- mean_annualized/sample_sd_annualized
   
   
   list(
@@ -159,8 +153,10 @@ rolling_time_varying_mvp <- function(
     excess_returns           = excess_ret,
     cum_rebal_returns        = cum_rebal_returns,
     cumulative_excess_return = CER,
+    mean_excess_returns      = mean(excess_ret),
     standard_deviation       = sample_sd,
     sharpe_ratio             = sample_SR,
+    mean_annualized          = mean_annualized,
     standard_deviation_annualized = sample_sd_annualized,
     sharpe_ratio_annualized = sample_SR_annualized
   )
