@@ -462,6 +462,20 @@ library(corpcor)
 library(POET)
 library(glasso)
 
+try_invert_sample_cov <- function(Sigma, ridge = 1e-5) {
+  # Attempt a direct inversion
+  inv_Sigma <- try(solve(Sigma), silent = TRUE)
+  
+  # Check if it failed
+  if (inherits(inv_Sigma, "try-error")) {
+    cat("Matrix is nearly singular; applying ridge =", ridge, "\n")
+    Sigma_reg <- Sigma + ridge * diag(ncol(Sigma))
+    inv_Sigma <- solve(Sigma_reg)
+  }
+  
+  return(inv_Sigma)
+}
+
 mega_rol_pred_parallel <- function(returns,
                                    initial_window,   
                                    rebal_period,     
@@ -492,7 +506,7 @@ mega_rol_pred_parallel <- function(returns,
                                 "local_pca", "localPCA", "two_fold_convolution_kernel", 
                                 "boundary_kernel", "epanechnikov_kernel", 
                                 "estimate_residual_cov_poet_local", "adaptive_poet_rho", 
-                                "determine_factors"), envir = environment())
+                                "determine_factors", "try_invert_sample_cov"), envir = environment())
   clusterEvalQ(cl, {
     library(PortfolioMoments)
     library(corpcor)
@@ -539,7 +553,7 @@ mega_rol_pred_parallel <- function(returns,
                          
                          # Sample Covariance
                          Sigma_sample <- cov(est_data)
-                         inv_sample <- solve(Sigma_sample)
+                         inv_sample <- try_invert_sample_cov(Sigma_sample, ridge = 1e-5) # fails when p>T
                          w_sample <- as.numeric(inv_sample %*% rep(1, p))
                          w_sample <- w_sample / sum(w_sample)
                          
@@ -681,227 +695,6 @@ mega_rol_pred_parallel <- function(returns,
 # Perhaps I will use the empirical data for simulation as well.
 # Compute the local factors and then simulate data based on this.
 
-################################################################################
-#                                 2023-2024                                    #
-################################################################################
-
-# Read data from excel, skip NA collumns
-omx <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/omx.xlsx", 
-                  col_types = c("date", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "skip", "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "skip", "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "skip", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "skip", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "skip", "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "skip"))
-stibor <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/stibor.xlsx", 
-                     col_types = c("date", "numeric"))
-
-library(xts) # Time series format
-stibor <- xts(stibor[, -1], order.by = stibor[[1]])/100 # Convert to decimals
-omx <- xts(omx[,-1], order.by = omx[[1]])
-
-# Select 100 random stocks (need to decrease dimension)
-random100 <- sample(1:381, 100)
-test_sample <- as.matrix(omx[, c(random100)])
-
-# Excess returns
-returns <- test_sample[-1, ] / test_sample[-nrow(test_sample), ] - 1 #switched to arithmetic
-risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
-
-# Data set includes "röda dagar" which need to be removed
-# Find indices of rows where all elements are zero
-zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
-
-# Remove "röda dagar"
-returns <- returns[-zero_rows,]
-risk_free <- risk_free[-zero_rows]
-
-
-################################################################################
-# p=100
-start.time <- Sys.time()
-rolling_window_results_month <- mega_rol_pred_parallel(returns, 250, 21, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_month$stats
-
-start.time <- Sys.time()
-rolling_window_results_week <- mega_rol_pred_parallel(returns, 250, 5, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_week$stats
-
-start.time <- Sys.time()
-rolling_window_results_day <- mega_rol_pred_parallel(returns, 250, 1, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_day$stats
-################################################################################
-# p=200
-
-
-# Select 200 random stocks (need to decrease dimension)
-random200 <- sample(1:381, 200)
-test_sample <- as.matrix(omx[, c(random200)])
-
-# Excess returns
-returns <- test_sample[-1, ] / test_sample[-nrow(test_sample), ] - 1 #switched to arithmetic
-risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
-
-# Data set includes "röda dagar" which need to be removed
-# Find indices of rows where all elements are zero
-zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
-
-# Remove "röda dagar"
-returns <- returns[-zero_rows,]
-risk_free <- risk_free[-zero_rows]
-
-start.time <- Sys.time()
-rolling_window_results_month_200 <- mega_rol_pred_parallel(returns, 250, 21, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_month_200$stats
-
-start.time <- Sys.time()
-rolling_window_results_week_200 <- mega_rol_pred_parallel(returns, 250, 5, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_week_200$stats
-
-start.time <- Sys.time()
-rolling_window_results_day_200 <- mega_rol_pred_parallel(returns, 250, 1, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_day_200$stats
-################################################################################
 
 ################################################################################
 # Larger dataset
@@ -1029,20 +822,18 @@ omx2020_2024 <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis
                                          "numeric", "numeric", "numeric", 
                                          "numeric", "numeric", "numeric"))
 
-
-
 stibor2020_2024 <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/stibor_2020_2024.xlsx", 
                      col_types = c("date", "numeric"))
 
 stibor <- xts(stibor2020_2024[, -1], order.by = stibor2020_2024[[1]])/100 # Convert to decimals
-omx <- xts(omx2020_2024[,-1], order.by = omx2020_2024[[1]])
+omx <-as.matrix(xts(omx2020_2024[,-1], order.by = omx2020_2024[[1]]))
 
-# Select 100 random stocks (need to decrease dimension)
-random100 <- sample(1:347, 100)
-test_sample <- as.matrix(omx2020_2024[, c(random100)])
+########################################
+#   Weekly and monthly rebalancing    #
+########################################
 
 # Excess returns
-returns <- test_sample[-1, ] / test_sample[-nrow(test_sample), ] - 1 #switched to arithmetic
+returns <- omx[-1, ] / omx[-nrow(omx), ] - 1 #switched to arithmetic
 risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
 
 # Data set includes "röda dagar" which need to be removed
@@ -1053,68 +844,97 @@ zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
 returns <- returns[-zero_rows,]
 risk_free <- risk_free[-zero_rows]
 
+###############################
+# p=100
+# Select 100 random stocks (need to decrease dimension)
+random100 <- sample(1:347, 100)
+returns100 <- as.matrix(returns[, c(random100)])
+
 start.time <- Sys.time()
-rolling_window_results_month_2021_2024 <- mega_rol_pred_parallel(returns, 252, 21, rf=risk_free, max_factors = 10)
+rolling_window_results_month_2021_2024 <- mega_rol_pred_parallel(returns100, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_month_2021_2024$stats
 
 start.time <- Sys.time()
-rolling_window_results_week_2021_2024 <- mega_rol_pred_parallel(returns, 252, 5, rf=risk_free, max_factors = 10)
+rolling_window_results_week_2021_2024 <- mega_rol_pred_parallel(returns100, 252, 5, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_week_2021_2024$stats
 
-# Waiting with daily, takes a long time
-start.time <- Sys.time()
-rolling_window_results_day_2021_2024 <- mega_rol_pred_parallel(returns[252:1008,], 252, 1, rf=risk_free[252:1008], max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_day_2021_2024$stats
 
 ################################################################################
 # p=200
 
 # Select 100 random stocks (need to decrease dimension)
 random200 <- sample(1:347, 200)
-test_sample <- as.matrix(omx2020_2024[, c(random200)])
-
-# Excess returns
-returns <- test_sample[-1, ] / test_sample[-nrow(test_sample), ] - 1 #switched to arithmetic
-risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
-
-# Data set includes "röda dagar" which need to be removed
-# Find indices of rows where all elements are zero
-zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
-
-# Remove "röda dagar"
-returns <- returns[-zero_rows,]
-risk_free <- risk_free[-zero_rows]
+returns200 <- as.matrix(returns[, c(random200)])
 
 start.time <- Sys.time()
 rolling_window_results_month_2021_2024_200 <- mega_rol_pred_parallel(returns, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_month_2021_2024$stats
+rolling_window_results_month_2021_2024_200$stats
 
 start.time <- Sys.time()
 rolling_window_results_week_2021_2024_200 <- mega_rol_pred_parallel(returns, 252, 5, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_week_2021_2024$stats
+rolling_window_results_week_2021_2024_200$stats
 
-# Waiting with daily, takes a long time
+
+################################################################################
+# p=250
+
+# Select 250 random stocks (need to decrease dimension)
+random250 <- sample(1:347, 250)
+returns250 <- as.matrix(returns[, c(random250)])
+
 start.time <- Sys.time()
-rolling_window_results_day_2021_2024_200 <- mega_rol_pred_parallel(returns[252:1008,], 252, 1, rf=risk_free[252:1008], max_factors = 10)
+rolling_window_results_month_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_day_2021_2024$stats
+rolling_window_results_month_2021_2024_250$stats
 
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_250$stats
+
+##############################
+#     Daily rebalancing      #
+##############################
+# Load earlier data sets
+returns100 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_100.rds")
+returns200 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_200.rds")
+returns250 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250.rds")
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_100 <- mega_rol_pred_parallel(returns100[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_100$stats
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns200[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_250$stats
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns250[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_250$stats
 
 
