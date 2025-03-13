@@ -452,161 +452,6 @@ print(sprintf("Rejection rate: %.4f", rejection_rate))
 ################################################################################
 #                             Empirical Data                                   #
 ################################################################################
-# Perhaps I will use the empirical data for simulation as well.
-# Compute the local factors and then simulate data based on this.
-
-# Read data from excel, skip NA collumns
-omx <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/omx.xlsx", 
-                  col_types = c("date", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "skip", "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "skip", "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "skip", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "skip", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "skip", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "skip", "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "numeric", "numeric", 
-                                "numeric", "skip"))
-stibor <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/stibor.xlsx", 
-                     col_types = c("date", "numeric"))
-
-library(xts) # Time series format
-stibor <- xts(stibor[, -1], order.by = stibor[[1]])/100 # Convert to decimals
-omx <- xts(omx[,-1], order.by = omx[[1]])
-
-# Select 100 random stocks (need to decrease dimension)
-random100 <- sample(1:381, 100)
-test_sample <- omx[, c(random100)]
-
-# Excess returns
-returns <- as.matrix(diff(log(test_sample))[-1,])
-risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
-
-# Data set includes "röda dagar" which need to be removed
-# Find indices of rows where all elements are zero
-zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
-
-# Remove "röda dagar"
-returns <- returns[-zero_rows,]
-risk_free <- risk_free[-zero_rows]
 
 # Constructing function for rolling window comparison, not for package
 # Compare TVMVP with MVP constructed with other methods, i.e. sample cov, poet, EMWA, shrinkage, etc
@@ -617,30 +462,51 @@ library(corpcor)
 library(POET)
 library(glasso)
 
+try_invert_sample_cov <- function(Sigma, ridge = 1e-5) {
+  # Attempt a direct inversion
+  inv_Sigma <- try(solve(Sigma), silent = TRUE)
+  
+  # Check if it failed
+  if (inherits(inv_Sigma, "try-error")) {
+    cat("Matrix is nearly singular; applying ridge =", ridge, "\n")
+    Sigma_reg <- Sigma + ridge * diag(ncol(Sigma))
+    inv_Sigma <- solve(Sigma_reg)
+  }
+  
+  return(inv_Sigma)
+}
+
 mega_rol_pred_parallel <- function(returns,
                                    initial_window,   
                                    rebal_period,     
                                    max_factors,
                                    rf = 0,
-                                   num_cores = detectCores() - 1) {  # Detect available cores
+                                   num_cores = detectCores() - 1) {
   # Dimensions
   T <- nrow(returns)
   p <- ncol(returns)
   
-  # Define rebalancing dates **before** starting the cluster
+  # Define rebalancing dates before starting the cluster
   rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
   RT <- length(rebalance_dates)
   
+  # Process risk-free rate vector
   if (!is.null(rf)) {
-    rf <- rf[initial_window + 1:T]
+    rf <- rf[(initial_window + 1):T]
   }
   
-  m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  # Initially estimate m using the initial window
+  m <- determine_factors(returns[1:initial_window, ], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  last_m_update <- initial_window  # tracker: last day at which m was updated
   
-  # Determine optimal number of factors
   # Start parallel cluster
   cl <- makeCluster(num_cores)
-  clusterExport(cl, varlist = c("returns", "rebalance_dates", "m", "rebal_period", "p", "rf", "residuals","sqrt_matrix", "compute_sigma_0", "silverman", "local_pca", "localPCA", "two_fold_convolution_kernel", "boundary_kernel", "epanechnikov_kernel", "estimate_residual_cov_poet_local", "adaptive_poet_rho", "determine_factors"), envir = environment())
+  clusterExport(cl, varlist = c("returns", "rebalance_dates", "m", "rebal_period", "p", "rf", 
+                                "residuals", "sqrt_matrix", "compute_sigma_0", "silverman", 
+                                "local_pca", "localPCA", "two_fold_convolution_kernel", 
+                                "boundary_kernel", "epanechnikov_kernel", 
+                                "estimate_residual_cov_poet_local", "adaptive_poet_rho", 
+                                "determine_factors", "try_invert_sample_cov"), envir = environment())
   clusterEvalQ(cl, {
     library(PortfolioMoments)
     library(corpcor)
@@ -649,40 +515,69 @@ mega_rol_pred_parallel <- function(returns,
   })
   
   results <- parLapply(cl, seq_len(RT),
-                       function(l, rebalance_dates, m, rebal_period, p, rf) {
+                       function(l, rebalance_dates, rebal_period, p, rf, returns, max_factors, initial_window) {
+                         # Use the global m value as passed by clusterExport
+                         # Note: We'll update m within this function if needed.
+                         current_index <- rebalance_dates[l]
+                         # Check if more than 252 days have passed since last m update:
+                         # We need a mechanism to update m based on current index.
+                         # Here, we use the fact that the cluster function receives a copy of the global m,
+                         # but we can update it locally:
+                         if ((current_index - initial_window) %% 252 == 0) {
+                           m_local <- determine_factors(returns[1:current_index, ], max_factors, silverman(returns[1:current_index,]))$optimal_R
+                         } else {
+                           m_local <- m
+                         }
+                         
                          reb_t <- rebalance_dates[l]
                          est_data <- returns[1:(reb_t - 1), , drop = FALSE]
                          
-                         # 1) 1/N Equal-Weight Portfolio
-                         w_equal <- rep(1 / p, p)
+                         # For local PCA, re-estimate bandwidth using estimation data
+                         bandwidth <- silverman(est_data)
                          
-                         # 2) Sample Covariance GMVP
+                         # Local PCA with the local m estimate
+                         local_res <- localPCA(est_data, bandwidth, m_local, epanechnikov_kernel)
+                         
+                         # Compute covariance using the local PCA results
+                         Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results = local_res,
+                                                                       returns = est_data,
+                                                                       M0 = 10, 
+                                                                       rho_grid = seq(0.005, 2, length.out = 30),
+                                                                       floor_value = 1e-12,
+                                                                       epsilon2 = 1e-6)$total_cov
+                         # Compute GMVP weights (and other methods)
+                         inv_cov <- chol2inv(chol(Sigma_hat))
+                         ones <- rep(1, p)
+                         w_gmv_unnorm <- inv_cov %*% ones
+                         w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
+                         
+                         # Sample Covariance
                          Sigma_sample <- cov(est_data)
-                         inv_sample <- solve(Sigma_sample)
+                         inv_sample <- try_invert_sample_cov(Sigma_sample, ridge = 1e-5) # fails when p>T
                          w_sample <- as.numeric(inv_sample %*% rep(1, p))
                          w_sample <- w_sample / sum(w_sample)
                          
-                         # 3) Shrinkage Covariance GMVP
+                         # Shrinkage Covariance
                          Sigma_shrink <- corpcor::cov.shrink(est_data)
                          inv_shrink <- solve(Sigma_shrink)
                          w_shrink <- as.numeric(inv_shrink %*% rep(1, p))
                          w_shrink <- w_shrink / sum(w_shrink)
                          
-                         # 4) EWMA Covariance GMVP
+                         # EWMA Covariance
                          lambda <- 0.94
                          Sigma_emwa <- PortfolioMoments::cov_ewma(est_data, lambda = lambda)
                          inv_emwa <- solve(Sigma_emwa)
                          w_emwa <- as.numeric(inv_emwa %*% rep(1, p))
                          w_emwa <- w_emwa / sum(w_emwa)
                          
-                         # 5) POET Covariance GMVP
-                         poet_res <- POET(t(est_data), m)
+                         # POET Covariance
+                         poet_res <- POET(t(est_data), m_local)
                          Sigma_POET <- poet_res$SigmaY
                          inv_POET <- solve(Sigma_POET)
                          w_POET <- as.numeric(inv_POET %*% rep(1, p))
                          w_POET <- w_POET / sum(w_POET)
                          
-                         # 6) Glasso Covariance GMVP
+                         # Glasso Covariance
                          S <- cov(est_data)
                          glasso_res <- glasso::glasso(S, rho = 0.01)
                          Sigma_glasso <- glasso_res$w
@@ -690,31 +585,24 @@ mega_rol_pred_parallel <- function(returns,
                          w_glasso <- as.numeric(inv_glasso %*% rep(1, p))
                          w_glasso <- w_glasso / sum(w_glasso)
                          
-                         # 7) TV-MVP
-                         local_res <- localPCA(est_data,  silverman(est_data), m, epanechnikov_kernel)
-                         Sigma_hat <- estimate_residual_cov_poet_local(local_res, est_data)$total_cov
-                         inv_cov <- MASS::ginv(Sigma_hat)
-                         ones <- rep(1, p)
-                         w_gmv_unnorm <- inv_cov %*% ones
-                         w_tvmvp <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
                          
                          # Define the holding window for returns
                          hold_end <- min(reb_t + rebal_period - 1, T)
                          ret_window <- returns[reb_t:hold_end, , drop = FALSE]
                          
                          list(
-                           daily_ret_equal = ret_window %*% w_equal,
+                           daily_ret_equal = ret_window %*% rep(1/p, p),
                            daily_ret_sample = ret_window %*% w_sample,
                            daily_ret_shrink = ret_window %*% w_shrink,
                            daily_ret_emwa = ret_window %*% w_emwa,
                            daily_ret_POET = ret_window %*% w_POET,
                            daily_ret_glasso = ret_window %*% w_glasso,
-                           daily_ret_tvmvp = ret_window %*% w_tvmvp
+                           daily_ret_tvmvp = ret_window %*% w_gmv
                          )
                        },
-                       rebalance_dates = rebalance_dates, m = m, rebal_period = rebal_period, p = p, rf = rf
+                       rebalance_dates = rebalance_dates, rebal_period = rebal_period, p = p, rf = rf,
+                       returns = returns, max_factors = max_factors, initial_window = initial_window
   )
-  
   
   stopCluster(cl)  # Stop the parallel cluster
   
@@ -728,26 +616,29 @@ mega_rol_pred_parallel <- function(returns,
   daily_ret_tvmvp   <- unlist(lapply(results, `[[`, "daily_ret_tvmvp"))
   
   # Compute excess returns
-  N <- length(daily_ret_equal)
+  er_equal   <- daily_ret_equal   - rf
+  er_sample  <- daily_ret_sample  - rf
+  er_shrink  <- daily_ret_shrink  - rf
+  er_emwa    <- daily_ret_emwa    - rf
+  er_POET    <- daily_ret_POET    - rf
+  er_glasso  <- daily_ret_glasso  - rf
+  er_tvmvp   <- daily_ret_tvmvp   - rf
   
-  rf_vec <- if (length(rf) == 1) rep(rf, N) else rf[1:N]
-  
-  er_equal   <- daily_ret_equal   - rf_vec
-  er_sample  <- daily_ret_sample  - rf_vec
-  er_shrink  <- daily_ret_shrink  - rf_vec
-  er_emwa    <- daily_ret_emwa    - rf_vec
-  er_POET    <- daily_ret_POET    - rf_vec
-  er_glasso  <- daily_ret_glasso  - rf_vec
-  er_tvmvp   <- daily_ret_tvmvp   - rf_vec
-  
-  # Function to compute performance metrics
   compute_metrics <- function(er) {
-    CER <- sum(er)
+    CER_path <- cumprod(1 + er)
+    CER <- tail(CER_path, 1) - 1
     mu <- mean(er)
     sd_ <- sd(er)
     sharpe <- mu / sd_
-    list(CER = CER, mean_excess = mu, sd = sd_, sharpe = sharpe)
+    list(
+      CER_path = CER_path,
+      CER = CER, 
+      mean_excess = mu,
+      sd = sd_,
+      sharpe = sharpe
+    )
   }
+  
   
   stats_equal  <- compute_metrics(er_equal)
   stats_sample <- compute_metrics(er_sample)
@@ -801,26 +692,249 @@ mega_rol_pred_parallel <- function(returns,
   )
 }
 
-rolling_window_results_day_p <- mega_rol_pred_parallel(returns, 250, 1, rf=risk_free, max_factors = 10)
-rolling_window_results_week_p <- mega_rol_pred_parallel(returns, 250, 5, rf=risk_free, max_factors = 10)
-rolling_window_results_month_p <- mega_rol_pred_parallel(returns, 250, 21, rf=risk_free, max_factors = 10)
+# Perhaps I will use the empirical data for simulation as well.
+# Compute the local factors and then simulate data based on this.
+
+
+################################################################################
+# Larger dataset
+################################################################################
 
 
 
+omx2020_2024 <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/omx2020_2024.xlsx", 
+                           col_types = c("date", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "skip", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "skip", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "skip", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "skip", "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "skip", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric", 
+                                         "numeric", "numeric", "numeric"))
+
+stibor2020_2024 <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/stibor_2020_2024.xlsx", 
+                     col_types = c("date", "numeric"))
+
+stibor <- xts(stibor2020_2024[, -1], order.by = stibor2020_2024[[1]])/100 # Convert to decimals
+omx <-as.matrix(xts(omx2020_2024[,-1], order.by = omx2020_2024[[1]]))
+
+########################################
+#   Weekly and monthly rebalancing    #
+########################################
+
+# Excess returns
+returns <- omx[-1, ] / omx[-nrow(omx), ] - 1 #switched to arithmetic
+risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
+
+# Data set includes "röda dagar" which need to be removed
+# Find indices of rows where all elements are zero
+zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
+
+# Remove "röda dagar"
+returns <- returns[-zero_rows,]
+risk_free <- risk_free[-zero_rows]
+
+###############################
+# p=100
+# Select 100 random stocks (need to decrease dimension)
+random100 <- sample(1:347, 100)
+returns100 <- as.matrix(returns[, c(random100)])
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024 <- mega_rol_pred_parallel(returns100, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024$stats
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024 <- mega_rol_pred_parallel(returns100, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024$stats
 
 
+################################################################################
+# p=200
 
-test_rolpred <- rolling_time_varying_mvp(returns, 250, 5, 10, rf=risk_free[251:502])
-test_pred <- predict_portfolio(returns, rf=risk_free)
+# Select 100 random stocks (need to decrease dimension)
+random200 <- sample(1:347, 200)
+returns200 <- as.matrix(returns[, c(random200)])
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_200 <- mega_rol_pred_parallel(returns, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_200$stats
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_200 <- mega_rol_pred_parallel(returns, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_200$stats
 
 
+################################################################################
+# p=250
 
+# Select 250 random stocks (need to decrease dimension)
+random250 <- sample(1:347, 250)
+returns250 <- as.matrix(returns[, c(random250)])
 
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_250$stats
 
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_250$stats
 
+##############################
+#     Daily rebalancing      #
+##############################
+# Load earlier data sets
+returns100 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_100.rds")
+returns200 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_200.rds")
+returns250 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250.rds")
 
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_100 <- mega_rol_pred_parallel(returns100[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_100$stats
 
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns200[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_250$stats
 
-
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns250[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_250$stats
 
 
