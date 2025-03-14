@@ -29,3 +29,49 @@ TVMVP$set("public", "get_data", function() {
   return(private$data)
   # make a copy of the data and return it
 })
+
+
+p_determine_factors <- function(self, private, max_R, bandwidth) {
+  T <- private$iT
+  N <- private$iN
+  
+  # Initialize storage
+  V <- numeric(max_R)
+  penalty <- numeric(max_R)
+  IC_values <- numeric(max_R)
+  
+  # Loop over possible number of factors (R)
+  for (R in 1:max_R) {
+    residuals <- matrix(NA, nrow = T, ncol = N)
+    prev_F = NULL
+    for (r in 1:T){
+      # Step 1: Perform PCA with R factors
+      pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth, 
+                                  m = R, kernel_func = epanechnikov_kernel, 
+                                  prev_F))
+      if("try-error" %in% class(pca_result))
+      {
+        next
+      }
+      
+      
+      X_r <- matrix(0, nrow = T, ncol = N)
+      X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
+      scaled_loadings <- sqrt(N) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
+      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%scaled_loadings)
+      F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
+      
+      # Step 2: Compute SSR (Sum of Squared Residuals)
+      residuals[r,] <- returns[r,] - t(F_breve_R) %*% (Lambda_breve_R)
+      
+      prev_F <- pca_result$F_hat_r
+    }
+    V[R] <- sum(residuals^2) / (N * T)
+    penalty[R] <- R * ((N+T*bandwidth)/(N*T*bandwidth))*log((N*T*bandwidth)/(N+T*bandwidth))
+    IC_values[R] <- log(V[R]) + penalty[R]
+  }
+  # Step 4: Determine optimal number of factors
+  optimal_R <- which.min(IC_values)
+  #message(sprintf("Optimal number of factors is %s.", optimal_R))
+  return(list(optimal_R = optimal_R, IC_values = IC_values))
+}
