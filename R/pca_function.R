@@ -88,7 +88,7 @@ determine_factors <- function(returns, max_m, bandwidth) {
     IC_values[mi] <- log(V[mi]) + penalty[mi]
   }
   # Step 4: Determine optimal number of factors
-  optimal_R <- which.min(IC_values)
+  optimal_m <- which.min(IC_values)
   #message(sprintf("Optimal number of factors is %s.", optimal_R))
   return(list(optimal_m = optimal_m, IC_values = IC_values))
 }
