@@ -7,18 +7,18 @@
 #' one that minimizes the IC.
 #'
 #' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.
-#' @param max_R Integer. The maximum number of factors to consider.
+#' @param max_m Integer. The maximum number of factors to consider.
 #' @param bandwidth Numeric. The bandwidth used in the kernel weighting for the local PCA.
 #'
 #' @return A list with two components:
 #' \itemize{
 #'   \item \code{optimal_R}: The optimal number of factors (an integer) that minimizes the information criterion.
-#'   \item \code{IC_values}: A numeric vector of length \code{max_R} containing the information criterion values
+#'   \item \code{IC_values}: A numeric vector of length \code{max_m} containing the information criterion values
 #'         for each candidate number of factors.
 #' }
 #'
 #' @details
-#' For each candidate number of factors \eqn{R} (from 1 to \code{max_R}), the function:
+#' For each candidate number of factors \eqn{R} (from 1 to \code{max_m}), the function:
 #'
 #' \enumerate{
 #'   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{R} factors.
@@ -42,7 +42,7 @@
 #' returns <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
 #'
 #' # Determine the optimal number of factors (up to 5) using a specified bandwidth.
-#' result <- determine_factors(returns, max_R = 5, bandwidth = 0.2)
+#' result <- determine_factors(returns, max_m = 5, bandwidth = 0.2)
 #' print(result$optimal_R)
 #' print(result$IC_values)
 #' }
@@ -53,9 +53,9 @@ determine_factors <- function(returns, max_m, bandwidth) {
   ip <- ncol(returns)
 
   # Initialize storage
-  V <- numeric(max_R)
-  penalty <- numeric(max_R)
-  IC_values <- numeric(max_R)
+  V <- numeric(max_m)
+  penalty <- numeric(max_m)
+  IC_values <- numeric(max_m)
 
   # Loop over possible number of factors (R)
   for (mi in 1:max_m) {
