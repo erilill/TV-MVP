@@ -126,13 +126,12 @@ rolling_time_varying_mvp <- function(
   # Cumulative returns
   N <- length(daily_port_ret)
   excess_ret <- daily_port_ret - rf_vec
-  cum_rebal_returns <- cumprod(1 + excess_ret)
-  CER <- tail(cum_rebal_returns, 1) - 1
+  CER <- mean(excess_ret)
   
   # Metrics
-  mean_val <- CER / N
-  sample_sd <- sd(excess_ret)
-  sample_SR <- mean(excess_ret) / sample_sd
+  sd <- sqrt(var(excess_ret))
+  mean_ret <- mean(excess_ret)
+  SR <- mean_ret / sample_sd
   
   # Set annualization factor based on return frequency
   annualization_factor <- switch(return_type,
@@ -143,22 +142,21 @@ rolling_time_varying_mvp <- function(
   )
   
   mean_annualized      <- mean(excess_ret)*(annualization_factor^2)
-  sample_sd_annualized <- sample_sd*annualization_factor
-  sample_SR_annualized <- mean_annualized/sample_sd_annualized
+  sd_annualized <- sample_sd*annualization_factor
+  SR_annualized <- mean_annualized/sample_sd_annualized
   
   
   list(
     rebal_dates              = rebalance_dates,
     weights                  = weights,
     excess_returns           = excess_ret,
-    cum_rebal_returns        = cum_rebal_returns,
     cumulative_excess_return = CER,
-    mean_excess_returns      = mean(excess_ret),
-    standard_deviation       = sample_sd,
-    sharpe_ratio             = sample_SR,
+    mean_excess_returns      = mean_ret,
+    standard_deviation       = sd,
+    sharpe_ratio             = SR,
     mean_annualized          = mean_annualized,
-    standard_deviation_annualized = sample_sd_annualized,
-    sharpe_ratio_annualized = sample_SR_annualized
+    standard_deviation_annualized = sd_annualized,
+    sharpe_ratio_annualized = SR_annualized
   )
 }
 #' Predict Optimal Portfolio Weights Using Time-Varying Covariance Estimation
@@ -276,12 +274,14 @@ predict_portfolio <- function(
       GMV = list(
         weights = w_gmv,
         expected_return = expected_return_gmv,
-        risk = risk_gmv
+        risk = risk_gmv,
+        sharpe = expected_return_gmv/risk_gmv
       ),
       MinVarWithReturnConstraint = list(
         weights = w_constrained,
         expected_return = expected_return_constrained,
-        risk = risk_constrained
+        risk = risk_constrained,
+        sharpe = expected_return_constrained/risk_constrained
       )
     ))
   } else {
@@ -290,7 +290,8 @@ predict_portfolio <- function(
       GMV = list(
         weights = w_gmv,
         expected_return = expected_return_gmv,
-        risk = risk_gmv
+        risk = risk_gmv,
+        sharpe = expected_return_gmv/risk_gmv
       )
     ))
   }

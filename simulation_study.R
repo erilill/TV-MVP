@@ -100,10 +100,10 @@ generate_DGP5 <- function(p, T, F, b = 2) {
 }
 
 # DGP 6 Smooth Structural Changes I
-generate_DGP6 <- function(p, T, b = 2) {
+generate_DGP6 <- function(p, T, F, b = 2) {
   X <- matrix(NA, nrow=T, ncol=p)
   
-  G <- function(x, a, b) exp(-a * (x - b)^-1)  # Smooth transition function
+  G <- function(x, a, b) (1 + exp(-a * (x - b)))^-1  # Smooth transition function
   
   for (t in 1:T) {
     Lambda <- matrix(rnorm(p * 2, mean = 0, sd = 1), ncol = 2)
@@ -115,6 +115,7 @@ generate_DGP6 <- function(p, T, b = 2) {
   }
   return(X)
 }
+
 ################################################################################
 # run simulation for hypothesis test:
 library(parallel)
@@ -310,7 +311,7 @@ start.time <- Sys.time()
 # Each worker generates synthetic data and runs the hypothesis test.
 results_list_dgp4 <- parLapply(cl, 1:R, function(r) {
   # Generate synthetic data for replication r
-  X_sim <- generate_DGP4(p, T, F_t)
+  X_sim <- generate_DGP4(p, T, F_t, b=4)
   
   # Run the hypothesis test on the synthetic data
   test_result <- hyptest1(X_sim, m, B)
@@ -363,7 +364,7 @@ start.time <- Sys.time()
 # Each worker generates synthetic data and runs the hypothesis test.
 results_list_dgp5 <- parLapply(cl, 1:R, function(r) {
   # Generate synthetic data for replication r
-  X_sim <- generate_DGP5(p, T, F_t)
+  X_sim <- generate_DGP5(p, T, F_t, b=4)
   
   # Run the hypothesis test on the synthetic data
   test_result <- hyptest1(X_sim, m, B)
@@ -416,7 +417,7 @@ start.time <- Sys.time()
 # Each worker generates synthetic data and runs the hypothesis test.
 results_list_dgp6 <- parLapply(cl, 1:R, function(r) {
   # Generate synthetic data for replication r
-  X_sim <- generate_DGP6(p, T, F_t)
+  X_sim <- generate_DGP6(p, T, F_t, b=4)
   
   # Run the hypothesis test on the synthetic data
   test_result <- hyptest1(X_sim, m, B)
@@ -496,12 +497,12 @@ mega_rol_pred_parallel <- function(returns,
   }
   
   # Initially estimate m using the initial window
-  m <- determine_factors(returns[1:initial_window, ], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  m <- determine_factors(returns[1:initial_window, ], max_factors, silverman(returns[1:initial_window,]))$optimal_m
   last_m_update <- initial_window  # tracker: last day at which m was updated
   
   # Start parallel cluster
   cl <- makeCluster(num_cores)
-  clusterExport(cl, varlist = c("returns", "rebalance_dates", "m", "rebal_period", "p", "rf", 
+  clusterExport(cl, varlist = c("returns", "rebalance_dates", "max_factors", "m", "rebal_period", "p", "rf", 
                                 "residuals", "sqrt_matrix", "compute_sigma_0", "silverman", 
                                 "local_pca", "localPCA", "two_fold_convolution_kernel", 
                                 "boundary_kernel", "epanechnikov_kernel", 
@@ -524,7 +525,7 @@ mega_rol_pred_parallel <- function(returns,
                          # Here, we use the fact that the cluster function receives a copy of the global m,
                          # but we can update it locally:
                          if ((current_index - initial_window) %% 252 == 0) {
-                           m_local <- determine_factors(returns[1:current_index, ], max_factors, silverman(returns[1:current_index,]))$optimal_R
+                           m_local <- determine_factors(returns[1:current_index, ], max_factors, silverman(returns[1:current_index,]))$optimal_m
                          } else {
                            m_local <- m
                          }
@@ -625,16 +626,14 @@ mega_rol_pred_parallel <- function(returns,
   er_tvmvp   <- daily_ret_tvmvp   - rf
   
   compute_metrics <- function(er) {
-    CER_path <- cumprod(1 + er)
-    CER <- tail(CER_path, 1) - 1
-    mu <- mean(er)
-    sd_ <- sd(er)
-    sharpe <- mu / sd_
+    CER <- exp(sum(er)) - 1
+    mean <- exp(mean(er)) - 1
+    sd <- sqrt(var(er))
+    sharpe <- mean / sd
     list(
-      CER_path = CER_path,
       CER = CER, 
-      mean_excess = mu,
-      sd = sd_,
+      mean_excess = mean,
+      sd = sd, # Risk
       sharpe = sharpe
     )
   }
@@ -692,8 +691,6 @@ mega_rol_pred_parallel <- function(returns,
   )
 }
 
-# Perhaps I will use the empirical data for simulation as well.
-# Compute the local factors and then simulate data based on this.
 
 
 ################################################################################
@@ -832,9 +829,9 @@ omx <-as.matrix(xts(omx2020_2024[,-1], order.by = omx2020_2024[[1]]))
 #   Weekly and monthly rebalancing    #
 ########################################
 
-# Excess returns
-returns <- omx[-1, ] / omx[-nrow(omx), ] - 1 #switched to arithmetic
-risk_free <- as.numeric(((1 + stibor)^(1/252) - 1))[-1] # Annualized, correct?
+# Log returns and risk free rate
+returns <- as.matrix(diff(log(omx))) # omx contains daily prices
+risk_free <- as.numeric(log(1 + stibor/252))[-nrow(stibor)] # risk free in decimals, 252 business days
 
 # Data set includes "röda dagar" which need to be removed
 # Find indices of rows where all elements are zero
