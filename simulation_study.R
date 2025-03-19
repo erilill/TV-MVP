@@ -626,8 +626,8 @@ mega_rol_pred_parallel <- function(returns,
   er_tvmvp   <- daily_ret_tvmvp   - rf
   
   compute_metrics <- function(er) {
-    CER <- exp(sum(er)) - 1
-    mean <- exp(mean(er)) - 1
+    CER <- sum(er) # still log
+    mean <- mean(er) # still log
     sd <- sqrt(var(er))
     sharpe <- mean / sd
     list(
