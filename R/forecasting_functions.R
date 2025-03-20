@@ -60,7 +60,7 @@
 #'
 #' @export
 rolling_time_varying_mvp <- function(
-    returns         ,  # Arithmetic
+    returns         ,  # Log
     initial_window  ,  # how many periods in the initial “estimation”
     rebal_period    ,  # holding window length (HT in the paper)
     max_factors     ,

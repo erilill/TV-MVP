@@ -830,7 +830,7 @@ omx <-as.matrix(xts(omx2020_2024[,-1], order.by = omx2020_2024[[1]]))
 ########################################
 
 # Log returns and risk free rate
-returns <- as.matrix(diff(log(omx))) # omx contains daily prices
+returns <- diff(log(omx)) # omx contains daily prices
 risk_free <- as.numeric(log(1 + stibor/252))[-nrow(stibor)] # risk free in decimals, 252 business days
 
 # Data set includes "röda dagar" which need to be removed
