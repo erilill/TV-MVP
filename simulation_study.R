@@ -417,7 +417,7 @@ start.time <- Sys.time()
 # Each worker generates synthetic data and runs the hypothesis test.
 results_list_dgp6 <- parLapply(cl, 1:R, function(r) {
   # Generate synthetic data for replication r
-  X_sim <- generate_DGP6(p, T, F_t, b=4)
+  X_sim <- generate_DGP6(p, T, F_t, b=2)
   
   # Run the hypothesis test on the synthetic data
   test_result <- hyptest1(X_sim, m, B)
@@ -462,6 +462,7 @@ library(PortfolioMoments)
 library(corpcor)
 library(POET)
 library(glasso)
+library(PerformanceAnalytics)
 
 try_invert_sample_cov <- function(Sigma, ridge = 1e-5) {
   # Attempt a direct inversion
@@ -513,6 +514,7 @@ mega_rol_pred_parallel <- function(returns,
     library(corpcor)
     library(POET)
     library(glasso)
+    library(PerformanceAnalytics)
   })
   
   results <- parLapply(cl, seq_len(RT),
@@ -626,6 +628,14 @@ mega_rol_pred_parallel <- function(returns,
   er_tvmvp   <- daily_ret_tvmvp   - rf
   
   compute_metrics <- function(er) {
+    # Convert excess returns from log returns to simple returns
+    simple_returns <- exp(er) - 1  # Transform log returns to simple returns
+    cumulative_simple_returns <- cumprod(simple_returns)
+    running_max <- cummax(cumulative_simple_returns)
+    drawdowns_numeric <- 1 - cumulative_simple_returns/running_max
+    max_drawdown <- max(drawdowns_numeric)
+    
+    
     CER <- sum(er) # still log
     mean <- mean(er) # still log
     sd <- sqrt(var(er))
@@ -634,7 +644,10 @@ mega_rol_pred_parallel <- function(returns,
       CER = CER, 
       mean_excess = mean,
       sd = sd, # Risk
-      sharpe = sharpe
+      sharpe = sharpe,
+      MDD = max_drawdown,
+      cum_er = cumulative_simple_returns,
+      drawdowns = drawdowns_numeric
     )
   }
   
@@ -676,7 +689,14 @@ mega_rol_pred_parallel <- function(returns,
                stats_emwa$sharpe,
                stats_POET$sharpe,
                stats_glasso$sharpe,
-               stats_tvmvp$sharpe)
+               stats_tvmvp$sharpe),
+    MDD = c(stats_equal$MDD,
+            stats_sample$MDD,
+            stats_shrink$MDD,
+            stats_emwa$MDD,
+            stats_POET$MDD,
+            stats_glasso$MDD,
+            stats_tvmvp$MDD)
   )
   
   list(
@@ -687,6 +707,20 @@ mega_rol_pred_parallel <- function(returns,
                          POET = daily_ret_POET,
                          glasso = daily_ret_glasso,
                          tvmvp = daily_ret_tvmvp),
+    cumulative_simple_returns = list(equal = stats_equal$cum_er,
+                          sample_cov = stats_sample$cum_er,
+                          shrink_cov = stats_shrink$cum_er,
+                          EWMA = stats_emwa$cum_er,
+                          POET = stats_POET$cum_er,
+                          glasso = stats_equal$cum_er,
+                          tvmvp = stats_tvmvp$cum_er),
+    drawdowns = list(equal = stats_equal$cum_er,
+                          sample_cov = stats_sample$drawdowns,
+                          shrink_cov = stats_shrink$drawdowns,
+                          EWMA = stats_emwa$drawdowns,
+                          POET = stats_POET$drawdowns,
+                          glasso = stats_glasso$drawdowns,
+                          tvmvp = stats_tvmvp$drawdowns),
     stats = methods_stats
   )
 }
@@ -842,64 +876,69 @@ returns <- returns[-zero_rows,]
 risk_free <- risk_free[-zero_rows]
 
 ###############################
-# p=100
-# Select 100 random stocks (need to decrease dimension)
-random100 <- sample(1:347, 100)
-returns100 <- as.matrix(returns[, c(random100)])
+# p=50
+# Select 50 random stocks
+random50 <- sample(1:347, 50)
+returns50 <- as.matrix(returns[, c(random50)])
+saveRDS(returns50, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_50.rds")
 
 start.time <- Sys.time()
-rolling_window_results_month_2021_2024 <- mega_rol_pred_parallel(returns100, 252, 21, rf=risk_free, max_factors = 10)
+rolling_window_results_month_2021_2024 <- mega_rol_pred_parallel(returns50, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_month_2021_2024$stats
+saveRDS(rolling_window_results_month_2021_2024, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024.rds")
 
 start.time <- Sys.time()
-rolling_window_results_week_2021_2024 <- mega_rol_pred_parallel(returns100, 252, 5, rf=risk_free, max_factors = 10)
+rolling_window_results_week_2021_2024 <- mega_rol_pred_parallel(returns50, 252, 5, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_week_2021_2024$stats
+saveRDS(rolling_window_results_week_2021_2024, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024.rds")
 
 
 ################################################################################
-# p=200
+# p=150
 
-# Select 100 random stocks (need to decrease dimension)
-random200 <- sample(1:347, 200)
-returns200 <- as.matrix(returns[, c(random200)])
+# Select 150 random stocks
+random150 <- sample(1:347, 150)
+returns150 <- as.matrix(returns[, c(random150)])
+saveRDS(returns150, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_150.rds")
 
 start.time <- Sys.time()
-rolling_window_results_month_2021_2024_200 <- mega_rol_pred_parallel(returns, 252, 21, rf=risk_free, max_factors = 10)
+rolling_window_results_month_2021_2024_150 <- mega_rol_pred_parallel(returns150, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_month_2021_2024_200$stats
+rolling_window_results_month_2021_2024_150$stats
 
 start.time <- Sys.time()
-rolling_window_results_week_2021_2024_200 <- mega_rol_pred_parallel(returns, 252, 5, rf=risk_free, max_factors = 10)
+rolling_window_results_week_2021_2024_150 <- mega_rol_pred_parallel(returns150, 252, 5, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_week_2021_2024_200$stats
+rolling_window_results_week_2021_2024_150$stats
 
 
 ################################################################################
 # p=250
 
-# Select 250 random stocks (need to decrease dimension)
+# Select 250 random stocks
 random250 <- sample(1:347, 250)
 returns250 <- as.matrix(returns[, c(random250)])
+saveRDS(returns250, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250.rds")
 
 start.time <- Sys.time()
-rolling_window_results_month_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 21, rf=risk_free, max_factors = 10)
+rolling_window_results_month_2021_2024_250 <- mega_rol_pred_parallel(returns250, 504, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_month_2021_2024_250$stats
 
 start.time <- Sys.time()
-rolling_window_results_week_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 5, rf=risk_free, max_factors = 10)
+rolling_window_results_week_2021_2024_250 <- mega_rol_pred_parallel(returns250, 504, 5, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
@@ -909,23 +948,23 @@ rolling_window_results_week_2021_2024_250$stats
 #     Daily rebalancing      #
 ##############################
 # Load earlier data sets
-returns100 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_100.rds")
-returns200 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_200.rds")
+returns50 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_50.rds")
+returns150 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_150.rds")
 returns250 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250.rds")
 
 start.time <- Sys.time()
-rolling_window_results_daily_2021_2024_100 <- mega_rol_pred_parallel(returns100[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+rolling_window_results_daily_2021_2024_50 <- mega_rol_pred_parallel(returns50[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_daily_2021_2024_100$stats
+rolling_window_results_daily_2021_2024_50$stats
 
 start.time <- Sys.time()
-rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns200[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+rolling_window_results_daily_2021_2024_150 <- mega_rol_pred_parallel(returns150[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_daily_2021_2024_250$stats
+rolling_window_results_daily_2021_2024_150$stats
 
 start.time <- Sys.time()
 rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns250[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
@@ -934,4 +973,223 @@ time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_daily_2021_2024_250$stats
 
+
+
+################################################################################
+#                           Trying out max Sharpe                              #
+################################################################################
+mega_rol_pred_parallel_maxsharpe_all <- function(
+    returns,
+    initial_window,
+    rebal_period,
+    max_factors,
+    rf = 0,
+    num_cores = parallel::detectCores() - 1
+) {
+  # Example: We'll use auto.arima() to forecast each asset's return
+  # (You can swap for a simpler or faster method if you prefer)
+  library(forecast)
+  
+  T <- nrow(returns)
+  p <- ncol(returns)
+  
+  rebalance_dates <- seq(initial_window + 1, T, by = rebal_period)
+  RT <- length(rebalance_dates)
+  
+  if (!is.null(rf)) {
+    rf <- rf[(initial_window + 1):T]
+  }
+  
+  # Initially estimate factor count
+  m <- determine_factors(
+    returns[1:initial_window, ], max_factors,
+    silverman(returns[1:initial_window, ])
+  )$optimal_m
+  
+  # Start cluster
+  cl <- parallel::makeCluster(num_cores)
+  clusterExport(cl, varlist = c("returns", "rebalance_dates", "max_factors", "m", "rebal_period", "p", "rf", 
+                                "residuals", "sqrt_matrix", "compute_sigma_0", "silverman", 
+                                "local_pca", "localPCA", "two_fold_convolution_kernel", 
+                                "boundary_kernel", "epanechnikov_kernel", 
+                                "estimate_residual_cov_poet_local", "adaptive_poet_rho", 
+                                "determine_factors", "try_invert_sample_cov"), envir = environment())
+  
+  parallel::clusterEvalQ(cl, {
+    library(PortfolioMoments)
+    library(corpcor)
+    library(POET)
+    library(glasso)
+    library(PerformanceAnalytics)
+    library(forecast)
+  })
+  
+  # Rolling in parallel
+  results <- parallel::parLapply(cl, seq_len(RT), function(l) {
+    current_index <- rebalance_dates[l]
+    
+    # Possibly re-estimate # factors every 252 days
+    if ((current_index - initial_window) %% 252 == 0) {
+      m_local <- determine_factors(
+        returns[1:current_index, ], max_factors,
+        silverman(returns[1:current_index, ])
+      )$optimal_m
+    } else {
+      m_local <- m
+    }
+    
+    # Subset data for estimation
+    reb_t <- rebalance_dates[l]
+    est_data <- returns[1:(reb_t - 1), , drop = FALSE]
+    
+    # Forecast mu_hat via ARIMA (one-step ahead)
+    mu_hat <- numeric(ncol(est_data))
+    for (j in seq_len(ncol(est_data))) {
+      fit_j <- forecast::auto.arima(est_data[, j])
+      mu_hat[j] <- as.numeric(forecast::forecast(fit_j, h = rebal_period)$mean[rebal_period])
+    }
+    
+    # Local PCA for Cov
+    bandwidth <- silverman(est_data)
+    local_res <- localPCA(est_data, bandwidth, m_local, epanechnikov_kernel)
+    
+    # Cov from local PCA + POET
+    Sigma_tvmvp <- estimate_residual_cov_poet_local(
+      localPCA_results = local_res,
+      returns = est_data,
+      M0 = 10,
+      rho_grid = seq(0.005, 2, length.out = 30),
+      floor_value = 1e-12,
+      epsilon2 = 1e-6
+    )$total_cov
+    
+    # 1) Sample Cov
+    Sigma_sample <- cov(est_data)
+    
+    # 2) Shrink Cov
+    Sigma_shrink <- corpcor::cov.shrink(est_data)
+    
+    # 3) EWMA Cov
+    Sigma_ewma <- PortfolioMoments::cov_ewma(est_data, lambda = 0.94)
+    
+    # 4) POET Cov
+    poet_res <- POET(t(est_data), m_local)
+    Sigma_POET <- poet_res$SigmaY
+    
+    # 5) Glasso Cov
+    S <- cov(est_data)
+    glasso_out <- glasso::glasso(S, rho = 0.01)
+    Sigma_glasso <- glasso_out$w
+    
+    
+    # Helper to do max sharpe:
+    # w_maxsharpe ~ inv(Sigma) * (mu_hat - rf)
+    # Then normalize
+    max_sharpe_weights <- function(Sigma, mu_hat, rf) {
+      invS <- solve(Sigma)
+      w_unnorm <- invS %*% (mu_hat - rf)
+      as.numeric(w_unnorm / sum(w_unnorm))
+    }
+    
+    w_sample_max  <- max_sharpe_weights(Sigma_sample, mu_hat, rf[reb_t - initial_window])
+    w_shrink_max  <- max_sharpe_weights(Sigma_shrink, mu_hat, rf[reb_t - initial_window])
+    w_ewma_max    <- max_sharpe_weights(Sigma_ewma, mu_hat, rf[reb_t - initial_window])
+    w_poet_max    <- max_sharpe_weights(Sigma_POET, mu_hat, rf[reb_t - initial_window])
+    w_glasso_max  <- max_sharpe_weights(Sigma_glasso, mu_hat, rf[reb_t - initial_window])
+    w_tvmvp_max     <- max_sharpe_weights(Sigma_tvmvp, mu_hat, rf[reb_t - initial_window])
+    
+    # Holding window
+    hold_end <- min(reb_t + rebal_period - 1, T)
+    ret_window <- returns[reb_t:hold_end, , drop = FALSE]
+    
+    # Return daily returns of each method's max sharpe
+    list(
+      daily_ret_sample_max  = ret_window %*% w_sample_max,
+      daily_ret_shrink_max  = ret_window %*% w_shrink_max,
+      daily_ret_ewma_max    = ret_window %*% w_ewma_max,
+      daily_ret_poet_max    = ret_window %*% w_poet_max,
+      daily_ret_glasso_max  = ret_window %*% w_glasso_max,
+      daily_ret_tvmvp       = ret_window %*% w_tvmvp_max
+    )
+  })
+  
+  parallel::stopCluster(cl)
+  
+  # Unlist daily returns
+  daily_ret_sample_max <- unlist(lapply(results, `[[`, "daily_ret_sample_max"))
+  daily_ret_shrink_max <- unlist(lapply(results, `[[`, "daily_ret_shrink_max"))
+  daily_ret_ewma_max   <- unlist(lapply(results, `[[`, "daily_ret_ewma_max"))
+  daily_ret_poet_max   <- unlist(lapply(results, `[[`, "daily_ret_poet_max"))
+  daily_ret_glasso_max <- unlist(lapply(results, `[[`, "daily_ret_glasso_max"))
+  daily_ret_tvmvp      <- unlist(lapply(results, `[[`, "daily_ret_tvmvp"))
+  
+  # Compute excess returns if rf is a vector:
+  er_sample_max <- daily_ret_sample_max - rf
+  er_shrink_max <- daily_ret_shrink_max - rf
+  er_ewma_max   <- daily_ret_ewma_max   - rf
+  er_poet_max   <- daily_ret_poet_max   - rf
+  er_glasso_max <- daily_ret_glasso_max - rf
+  er_tvmvp      <- daily_ret_tvmvp    - rf
+  
+  # Summarize stats
+  compute_metrics <- function(x) {
+    c(
+      CER    = sum(x),
+      Mean   = mean(x),
+      SD     = sd(x),
+      Sharpe = mean(x)/sd(x)
+    )
+  }
+  
+  sample_stats  <- compute_metrics(er_sample_max)
+  shrink_stats  <- compute_metrics(er_shrink_max)
+  ewma_stats    <- compute_metrics(er_ewma_max)
+  poet_stats    <- compute_metrics(er_poet_max)
+  glasso_stats  <- compute_metrics(er_glasso_max)
+  tvmvp_stats     <- compute_metrics(er_tvmvp)
+  
+  stats_df <- data.frame(
+    Method = c("SampleCov-MaxSharpe","ShrinkCov-MaxSharpe","EWMA-MaxSharpe",
+               "POET-MaxSharpe","Glasso-MaxSharpe","TVMVP-MaxSharpe"),
+    CER    = c(sample_stats["CER"], shrink_stats["CER"], ewma_stats["CER"],
+               poet_stats["CER"], glasso_stats["CER"], tvmvp_stats["CER"]),
+    Mean   = c(sample_stats["Mean"], shrink_stats["Mean"], ewma_stats["Mean"],
+               poet_stats["Mean"], glasso_stats["Mean"], tvmvp_stats["Mean"]),
+    SD     = c(sample_stats["SD"], shrink_stats["SD"], ewma_stats["SD"],
+               poet_stats["SD"], glasso_stats["SD"], tvmvp_stats["SD"]),
+    Sharpe = c(sample_stats["Sharpe"], shrink_stats["Sharpe"], ewma_stats["Sharpe"],
+               poet_stats["Sharpe"], glasso_stats["Sharpe"], tvmvp_stats["Sharpe"])
+  )
+  
+  # Return daily returns + summary
+  list(
+    daily_returns = list(
+      sample_cov = daily_ret_sample_max,
+      shrink_cov = daily_ret_shrink_max,
+      ewma       = daily_ret_ewma_max,
+      poet       = daily_ret_poet_max,
+      glasso     = daily_ret_glasso_max,
+      tvmvp      = daily_ret_tvmvp
+    ),
+    stats = stats_df
+  )
+}
+
+############
+# p=50
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_sr$stats
+saveRDS(rolling_window_results_month_2021_2024_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_sr.rds")
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_sr$stats
+saveRDS(rolling_window_results_week_2021_2024_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_sr.rds")
 
