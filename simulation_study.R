@@ -630,9 +630,9 @@ mega_rol_pred_parallel <- function(returns,
   compute_metrics <- function(er) {
     # Convert excess returns from log returns to simple returns
     simple_returns <- exp(er) - 1  # Transform log returns to simple returns
-    cumulative_simple_returns <- cumprod(simple_returns)
+    cumulative_simple_returns <- cumprod(1+simple_returns)
     running_max <- cummax(cumulative_simple_returns)
-    drawdowns_numeric <- 1 - cumulative_simple_returns/running_max
+    drawdowns_numeric <- 1-cumulative_simple_returns/running_max
     max_drawdown <- max(drawdowns_numeric)
     
     
@@ -913,6 +913,8 @@ end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_month_2021_2024_150$stats
+saveRDS(rolling_window_results_month_2021_2024_150, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_150.rds")
+
 
 start.time <- Sys.time()
 rolling_window_results_week_2021_2024_150 <- mega_rol_pred_parallel(returns150, 252, 5, rf=risk_free, max_factors = 10)
@@ -920,6 +922,7 @@ end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_week_2021_2024_150$stats
+saveRDS(rolling_window_results_week_2021_2024_150, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_150.rds")
 
 
 ################################################################################
@@ -931,18 +934,22 @@ returns250 <- as.matrix(returns[, c(random250)])
 saveRDS(returns250, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250.rds")
 
 start.time <- Sys.time()
-rolling_window_results_month_2021_2024_250 <- mega_rol_pred_parallel(returns250, 504, 21, rf=risk_free, max_factors = 10)
+rolling_window_results_month_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_month_2021_2024_250$stats
+saveRDS(rolling_window_results_week_2021_2024_250, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_250.rds")
+
 
 start.time <- Sys.time()
-rolling_window_results_week_2021_2024_250 <- mega_rol_pred_parallel(returns250, 504, 5, rf=risk_free, max_factors = 10)
+rolling_window_results_week_2021_2024_250 <- mega_rol_pred_parallel(returns250, 252, 5, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_week_2021_2024_250$stats
+saveRDS(rolling_window_results_week_2021_2024_250, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_250.rds")
+
 
 ##############################
 #     Daily rebalancing      #
@@ -953,25 +960,30 @@ returns150 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data
 returns250 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250.rds")
 
 start.time <- Sys.time()
-rolling_window_results_daily_2021_2024_50 <- mega_rol_pred_parallel(returns50[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+rolling_window_results_daily_2021_2024_50 <- mega_rol_pred_parallel(returns50[505:1008,], 252, 1, rf=risk_free[505:1008], max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_daily_2021_2024_50$stats
+saveRDS(rolling_window_results_daily_2021_2024_50, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_50.rds")
+
 
 start.time <- Sys.time()
-rolling_window_results_daily_2021_2024_150 <- mega_rol_pred_parallel(returns150[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+rolling_window_results_daily_2021_2024_150 <- mega_rol_pred_parallel(returns150[505:1008,], 252, 1, rf=risk_free[505:1008], max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_daily_2021_2024_150$stats
+saveRDS(rolling_window_results_daily_2021_2024_150, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_150.rds")
+
 
 start.time <- Sys.time()
-rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns250[505:1008,], 252, 1, rf=risk_free, max_factors = 10)
+rolling_window_results_daily_2021_2024_250 <- mega_rol_pred_parallel(returns250[505:1008,], 252, 1, rf=risk_free[505:1008], max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
 rolling_window_results_daily_2021_2024_250$stats
+saveRDS(rolling_window_results_daily_2021_2024_250, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_250.rds")
 
 
 
@@ -1041,13 +1053,25 @@ mega_rol_pred_parallel_maxsharpe_all <- function(
     # Subset data for estimation
     reb_t <- rebalance_dates[l]
     est_data <- returns[1:(reb_t - 1), , drop = FALSE]
+    hold_end <- min(reb_t + rebal_period - 1, T)
     
     # Forecast mu_hat via ARIMA (one-step ahead)
     mu_hat <- numeric(ncol(est_data))
     for (j in seq_len(ncol(est_data))) {
-      fit_j <- forecast::auto.arima(est_data[, j])
-      mu_hat[j] <- as.numeric(forecast::forecast(fit_j, h = rebal_period)$mean[rebal_period])
+      fit_j <- try(forecast::auto.arima(est_data[, j]), silent = TRUE)
+      if(inherits(fit_j, "try-error")){
+        # Fallback: use historical mean if model fitting fails
+        mu_hat[j] <- mean(est_data[, j])
+      } else {
+        fc <- try(predict(fit_j, n.ahead = rebal_period)$pred, silent = TRUE)
+        if(inherits(fc, "try-error") || is.null(fc)){
+          mu_hat[j] <- mean(est_data[, j])
+        } else {
+          mu_hat[j] <- mean(fc)
+        }
+      }
     }
+    
     
     # Local PCA for Cov
     bandwidth <- silverman(est_data)
@@ -1099,7 +1123,6 @@ mega_rol_pred_parallel_maxsharpe_all <- function(
     w_tvmvp_max     <- max_sharpe_weights(Sigma_tvmvp, mu_hat, rf[reb_t - initial_window])
     
     # Holding window
-    hold_end <- min(reb_t + rebal_period - 1, T)
     ret_window <- returns[reb_t:hold_end, , drop = FALSE]
     
     # Return daily returns of each method's max sharpe
@@ -1175,21 +1198,432 @@ mega_rol_pred_parallel_maxsharpe_all <- function(
   )
 }
 
-############
+################################################################################
+library(readxl)
+sp500 <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/sp500.xlsx", 
+                    col_types = c("date", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "skip", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "skip", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "skip", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "skip", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric", "numeric", 
+                                  "numeric", "numeric"))
+
+sp500 <-as.matrix(xts(sp500[,-1], order.by = sp500[[1]]))
+
+library(dplyr)
+library(lubridate)
+library(tidyr)
+
+# Step 1: Import the Excel sheet
+dat <- read_excel("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/tbill.xlsx")
+
+# Step 2: Clean the data (convert rates to numeric)
+colnames(dat) <- c("Date", "Rate")
+dat$Rate <- as.numeric(gsub(",", ".", dat$Rate)) / 100  # Convert rates to decimal
+
+# Step 3: Create a sequence of all daily dates
+full_dates <- seq.Date(from = as.Date(min(dat$Date)), 
+                       to = as.Date(max(dat$Date)), 
+                       by = "day")
+
+# Step 4: Create a data frame with full date range
+daily_data <- data.frame(Date = full_dates)
+
+# Step 5: Merge the original monthly data to the daily data
+# Fill in missing dates with the previous month's rate
+daily_data <- daily_data %>%
+  left_join(dat, by = "Date") %>%
+  tidyr::fill(Rate, .direction = "down")
+
+# Step 6: Compute daily rates (Assuming 252 trading days per year)
+daily_data <- daily_data %>%
+  mutate(Daily_Log_Rate = log(1 + Rate / 252))
+daily_data <- daily_data[!weekdays(full_dates) %in% c("Saturday", "Sunday"),]
+risk_free <- as.numeric(daily_data[,3])
+
+# Log returns and risk free rate
+returns <- diff(log(sp500)) # omx contains daily prices
+
+# Data set includes "röda dagar" which need to be removed
+# Find indices of rows where all elements are zero
+zero_rows <- which(apply(returns, 1, function(x) all(x == 0)))
+
+# Remove "röda dagar"
+returns <- returns[-zero_rows,]
+risk_free <- risk_free[-zero_rows]
+
+########################################
+#   Weekly and monthly rebalancing    #
+########################################
 # p=50
-start.time <- Sys.time()
-rolling_window_results_month_2021_2024_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 21, rf=risk_free, max_factors = 10)
-end.time <- Sys.time()
-time.taken <- end.time - start.time
-print(time.taken)
-rolling_window_results_month_2021_2024_sr$stats
-saveRDS(rolling_window_results_month_2021_2024_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_sr.rds")
+# Select 50 random stocks
+random50 <- sample(1:499, 50)
+returns50 <- as.matrix(returns[, c(random50)])
+saveRDS(returns50, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_50_sp500.rds")
 
 start.time <- Sys.time()
-rolling_window_results_week_2021_2024_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 5, rf=risk_free, max_factors = 10)
+rolling_window_results_month_2021_2024_sp500 <- mega_rol_pred_parallel(returns50, 252, 21, rf=risk_free, max_factors = 10)
 end.time <- Sys.time()
 time.taken <- end.time - start.time
 print(time.taken)
-rolling_window_results_week_2021_2024_sr$stats
-saveRDS(rolling_window_results_week_2021_2024_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_sr.rds")
+rolling_window_results_month_2021_2024_sp500$stats
+saveRDS(rolling_window_results_month_2021_2024_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_sp500.rds")
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_sp500 <- mega_rol_pred_parallel(returns50, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_sp500$stats
+saveRDS(rolling_window_results_week_2021_2024_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_sp500.rds")
+
+
+################################################################################
+# p=150
+
+# Select 150 random stocks
+random150 <- sample(1:499, 150)
+returns150 <- as.matrix(returns[, c(random150)])
+saveRDS(returns150, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_150_sp500.rds")
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_150_sp500 <- mega_rol_pred_parallel(returns150, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_150_sp500$stats
+saveRDS(rolling_window_results_month_2021_2024_150_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_150_sp500.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_150_sp500 <- mega_rol_pred_parallel(returns150, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_150_sp500$stats
+saveRDS(rolling_window_results_week_2021_2024_150_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_150_sp500.rds")
+
+
+################################################################################
+# p=250
+
+# Select 250 random stocks
+random250 <- sample(1:499, 250)
+returns250 <- as.matrix(returns[, c(random250)])
+saveRDS(returns250, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250_sp500.rds")
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_250_sp500 <- mega_rol_pred_parallel(returns250, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_250_sp500$stats
+saveRDS(rolling_window_results_month_2021_2024_250_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_250_sp500.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_250_sp500 <- mega_rol_pred_parallel(returns250, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_250_sp500$stats
+saveRDS(rolling_window_results_week_2021_2024_250_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_250_sp500.rds")
+
+
+##############################
+#     Daily rebalancing      #
+##############################
+# Load earlier data sets
+returns50 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_50_sp500.rds")
+returns150 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_150_sp500.rds")
+returns250 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250_sp500.rds")
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_50_sp500 <- mega_rol_pred_parallel(returns50, 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_50_sp500$stats
+saveRDS(rolling_window_results_daily_2021_2024_50_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_50_sp500.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_150_sp500 <- mega_rol_pred_parallel(returns150, 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_150_sp500$stats
+saveRDS(rolling_window_results_daily_2021_2024_150_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_150_sp500.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_250_sp500 <- mega_rol_pred_parallel(returns250, 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_250_sp500$stats
+saveRDS(rolling_window_results_daily_2021_2024_250_sp500, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_250_sp500.rds")
+
+#############################
+# Maximum Sharpe
+
+# Load earlier data sets
+returns50 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_50_sp500.rds")
+returns150 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_150_sp500.rds")
+returns250 <- readRDS("C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/returns_used_in_analysis_250_sp500.rds")
+
+########################################
+#   Weekly and monthly rebalancing    #
+########################################
+# p=50
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_sp500_sr$stats
+saveRDS(rolling_window_results_month_2021_2024_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_sp500_sr.rds")
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_sp500_sr$stats
+saveRDS(rolling_window_results_week_2021_2024_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_sp500_sr.rds")
+
+
+################################################################################
+# p=150
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_150_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns150, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_150_sp500_sr$stats
+saveRDS(rolling_window_results_month_2021_2024_150_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_150_sp500_sr.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_150_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns150, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_150_sp500_sr$stats
+saveRDS(rolling_window_results_week_2021_2024_150_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_150_sp500_sr.rds")
+
+
+################################################################################
+# p=250
+
+start.time <- Sys.time()
+rolling_window_results_month_2021_2024_250_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns250, 252, 21, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_month_2021_2024_250_sp500_sr$stats
+saveRDS(rolling_window_results_month_2021_2024_250_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_month_2021_2024_250_sp500_sr.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_week_2021_2024_250_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns250, 252, 5, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_week_2021_2024_250_sp500_sr$stats
+saveRDS(rolling_window_results_week_2021_2024_250_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_week_2021_2024_250_sp500_sr.rds")
+
+
+##############################
+#     Daily rebalancing      #
+##############################
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_50_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns50, 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_50_sp500_sr$stats
+saveRDS(rolling_window_results_daily_2021_2024_50_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_50_sp500_sr.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_150_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns150, 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_150_sp500_sr$stats
+saveRDS(rolling_window_results_daily_2021_2024_150_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_150_sp500_sr.rds")
+
+
+start.time <- Sys.time()
+rolling_window_results_daily_2021_2024_250_sp500_sr <- mega_rol_pred_parallel_maxsharpe_all(returns250, 252, 1, rf=risk_free, max_factors = 10)
+end.time <- Sys.time()
+time.taken <- end.time - start.time
+print(time.taken)
+rolling_window_results_daily_2021_2024_250_sp500_sr$stats
+saveRDS(rolling_window_results_daily_2021_2024_250_sp500_sr, "C:/Users/erikl_xzy542i/Documents/Master_local/Thesis/Data/rolling_window_results_daily_2021_2024_250_sp500_sr.rds")
 
