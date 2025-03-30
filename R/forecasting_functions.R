@@ -223,7 +223,7 @@ predict_portfolio <- function(
   ip <- ncol(returns)
   
   # Determine optimal number of factors using Silverman’s bandwidth
-  m <- determine_factors(returns, max_factors, silverman(returns))$optimal_R
+  m <- determine_factors(returns, max_factors, silverman(returns))$optimal_m
   
   # Select bandwidth
   bandwidth <- silverman(returns)
@@ -239,11 +239,29 @@ predict_portfolio <- function(
                                                 floor_value = 1e-12,
                                                 epsilon2 = 1e-6)$total_cov
   
+  comp_expected_returns <- function(returns, horizon){ # auto.arima() is gpl3
+    exp_ret <- numeric()
+    for (i in seq_len(ncol(returns))){
+      candidate_models <- list(
+        arima(returns[,i], order = c(0,0,0)),
+        arima(returns[,i], order = c(1,0,0)),
+        arima(returns[,i], order = c(0,0,1)),
+        arima(returns[,i], order = c(1,0,1))
+      )
+      aics <- sapply(candidate_models, AIC)
+      best_model <- candidate_models[[which.min(aics)]]
+      forecast_return <- predict(best_model, n.ahead = horizon)$pred
+      exp_ret[i] <- mean(forecast_return)
+    }
+    return(exp_ret)
+  }
+  
+    
   # Expected returns
   if (is.null(rf)) {
-    mean_returns <- colMeans(returns)
+    mean_returns <- comp_expected_returns(returns, horizon)
   } else {
-    mean_returns <- colMeans(returns) - rf
+    mean_returns <- comp_expected_returns(returns, horizon) - rf
   }
   
   
@@ -251,10 +269,10 @@ predict_portfolio <- function(
   inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, ip)
   w_gmv_unnorm <- inv_cov %*% ones
-  w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))  # Normalize weights
+  w_gmv <- w_gmv_unnorm / sum(w_gmv_unnorm)  # Normalize weights
   
   ## Compute GMVP Expected Return and Risk
-  expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
+  expected_return_gmv <- sum(w_gmv * mean_returns)*horizon
   risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
   
   ### **Minimum Variance Portfolio with Return Constraint**
@@ -267,7 +285,7 @@ predict_portfolio <- function(
     w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
     
     # Compute Expected Return and Risk for Constrained Portfolio
-    expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
+    expected_return_constrained <- sum(w_constrained * mean_returns)*horizon
     risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
     
     return(list(
@@ -275,13 +293,13 @@ predict_portfolio <- function(
         weights = w_gmv,
         expected_return = expected_return_gmv,
         risk = risk_gmv,
-        sharpe = expected_return_gmv/risk_gmv
+        sharpe = (expected_return_gmv/horizon)/(risk_gmv/sqrt(horizon))
       ),
       MinVarWithReturnConstraint = list(
         weights = w_constrained,
         expected_return = expected_return_constrained,
         risk = risk_constrained,
-        sharpe = expected_return_constrained/risk_constrained
+        sharpe = (expected_return_constrained/horizon)/(risk_constrained/sqrt(horizon))
       )
     ))
   } else {
@@ -291,7 +309,7 @@ predict_portfolio <- function(
         weights = w_gmv,
         expected_return = expected_return_gmv,
         risk = risk_gmv,
-        sharpe = expected_return_gmv/risk_gmv
+        sharpe = (expected_return_gmv/horizon)/(risk_gmv/sqrt(horizon))
       )
     ))
   }
