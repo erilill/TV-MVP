@@ -85,8 +85,14 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                     cli::cli_h1("Portfolio Optimization Predictions")
                                     cli::cli_rule()
                                     cli::cli_h2("Summary Metrics")
-                                    # Use cli_table to display the summary data frame in a nicely formatted table.
-                                    print(self$summary)
+                                    df <- self$summary
+                                    df$Method <- with(df, ifelse(Method == "GMV", 
+                                                                 "Minimum Variance Portfolio", 
+                                                                 ifelse(Method == "max_SR", 
+                                                                        "Maximum SR Portfolio", 
+                                                                        ifelse(Method == "MinVarWithReturnConstraint", 
+                                                                               "Return-Constrained Portfolio", Method))))
+                                    print(df, row.names = FALSE)
                                     cli::cli_rule()
                                     cli::cli_h2("Detailed Components")
                                     cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
