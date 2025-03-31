@@ -217,6 +217,7 @@ predict_portfolio <- function(
     max_factors = 3,
     kernel_func = epanechnikov_kernel,
     min_return = NULL,
+    target_risk = NULL, 
     rf = NULL
 ) {
   iT <- nrow(returns)
@@ -231,7 +232,7 @@ predict_portfolio <- function(
   # Local PCA
   local_res <- localPCA(returns, bandwidth, m, kernel_func)
   
-  # Compute covariance
+  # Compute covariance matrix from local PCA results using POET
   Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results =  local_res,
                                                 returns = returns,
                                                 M0 = 10, 
@@ -239,9 +240,10 @@ predict_portfolio <- function(
                                                 floor_value = 1e-12,
                                                 epsilon2 = 1e-6)$total_cov
   
-  comp_expected_returns <- function(returns, horizon){ # auto.arima() is gpl3
-    exp_ret <- numeric()
-    for (i in seq_len(ncol(returns))){
+  # Function to compute expected returns using a simple model selection approach
+  comp_expected_returns <- function(returns, horizon) {
+    exp_ret <- numeric(ncol(returns))
+    for (i in seq_len(ncol(returns))) {
       candidate_models <- list(
         arima(returns[,i], order = c(0,0,0)),
         arima(returns[,i], order = c(1,0,0)),
@@ -250,13 +252,12 @@ predict_portfolio <- function(
       )
       aics <- sapply(candidate_models, AIC)
       best_model <- candidate_models[[which.min(aics)]]
-      forecast_return <- predict(best_model, n.ahead = horizon)$pred
-      exp_ret[i] <- mean(forecast_return)
+      fc <- predict(best_model, n.ahead = horizon)$pred
+      exp_ret[i] <- mean(fc)
     }
     return(exp_ret)
   }
   
-    
   # Expected returns
   if (is.null(rf)) {
     mean_returns <- comp_expected_returns(returns, horizon)
@@ -264,53 +265,77 @@ predict_portfolio <- function(
     mean_returns <- comp_expected_returns(returns, horizon) - rf
   }
   
-  
-  ## Global Minimum Variance Portfolio (GMVP)
+  ## Compute GMVP
   inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, ip)
   w_gmv_unnorm <- inv_cov %*% ones
-  w_gmv <- w_gmv_unnorm / sum(w_gmv_unnorm)  # Normalize weights
+  w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
   
-  ## Compute GMVP Expected Return and Risk
-  expected_return_gmv <- sum(w_gmv * mean_returns)*horizon
+  expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
   risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
   
-  ### **Minimum Variance Portfolio with Return Constraint**
+  ### Compute Mean-Variance portfolio (if applicable)
+  if (!is.null(target_risk)) {
+    obj_fun <- function(w, Sigma, mu, target_risk, horizon) {
+      w <- w / sum(w)  # enforce budget constraint
+      port_return <- sum(w * mu)
+      port_variance <- as.numeric(t(w) %*% Sigma %*% w)
+      # Penalty: if risk (std) exceeds target_risk, add a large penalty.
+      penalty <- ifelse(sqrt(port_variance) > target_risk/sqrt(horizon),
+                        1e6 * (sqrt(port_variance) - target_risk/sqrt(horizon))^2,
+                        0)
+      return(-port_return + penalty)
+    }
+    
+    # Starting point: equal weights
+    w0 <- rep(1/ip, ip)
+    res_opt <- optim(w0, obj_fun, Sigma = Sigma_hat, mu = mean_returns,
+                     target_risk = target_risk, horizon = horizon, method = "L-BFGS-B",
+                     lower = rep(0, ip), upper = rep(1, ip))
+    w_mv <- res_opt$par / sum(res_opt$par)
+    expected_return_mv <- sum(w_mv * mean_returns) * horizon
+    risk_mv <- sqrt(as.numeric(t(w_mv) %*% Sigma_hat %*% w_mv)) * sqrt(horizon)
+    
+    mv_portfolio <- list(
+      weights = w_mv,
+      expected_return = expected_return_mv,
+      risk = risk_mv,
+      sharpe = expected_return_mv / risk_mv
+    )
+  }
+  
+  ### Minimum Variance Portfolio with Return Constraint (if applicable)
   if (!is.null(min_return)) {
-    A  <- cbind(rep(1, ip), mean_returns)  # Constraints matrix (p x 2)
-    b  <- c(1, min_return / horizon)  # Constraint values
-    
+    A  <- cbind(rep(1, ip), mean_returns)  # (p x 2) constraints
+    b  <- c(1, min_return / horizon)
     A_Sigma_inv_A <- solve(t(A) %*% inv_cov %*% A)
-    
     w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
-    
-    # Compute Expected Return and Risk for Constrained Portfolio
     expected_return_constrained <- sum(w_constrained * mean_returns)*horizon
     risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
     
-    return(list(
-      GMV = list(
-        weights = w_gmv,
-        expected_return = expected_return_gmv,
-        risk = risk_gmv,
-        sharpe = (expected_return_gmv/horizon)/(risk_gmv/sqrt(horizon))
-      ),
-      MinVarWithReturnConstraint = list(
-        weights = w_constrained,
-        expected_return = expected_return_constrained,
-        risk = risk_constrained,
-        sharpe = (expected_return_constrained/horizon)/(risk_constrained/sqrt(horizon))
-      )
-    ))
-  } else {
-    # If no return constraint, return only GMV
-    return(list(
-      GMV = list(
-        weights = w_gmv,
-        expected_return = expected_return_gmv,
-        risk = risk_gmv,
-        sharpe = (expected_return_gmv/horizon)/(risk_gmv/sqrt(horizon))
-      )
-    ))
+    constrained_portfolio <- list(
+      weights = w_constrained,
+      expected_return = expected_return_constrained,
+      risk = risk_constrained,
+      sharpe = expected_return_constrained / risk_constrained
+    )
   }
+  
+  # Return portfolios: GMVP, MV portfolio with target risk (if applicable), and minimum variance with return constraint (if applicable).
+  out <- list(
+    GMV = list(
+      weights = w_gmv,
+      expected_return = expected_return_gmv,
+      risk = risk_gmv,
+      sharpe = expected_return_gmv / risk_gmv
+    )
+  )
+  if (!is.null(target_risk)) {
+    out$MV_TargetRisk <- mv_portfolio
+  }
+  if (!is.null(min_return)) {
+    out$MinVarWithReturnConstraint <- constrained_portfolio
+  }
+  
+  return(out)
 }
