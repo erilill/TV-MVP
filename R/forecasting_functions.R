@@ -256,24 +256,7 @@ predict_portfolio <- function(
                                                 floor_value = 1e-12,
                                                 epsilon2 = 1e-6)$total_cov
   
-  # Function to compute expected returns using a simple model selection approach
-  comp_expected_returns <- function(returns, horizon) {
-    exp_ret <- numeric(ncol(returns))
-    for (i in seq_len(ncol(returns))) {
-      candidate_models <- list(
-        arima(returns[, i], order = c(0,0,0)),
-        arima(returns[, i], order = c(1,0,0)),
-        arima(returns[, i], order = c(0,0,1)),
-        arima(returns[, i], order = c(1,0,1))
-      )
-      aics <- sapply(candidate_models, AIC)
-      best_model <- candidate_models[[which.min(aics)]]
-      fc <- predict(best_model, n.ahead = horizon)$pred
-      exp_ret[i] <- mean(fc)
-    }
-    return(exp_ret)
-  }
-  
+
   # Expected returns
   if (is.null(rf)) {
     mean_returns <- comp_expected_returns(returns, horizon)
@@ -366,4 +349,22 @@ predict_portfolio <- function(
   )
   
   return(out)
+}
+
+#' Function to compute expected returns using a simple model selection approach
+comp_expected_returns <- function(returns, horizon) {
+  exp_ret <- numeric(ncol(returns))
+  for (i in seq_len(ncol(returns))) {
+    candidate_models <- list(
+      arima(returns[, i], order = c(0,0,0)),
+      arima(returns[, i], order = c(1,0,0)),
+      arima(returns[, i], order = c(0,0,1)),
+      arima(returns[, i], order = c(1,0,1))
+    )
+    aics <- sapply(candidate_models, AIC)
+    best_model <- candidate_models[[which.min(aics)]]
+    fc <- predict(best_model, n.ahead = horizon)$pred
+    exp_ret[i] <- mean(fc)
+  }
+  return(exp_ret)
 }
