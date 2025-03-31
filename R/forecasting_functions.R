@@ -217,7 +217,7 @@ predict_portfolio <- function(
     max_factors = 3,
     kernel_func = epanechnikov_kernel,
     min_return = NULL,
-    target_risk = NULL, 
+    max_SR = NULL,  # flag: if TRUE, compute maximum Sharpe portfolio
     rf = NULL
 ) {
   iT <- nrow(returns)
@@ -233,7 +233,7 @@ predict_portfolio <- function(
   local_res <- localPCA(returns, bandwidth, m, kernel_func)
   
   # Compute covariance matrix from local PCA results using POET
-  Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results =  local_res,
+  Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results = local_res,
                                                 returns = returns,
                                                 M0 = 10, 
                                                 rho_grid = seq(0.005, 2, length.out = 30),
@@ -245,10 +245,10 @@ predict_portfolio <- function(
     exp_ret <- numeric(ncol(returns))
     for (i in seq_len(ncol(returns))) {
       candidate_models <- list(
-        arima(returns[,i], order = c(0,0,0)),
-        arima(returns[,i], order = c(1,0,0)),
-        arima(returns[,i], order = c(0,0,1)),
-        arima(returns[,i], order = c(1,0,1))
+        arima(returns[, i], order = c(0,0,0)),
+        arima(returns[, i], order = c(1,0,0)),
+        arima(returns[, i], order = c(0,0,1)),
+        arima(returns[, i], order = c(1,0,1))
       )
       aics <- sapply(candidate_models, AIC)
       best_model <- candidate_models[[which.min(aics)]]
@@ -274,68 +274,80 @@ predict_portfolio <- function(
   expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
   risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
   
-  ### Compute Mean-Variance portfolio (if applicable)
-  if (!is.null(target_risk)) {
-    obj_fun <- function(w, Sigma, mu, target_risk, horizon) {
-      w <- w / sum(w)  # enforce budget constraint
-      port_return <- sum(w * mu)
-      port_variance <- as.numeric(t(w) %*% Sigma %*% w)
-      # Penalty: if risk (std) exceeds target_risk, add a large penalty.
-      penalty <- ifelse(sqrt(port_variance) > target_risk/sqrt(horizon),
-                        1e6 * (sqrt(port_variance) - target_risk/sqrt(horizon))^2,
-                        0)
-      return(-port_return + penalty)
-    }
+  GMV <- list(
+    weights = w_gmv,
+    expected_return = expected_return_gmv,
+    risk = risk_gmv,
+    sharpe = (expected_return_gmv/horizon) / (risk_gmv/sqrt(horizon))
+  )
+  
+  # Compute Maximum Sharpe Ratio portfolio if requested
+  max_sr_portfolio <- NULL
+  if (!is.null(max_SR) && max_SR == TRUE) {
+    w_unnorm <- inv_cov %*% (mean_returns / horizon)
+    w_max_sr <- as.numeric(w_unnorm / sum(w_unnorm))
+    expected_return_max_sr <- sum(w_max_sr * mean_returns) * horizon
+    risk_max_sr <- sqrt(as.numeric(t(w_max_sr) %*% Sigma_hat %*% w_max_sr)) * sqrt(horizon)
     
-    # Starting point: equal weights
-    w0 <- rep(1/ip, ip)
-    res_opt <- optim(w0, obj_fun, Sigma = Sigma_hat, mu = mean_returns,
-                     target_risk = target_risk, horizon = horizon, method = "L-BFGS-B",
-                     lower = rep(0, ip), upper = rep(1, ip))
-    w_mv <- res_opt$par / sum(res_opt$par)
-    expected_return_mv <- sum(w_mv * mean_returns) * horizon
-    risk_mv <- sqrt(as.numeric(t(w_mv) %*% Sigma_hat %*% w_mv)) * sqrt(horizon)
-    
-    mv_portfolio <- list(
-      weights = w_mv,
-      expected_return = expected_return_mv,
-      risk = risk_mv,
-      sharpe = expected_return_mv / risk_mv
+    max_sr_portfolio <- list(
+      weights = w_max_sr,
+      expected_return = expected_return_max_sr,
+      risk = risk_max_sr,
+      sharpe = (expected_return_max_sr/horizon) / (risk_max_sr/sqrt(horizon))
     )
   }
   
-  ### Minimum Variance Portfolio with Return Constraint (if applicable)
+  # Compute Minimum Variance Portfolio with Return Constraint (if applicable)
+  constrained_portfolio <- NULL
   if (!is.null(min_return)) {
     A  <- cbind(rep(1, ip), mean_returns)  # (p x 2) constraints
     b  <- c(1, min_return / horizon)
     A_Sigma_inv_A <- solve(t(A) %*% inv_cov %*% A)
     w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
-    expected_return_constrained <- sum(w_constrained * mean_returns)*horizon
+    expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
     risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
     
     constrained_portfolio <- list(
       weights = w_constrained,
       expected_return = expected_return_constrained,
       risk = risk_constrained,
-      sharpe = expected_return_constrained / risk_constrained
+      sharpe = (expected_return_constrained/horizon) / (risk_constrained/sqrt(horizon))
     )
   }
   
-  # Return portfolios: GMVP, MV portfolio with target risk (if applicable), and minimum variance with return constraint (if applicable).
-  out <- list(
-    GMV = list(
-      weights = w_gmv,
-      expected_return = expected_return_gmv,
-      risk = risk_gmv,
-      sharpe = expected_return_gmv / risk_gmv
-    )
+  # Build summary data frame
+  method_names <- c("GMV")
+  expected_returns_vec <- c(expected_return_gmv)
+  risk_vec <- c(risk_gmv)
+  sharpe_vec <- c(GMV$sharpe)
+  
+  if (!is.null(max_sr_portfolio)) {
+    method_names <- c(method_names, "max_SR")
+    expected_returns_vec <- c(expected_returns_vec, expected_return_max_sr)
+    risk_vec <- c(risk_vec, risk_max_sr)
+    sharpe_vec <- c(sharpe_vec, max_sr_portfolio$sharpe)
+  }
+  if (!is.null(constrained_portfolio)) {
+    method_names <- c(method_names, "MinVarWithReturnConstraint")
+    expected_returns_vec <- c(expected_returns_vec, expected_return_constrained)
+    risk_vec <- c(risk_vec, risk_constrained)
+    sharpe_vec <- c(sharpe_vec, constrained_portfolio$sharpe)
+  }
+  
+  summary_df <- data.frame(
+    Method = method_names,
+    expected_return = expected_returns_vec,
+    risk = risk_vec,
+    sharpe = sharpe_vec
   )
-  if (!is.null(target_risk)) {
-    out$MV_TargetRisk <- mv_portfolio
-  }
-  if (!is.null(min_return)) {
-    out$MinVarWithReturnConstraint <- constrained_portfolio
-  }
+  
+  # Create and return an object of PortfolioPredictions (an R6 object)
+  out <- PortfolioPredictions$new(
+    summary = summary_df,
+    GMV = GMV,
+    max_SR = if (!is.null(max_sr_portfolio)) max_sr_portfolio else NULL,
+    MinVarWithReturnConstraint = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
+  )
   
   return(out)
 }
