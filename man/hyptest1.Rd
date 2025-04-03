@@ -4,14 +4,14 @@
 \alias{hyptest1}
 \title{Test for Time-Varying Covariance via Local PCA and Bootstrap}
 \usage{
-hyptest1(returns, m, B = 199, kernel_func = epanechnikov_kernel)
+hyptest1(returns, m, B = 200, kernel_func = epanechnikov_kernel)
 }
 \arguments{
 \item{returns}{A numeric matrix of asset returns with dimensions \(T \times p\) (time periods by assets).}
 
 \item{m}{Integer. The number of factors to extract in the local PCA.}
 
-\item{B}{Integer. The number of bootstrap replications to perform. Default is 199.}
+\item{B}{Integer. The number of bootstrap replications to perform. Default is 200}
 
 \item{kernel_func}{Function. A kernel function for weighting observations in the local PCA. Default is \code{epanechnikov_kernel}.}
 }
@@ -61,8 +61,8 @@ The function prints a message indicating the strength of evidence for time-varyi
 set.seed(123)
 returns <- matrix(rnorm(500*10, mean = 0, sd = 0.02), nrow = 500, ncol = 10)
 
-# Test for time-varying covariance using 3 factors and 199 bootstrap replications
-test_result <- hyptest1(returns, m = 3, B = 199, kernel_func = epanechnikov_kernel)
+# Test for time-varying covariance using 3 factors and 200 bootstrap replications
+test_result <- hyptest1(returns, m = 3, B = 200, kernel_func = epanechnikov_kernel)
 
 # Print test statistic and p-value
 print(test_result$J_NT)
