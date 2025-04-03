@@ -4,6 +4,7 @@
 #'
 #' This class implements a time-varying mean-variance portfolio model.
 #'
+#' @import R6
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
@@ -66,7 +67,7 @@ TVMVP <- R6::R6Class(
 
   )
 )
-
+#' @import R6
 PortfolioPredictions <- R6Class("PortfolioPredictions",
                                 public = list(
                                   summary = NULL,
