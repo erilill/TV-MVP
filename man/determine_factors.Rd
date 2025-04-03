@@ -4,12 +4,12 @@
 \alias{determine_factors}
 \title{Determine the Optimal Number of Factors via an Information Criterion}
 \usage{
-determine_factors(returns, max_R, bandwidth)
+determine_factors(returns, max_m, bandwidth)
 }
 \arguments{
 \item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.}
 
-\item{max_R}{Integer. The maximum number of factors to consider.}
+\item{max_m}{Integer. The maximum number of factors to consider.}
 
 \item{bandwidth}{Numeric. The bandwidth used in the kernel weighting for the local PCA.}
 }
@@ -17,7 +17,7 @@ determine_factors(returns, max_R, bandwidth)
 A list with two components:
 \itemize{
   \item \code{optimal_R}: The optimal number of factors (an integer) that minimizes the information criterion.
-  \item \code{IC_values}: A numeric vector of length \code{max_R} containing the information criterion values
+  \item \code{IC_values}: A numeric vector of length \code{max_m} containing the information criterion values
         for each candidate number of factors.
 }
 }
@@ -29,7 +29,7 @@ penalty term that increases with the number of factors. The optimal number of fa
 one that minimizes the IC.
 }
 \details{
-For each candidate number of factors \eqn{R} (from 1 to \code{max_R}), the function:
+For each candidate number of factors \eqn{R} (from 1 to \code{max_m}), the function:
 
 \enumerate{
   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{R} factors.
@@ -53,7 +53,7 @@ set.seed(123)
 returns <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
 
 # Determine the optimal number of factors (up to 5) using a specified bandwidth.
-result <- determine_factors(returns, max_R = 5, bandwidth = 0.2)
+result <- determine_factors(returns, max_m = 5, bandwidth = 0.2)
 print(result$optimal_R)
 print(result$IC_values)
 }

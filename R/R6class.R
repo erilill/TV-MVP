@@ -4,6 +4,7 @@
 #'
 #' This class implements a time-varying mean-variance portfolio model.
 #'
+#' @import R6
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
@@ -65,4 +66,68 @@ TVMVP <- R6::R6Class(
     ip = NULL # integer of the number of stocks
 
   )
+)
+#' @import R6
+PortfolioPredictions <- R6Class("PortfolioPredictions",
+                                public = list(
+                                  summary = NULL,
+                                  GMV = NULL,
+                                  max_SR = NULL,
+                                  MinVarWithReturnConstraint = NULL,
+                                  
+                                  initialize = function(summary, GMV, max_SR = NULL, MinVarWithReturnConstraint = NULL) {
+                                    self$summary <- summary
+                                    self$GMV <- GMV
+                                    self$max_SR <- max_SR
+                                    self$MinVarWithReturnConstraint <- MinVarWithReturnConstraint
+                                  },
+                                  
+                                  print = function(...) {
+                                    cli::cli_h1("Portfolio Optimization Predictions")
+                                    cli::cli_rule()
+                                    cli::cli_h2("Summary Metrics")
+                                    df <- self$summary
+                                    df$Method <- with(df, ifelse(Method == "GMV", 
+                                                                 "Minimum Variance Portfolio", 
+                                                                 ifelse(Method == "max_SR", 
+                                                                        "Maximum SR Portfolio", 
+                                                                        ifelse(Method == "MinVarWithReturnConstraint", 
+                                                                               "Return-Constrained Portfolio", Method))))
+                                    print(df, row.names = FALSE)
+                                    cli::cli_rule()
+                                    cli::cli_h2("Detailed Components")
+                                    cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
+                                    cli::cli_text("  • GMV: Use object$GMV")
+                                    if (!is.null(self$max_SR)) {
+                                      cli::cli_text("  • Maximum Sharpe Ratio Portfolio: Use object$max_SR")
+                                    }
+                                    if (!is.null(self$MinVarWithReturnConstraint)) {
+                                      cli::cli_text("  • Minimum Variance Portfolio with Return Constraint: Use object$MinVarWithReturnConstraint")
+                                    }
+                                    invisible(self)
+                                  },
+                                  
+                                  getWeights = function(method = "GMV") {
+                                    switch(method,
+                                           GMV = self$GMV$weights,
+                                           max_SR = {
+                                             if (!is.null(self$max_SR)) {
+                                               self$max_SR$weights
+                                             } else {
+                                               cli::cli_alert_danger("max_SR portfolio not available!")
+                                               NULL
+                                             }
+                                           },
+                                           MinVarWithReturnConstraint = {
+                                             if (!is.null(self$MinVarWithReturnConstraint)) {
+                                               self$MinVarWithReturnConstraint$weights
+                                             } else {
+                                               cli::cli_alert_danger("MinVarWithReturnConstraint portfolio not available!")
+                                               NULL
+                                             }
+                                           },
+                                           stop("Method not found")
+                                    )
+                                  }
+                                )
 )

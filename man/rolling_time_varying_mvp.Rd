@@ -50,12 +50,8 @@ A list containing:
 \item{cumulative_excess_return}{Total cumulative excess return over the period.}
 \item{standard_deviation}{Standard deviation of the excess returns.}
 \item{sharpe_ratio}{Sharpe ratio of the strategy.}
-\item{RMSE}{Root mean squared error between realized and theoretical excess returns.}
 \item{standard_deviation_annualized}{Annualized standard deviation of returns.}
 \item{sharpe_ratio_annualized}{Annualized Sharpe ratio.}
-\item{theoretical_mu}{Vector of theoretical expected returns over time.}
-\item{theoretical_risk}{Vector of theoretical risk estimates over time.}
-\item{avg.risk_diff}{Absolute difference between realized and theoretical risk estimates.}
 }
 \description{
 This function performs rolling time-varying minimum variance portfolio (TV-MVP) optimization using 
