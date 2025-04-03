@@ -131,3 +131,55 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                   }
                                 )
 )
+#' @import R6
+RollingWindow <- R6::R6Class(
+  "RollingWindow",
+  public = list(
+    summary = NULL,
+    TVMVP   = NULL,
+    Equal  = NULL,
+    
+    initialize = function(summary, TVMVP, Equal) {
+      self$summary <- summary
+      self$TVMVP   <- TVMVP
+      self$Equal   <- Equal
+    },
+    
+    print = function(...) {
+      # Header
+      cli::cli_h1("Rolling Window Portfolio Analysis")
+      cli::cli_rule()
+      
+      # Print summary
+      cli::cli_h2("Summary Metrics")
+      df <- self$summary
+      
+      # Here, if you want, you can rename the 'Method' column so it prints
+      # nicely, or leave it as is. For example:
+      # df$Method <- with(df, ifelse(Method == "Time-Varying MVP", 
+      #                              "Time-Varying MVP Portfolio",
+      #                       ifelse(Method == "Equal Weight", 
+      #                              "Equal-Weighted Portfolio", 
+      #                              Method)))
+      
+      print(df, row.names = FALSE)
+      
+      cli::cli_rule()
+      cli::cli_h2("Detailed Components")
+      cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
+      cli::cli_text("  • Time-Varying MVP: Access via `$TVMVP`")
+      cli::cli_text("  • Equal Weight: Access via `$Equal`")
+      
+      invisible(self)
+    },
+    
+    getWeights = function(method = c("TVMVP", "Equal")) {
+      method <- match.arg(method)
+      if (method == "TVMVP") {
+        return(self$TVMVP$weights)
+      } else {
+        return(self$Equal$weights)
+      }
+    }
+  )
+)
