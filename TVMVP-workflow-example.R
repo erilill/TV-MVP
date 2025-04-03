@@ -12,14 +12,13 @@ up <- 20   # Number of assets
 returns <- matrix(rnorm(uT * up, mean = 0.001, sd = 0.02), ncol = up)
 
 # Number of factors
-m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization
+m <- determine_factors(returns, 10, silverman(returns))$optimal_m # Needs optimization
 
 # Test if covariance is time invariant
-hyptest1(returns = returns,
+test <- hyptest1(returns = returns,
          m,
          B = 199,
-         kernel_func = epanechnikov_kernel
-)
+         kernel_func = epanechnikov_kernel)
 # E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
 
 # Evaluate historical performance of model:
@@ -30,11 +29,12 @@ mvp_result <- rolling_time_varying_mvp(
   max_factors    = 10,
   return_type    = "daily",
   kernel_func    = epanechnikov_kernel,
-  rf             = NULL
+  rf             = 1e-04
 )
 prediction <- predict_portfolio(returns, 
                                 horizon = 21, 
                                 max_factors = 10,
                                 kernel_func = epanechnikov_kernel,
                                 min_return=0.5,
-                                rf = NULL)
+                                max_SR = TRUE,
+                                rf = 1e-04)

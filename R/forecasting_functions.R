@@ -90,7 +90,7 @@ rolling_time_varying_mvp <- function(
   theoretical_mu  <- numeric(0) 
   
   # Determine number of factors <- would be good to re-compute yearly
-  m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_R
+  m <- determine_factors(returns[1:initial_window,], max_factors, silverman(returns[1:initial_window,]))$optimal_m
   
   for (l in seq_len(RT)) {
     reb_t <- rebalance_dates[l]
@@ -126,12 +126,12 @@ rolling_time_varying_mvp <- function(
   # Cumulative returns
   N <- length(daily_port_ret)
   excess_ret <- daily_port_ret - rf_vec
-  CER <- mean(excess_ret)
+  CER <- sum(excess_ret)
   
   # Metrics
   sd <- sqrt(var(excess_ret))
   mean_ret <- mean(excess_ret)
-  SR <- mean_ret / sample_sd
+  SR <- mean_ret / sd
   
   # Set annualization factor based on return frequency
   annualization_factor <- switch(return_type,
@@ -142,8 +142,8 @@ rolling_time_varying_mvp <- function(
   )
   
   mean_annualized      <- mean(excess_ret)*(annualization_factor^2)
-  sd_annualized <- sample_sd*annualization_factor
-  SR_annualized <- mean_annualized/sample_sd_annualized
+  sd_annualized <- sd*annualization_factor
+  SR_annualized <- mean_annualized/sd_annualized
   
   
   list(
