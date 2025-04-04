@@ -30,11 +30,6 @@ code:
 
 ``` r
 library(TVMVP)
-#> 
-#> Attaching package: 'TVMVP'
-#> The following object is masked from 'package:stats':
-#> 
-#>     residuals
 ```
 
 For this example we will us simulated data, however most use cases for
@@ -56,7 +51,7 @@ m <- determine_factors(returns = returns, max_m = 10, bandwidth = silverman(retu
 m
 #> [1] 1
 hypothesis_test <- hyptest1(returns = returns,
-                            m,
+                            m = m,
                             B = 200,
                             kernel_func = epanechnikov_kernel)
 #> J_pT = 34.7556, p-value = 0.0300: Strong evidence that the covariance is time-varying.
@@ -101,14 +96,25 @@ mvp_result <- rolling_time_varying_mvp(
   kernel_func    = epanechnikov_kernel,
   rf             = 1e-04
 )
-mvp_result$cumulative_excess_return
-#> [1] 0.06251952
-mvp_result$mean_excess_returns
-#> [1] 0.001562988
-mvp_result$standard_deviation
-#> [1] 0.006212141
-mvp_result$sharpe_ratio
-#> [1] 0.2516021
+mvp_result
+#> 
+#> ── Rolling Window Portfolio Analysis ───────────────────────────────────────────
+#> ────────────────────────────────────────────────────────────────────────────────
+#> 
+#> ── Summary Metrics ──
+#> 
+#>            Method Cumulative_Excess_Return Mean_Excess_Return
+#>  Time-Varying MVP               0.07378433        0.001844608
+#>      Equal Weight               0.07346762        0.001836690
+#>  Standard_Deviation Sharpe_Ratio Mean_Annualized SD_Annualized
+#>         0.006331619    0.2913328       0.4648413     0.1005113
+#>         0.004647621    0.3951894       0.4628460     0.0737787
+#> ────────────────────────────────────────────────────────────────────────────────
+#> ── Detailed Components ──
+#> 
+#> The detailed portfolio outputs are stored in the following elements:
+#> • Time-Varying MVP: Access via `$TVMVP`
+#> • Equal Weight: Access via `$Equal`
 ```
 
 The `rolling_time_varying_mvp` function takes the input: `returns` a
@@ -124,7 +130,7 @@ of the performance of the portfolio such as cumulative excess returns,
 standard deviation, and Sharpe ratio.
 
 ``` r
-prediction <- predict_portfolio(returns, 
+prediction <- predict_portfolio(returns = returns, 
                                 horizon = 21, 
                                 max_factors = 10,
                                 kernel_func = epanechnikov_kernel,
@@ -161,4 +167,20 @@ when running this function. The minimum returns constraint is set by
 imputing some `min_return`-value when running the function, important to
 note is that the minimum return constraint is set for the entire horizon
 and is not a daily constraint. The maximum SR portfolio is computed when
-`max_SR` is set to TRUE.
+`max_SR` is set to `TRUE.`
+
+If the pre-built functions does not fit your purpose, you can utilize
+the covariance function by running:
+
+``` r
+local_res <- localPCA(returns = returns, bandwidth = silverman(returns), m= m, kernel_func = epanechnikov_kernel)
+Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results = local_res,
+                                              returns = returns,
+                                              M0 = 10, 
+                                              rho_grid = seq(0.005, 2, length.out = 30),
+                                              floor_value = 1e-12,
+                                              epsilon2 = 1e-6)$total_cov
+```
+
+Which outputs the covariance matrix weighted around the last observation
+in returns.
