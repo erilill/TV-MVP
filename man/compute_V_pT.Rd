@@ -15,14 +15,12 @@ local factor scores for a specific time period. Each matrix should have \eqn{T} 
 
 \item{h}{A numeric value indicating the bandwidth parameter for the kernel function.}
 
+\item{iT}{An integer specifying the number of time periods.}
+
+\item{ip}{An integer specifying the number of assets.}
+
 \item{kernel_func}{A function representing the kernel used for weighting. Typically, an
 Epanechnikov kernel or another boundary kernel function.}
-
-\item{T}{An integer specifying the number of time periods.}
-
-\item{p}{An integer specifying the number of assets.}
-
-\item{factor_cov}{A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.}
 }
 \value{
 A numeric scalar \eqn{V_{pT}} representing the computed statistic based on

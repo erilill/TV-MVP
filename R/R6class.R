@@ -97,12 +97,12 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                     cli::cli_rule()
                                     cli::cli_h2("Detailed Components")
                                     cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
-                                    cli::cli_text("  • GMV: Use object$GMV")
+                                    cli::cli_text("  - GMV: Use object$GMV")
                                     if (!is.null(self$max_SR)) {
-                                      cli::cli_text("  • Maximum Sharpe Ratio Portfolio: Use object$max_SR")
+                                      cli::cli_text("  - Maximum Sharpe Ratio Portfolio: Use object$max_SR")
                                     }
                                     if (!is.null(self$MinVarWithReturnConstraint)) {
-                                      cli::cli_text("  • Minimum Variance Portfolio with Return Constraint: Use object$MinVarWithReturnConstraint")
+                                      cli::cli_text("  - Minimum Variance Portfolio with Return Constraint: Use object$MinVarWithReturnConstraint")
                                     }
                                     invisible(self)
                                   },
@@ -167,8 +167,8 @@ RollingWindow <- R6::R6Class(
       cli::cli_rule()
       cli::cli_h2("Detailed Components")
       cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
-      cli::cli_text("  • Time-Varying MVP: Access via `$TVMVP`")
-      cli::cli_text("  • Equal Weight: Access via `$Equal`")
+      cli::cli_text("  - Time-Varying MVP: Access via `$TVMVP`")
+      cli::cli_text("  - Equal Weight: Access via `$Equal`")
       
       invisible(self)
     },

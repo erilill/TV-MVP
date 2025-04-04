@@ -7,6 +7,9 @@ and it is smart in the sense that it will choose the suitable unit}
 \usage{
 get_object_size(obj)
 }
+\arguments{
+\item{obj}{Object}
+}
 \description{
 the function will return the size of obj
 and it is smart in the sense that it will choose the suitable unit

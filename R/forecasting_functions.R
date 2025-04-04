@@ -387,6 +387,8 @@ predict_portfolio <- function(
 }
 
 #' Function to compute expected returns using a simple model selection approach
+#' @param returns T times p matrix of returns
+#' @param horizon Length of forecasting horizon
 comp_expected_returns <- function(returns, horizon) {
   exp_ret <- numeric(ncol(returns))
   for (i in seq_len(ncol(returns))) {

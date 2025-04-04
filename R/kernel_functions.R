@@ -39,7 +39,7 @@ epanechnikov_kernel <- function(u) {
 #'
 #' @param t An integer specifying the current time period for which the kernel weights are computed.
 #' @param r An integer representing the reference time period.
-#' @param T An integer indicating the total number of time periods in the dataset.
+#' @param iT An integer indicating the total number of time periods in the dataset.
 #' @param h A numeric value representing the bandwidth parameter for the kernel function.
 #' @param kernel_func A function representing the kernel used for weighting.
 #'

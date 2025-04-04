@@ -6,6 +6,11 @@
 \usage{
 comp_expected_returns(returns, horizon)
 }
+\arguments{
+\item{returns}{T times p matrix of returns}
+
+\item{horizon}{Length of forecasting horizon}
+}
 \description{
 Function to compute expected returns using a simple model selection approach
 }

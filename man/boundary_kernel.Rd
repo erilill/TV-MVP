@@ -11,11 +11,11 @@ boundary_kernel(t, r, iT, h, kernel_func)
 
 \item{r}{An integer representing the reference time period.}
 
+\item{iT}{An integer indicating the total number of time periods in the dataset.}
+
 \item{h}{A numeric value representing the bandwidth parameter for the kernel function.}
 
 \item{kernel_func}{A function representing the kernel used for weighting.}
-
-\item{T}{An integer indicating the total number of time periods in the dataset.}
 }
 \value{
 A numeric scalar representing the boundary-adjusted kernel weight for the given time period.
