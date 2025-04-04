@@ -15,8 +15,8 @@
 #' rows (assets) and \eqn{m} columns (factors).
 #' @param global_loadings A numeric matrix of global factor loadings with \eqn{N} rows
 #' (assets) and \eqn{m} columns (factors).
-#' @param T An integer specifying the number of time periods.
-#' @param N An integer specifying the number of assets.
+#' @param iT An integer specifying the number of time periods.
+#' @param ip An integer specifying the number of assets.
 #' @param m An integer specifying the number of factors.
 #'
 #' @return A numeric scalar \eqn{M_{\hat{}}} representing the average squared discrepancy
@@ -71,8 +71,8 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
 #' (time periods) and \eqn{m} columns (factors).
 #' @param residuals A numeric matrix of residuals with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
 #' @param h A numeric value indicating the bandwidth parameter for the kernel function.
-#' @param T An integer specifying the number of time periods.
-#' @param p An integer specifying the number of assets.
+#' @param iT An integer specifying the number of time periods.
+#' @param ip An integer specifying the number of assets.
 #' @param kernel_func A function representing the kernel used for weighting. Typically, an
 #' Epanechnikov kernel or another boundary kernel function.
 #'
@@ -119,9 +119,8 @@ compute_B_pT <- function(local_factors, global_factors, residuals, h, iT, ip, ke
 #' (time periods) and \eqn{m} columns (factors).
 #' @param residuals A numeric matrix of residuals with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
 #' @param h A numeric value indicating the bandwidth parameter for the kernel function.
-#' @param T An integer specifying the number of time periods.
-#' @param p An integer specifying the number of assets.
-#' @param factor_cov A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.
+#' @param iT An integer specifying the number of time periods.
+#' @param ip An integer specifying the number of assets.
 #' @param kernel_func A function representing the kernel used for weighting. Typically, an
 #' Epanechnikov kernel or another boundary kernel function.
 #'
