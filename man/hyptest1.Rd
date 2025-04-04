@@ -7,7 +7,7 @@
 hyptest1(returns, m, B = 200, kernel_func = epanechnikov_kernel)
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \(T \times p\) (time periods by assets).}
+\item{returns}{A numeric matrix of asset returns with dimensions \(T × p\) (time periods by assets).}
 
 \item{m}{Integer. The number of factors to extract in the local PCA.}
 

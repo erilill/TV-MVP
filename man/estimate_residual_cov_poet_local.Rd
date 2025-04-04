@@ -16,16 +16,16 @@ estimate_residual_cov_poet_local(
 \arguments{
 \item{localPCA_results}{A list containing the results from local PCA, with components:
 \itemize{
-  \item \code{loadings}: a list where each element is a \eqn{p \times m} matrix of factor loadings.
-  \item \code{f_hat}: a \eqn{T \times m} matrix of estimated factors.
+  \item \code{loadings}: a list where each element is a \eqn{p × m} matrix of factor loadings.
+  \item \code{f_hat}: a \eqn{T × m} matrix of estimated factors.
   \item \code{weights}: a list of kernel weight vectors.
 }}
 
-\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}.}
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p}.}
 
 \item{M0}{Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.}
 
-\item{rho_grid}{A numeric vector of candidate shrinkage parameters \(\rho\) used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.}
+\item{rho_grid}{A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.}
 
 \item{floor_value}{A small positive number specifying the lower bound for eigenvalues in the final positive semidefinite repair. Default is \code{1e-12}.}
 
@@ -34,10 +34,10 @@ estimate_residual_cov_poet_local(
 \value{
 A list containing:
   \itemize{
-    \item \code{best_rho}: The selected shrinkage parameter \(\hat{\rho}_t\) for the local residual covariance.
-    \item \code{residual_cov}: The shrunk residual covariance matrix \(\hat{\Sigma}_e(T)\).
-    \item \code{total_cov}: The final estimated time-varying covariance matrix \(\Sigma_R(t)\).
-    \item \code{loadings}: The local factor loadings \(\Lambda_t\) from the local PCA.
+    \item \code{best_rho}: The selected shrinkage parameter \eqn{\hat{\rho}_t} for the local residual covariance.
+    \item \code{residual_cov}: The shrunk residual covariance matrix \eqn{\hat{\Sigma}_e(T)}.
+    \item \code{total_cov}: The final estimated time-varying covariance matrix \eqn{\Sigma_R(t)}.
+    \item \code{loadings}: The local factor loadings \eqn{\Lambda_t} from the local PCA.
     \item \code{naive_resid_cov}: The raw (unshrunk) residual covariance matrix.
   }
 }
@@ -52,23 +52,23 @@ The function follows these steps:
 
 \enumerate{
   \item **Local Residuals:**  
-        Extract the local loadings \(\Lambda_t\) from the last element of \code{localPCA_results\$loadings} and 
-        factors \(\hat{F}\) from \code{localPCA_results\$f_hat}. Let \(w_t\) denote the corresponding kernel weights.
+        Extract the local loadings \eqn{\Lambda_t} from the last element of \code{localPCA_results\$loadings} and 
+        factors \eqn{\hat{F}} from \code{localPCA_results\$f_hat}. Let \eqn{w_t} denote the corresponding kernel weights.
         The local residuals are computed as:
         \deqn{U_{\text{local}} = R - F \Lambda_t,}
-        where \(R\) is the returns matrix.
+        where \eqn{R} is the returns matrix.
 
   \item **Adaptive Thresholding:**  
-        The function calls \code{adaptive_poet_rho()} on \(U_{\text{local}}\) to select an optimal shrinkage parameter 
-        \(\hat{\rho}_t\). 
+        The function calls \code{adaptive_poet_rho()} on \eqn{U_{\text{local}} }to select an optimal shrinkage parameter 
+        \eqn{\hat{\rho}_t}. 
 
   \item **Residual Covariance Estimation:**  
         The raw residual covariance is computed as:
         \deqn{S_{u,\text{raw}} = \frac{1}{T} U_{\text{local}}^\top U_{\text{local}},}
         and a threshold is set as:
-        \deqn{\text{threshold} = \hat{\rho}_t \times \text{mean}(|S_{u,\text{raw}}|),}
+        \deqn{\text{threshold} = \hat{\rho}_t × \text{mean}(|S_{u,\text{raw}}|),}
         where the mean is taken over the off-diagonal elements.
-        Soft-thresholding is then applied to obtain the shrunk residual covariance matrix \(\hat{S}_u\).
+        Soft-thresholding is then applied to obtain the shrunk residual covariance matrix \eqn{\hat{S}_u}.
 
   \item **Total Covariance Estimation:**  
         The final covariance matrix is constructed by combining the factor component with the shrunk residual covariance:

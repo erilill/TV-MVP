@@ -7,7 +7,7 @@
 local_pca(returns, r, bandwidth, m, kernel_func, prev_F = NULL)
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.}
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.}
 
 \item{r}{Integer. The current time index at which to perform the local PCA.}
 
@@ -17,14 +17,14 @@ local_pca(returns, r, bandwidth, m, kernel_func, prev_F = NULL)
 
 \item{kernel_func}{Function. The kernel function used for weighting observations (e.g., \code{epanechnikov_kernel}).}
 
-\item{prev_F}{Optional. A numeric matrix of previously estimated factors (with dimensions \eqn{T \times m}) used for aligning eigenvector directions. Default is \code{NULL}.}
+\item{prev_F}{Optional. A numeric matrix of previously estimated factors (with dimensions \eqn{T × m}) used for aligning eigenvector directions. Default is \code{NULL}.}
 }
 \value{
 A list with the following components:
 \itemize{
-  \item \code{factors}: A \eqn{T \times m} matrix of local factors estimated from the weighted returns.
-  \item \code{f_hat}: A \eqn{1 \times m} vector containing the factor estimate for time \eqn{r}.
-  \item \code{loadings}: A \eqn{p \times m} matrix of factor loadings.
+  \item \code{factors}: A \eqn{T × m} matrix of local factors estimated from the weighted returns.
+  \item \code{f_hat}: A \eqn{1 × m} vector containing the factor estimate for time \eqn{r}.
+  \item \code{loadings}: A \eqn{p × m} matrix of factor loadings.
   \item \code{w_r}: A numeric vector of kernel weights used in the computation.
 }
 }
@@ -41,12 +41,12 @@ The function operates in the following steps:
   \item **Kernel Weight Computation:**  
         For each time point \eqn{t = 1, \dots, T}, the kernel weight is computed using 
         \code{boundary_kernel(r, t, T, bandwidth, kernel_func)}. The weighted returns are given by
-        \deqn{X_r = \text{returns} \odot \sqrt{k_h},}
-        where \(\odot\) denotes element-wise multiplication and \(k_h\) is the vector of kernel weights.
+        \deqn{X_r = \text{returns} ∘ \sqrt{k_h},}
+        where ∘ denotes element-wise multiplication and \eqn{k_h} is the vector of kernel weights.
 
   \item **Eigen Decomposition:**  
         The function computes the eigen decomposition of the matrix \eqn{X_r X_r^\top} and orders the eigenvalues in
-        descending order. The top \eqn{m} eigenvectors are scaled by \(\sqrt{T}\) to form the local factors:
+        descending order. The top \eqn{m} eigenvectors are scaled by \eqn{\sqrt{T}} to form the local factors:
         \deqn{\hat{F}_r = \sqrt{T} \, \text{eigvecs}_{1:m}.}
 
   \item **Direction Alignment:**  
@@ -56,12 +56,12 @@ The function operates in the following steps:
   \item **Loadings Computation:**  
         The loadings are computed by projecting the weighted returns onto the factors:
         \deqn{\Lambda_r = \frac{1}{T} X_r^\top \hat{F}_r,}
-        where the result is transposed to yield a \eqn{p \times m} matrix.
+        where the result is transposed to yield a \eqn{p × m} matrix.
 
   \item **One-Step-Ahead Factor Estimation:**  
         A second pass computes the factor estimate for the current time index \eqn{r} by solving
         \deqn{\hat{F}_r = \left(\Lambda_r^\top \Lambda_r\right)^{-1} \Lambda_r^\top R_r,}
-        where \(R_r\) is the return vector at time \eqn{r}.
+        where \eqn{R_r} is the return vector at time \eqn{r}.
 }
 }
 \examples{

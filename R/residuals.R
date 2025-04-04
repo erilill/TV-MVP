@@ -23,7 +23,6 @@
 #'
 #' 
 #' @keywords internal
-#' @export
 residuals <- function(factors, loadings_list, returns) {
   iT <- nrow(returns)
   ip <- ncol(returns)

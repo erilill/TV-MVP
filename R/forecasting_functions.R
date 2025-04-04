@@ -239,7 +239,7 @@ rolling_time_varying_mvp <- function(
 #' \enumerate{
 #'   \item The Global Minimum Variance Portfolio (GMV) is computed in closed form.
 #'   \item If \code{max_SR = TRUE}, the Maximum Sharpe Ratio Portfolio is computed using the closed-form
-#'         solution \(w \propto \Sigma^{-1} (\mu - r_f)\).
+#'         solution \eqn{w \propto \Sigma^{-1} (\mu - r_f)}.
 #'   \item If \code{min_return} is provided, a quadratic optimization problem is solved to obtain a Return-Constrained Portfolio.
 #' }
 #'

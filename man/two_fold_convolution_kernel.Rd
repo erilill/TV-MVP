@@ -27,3 +27,19 @@ K^{(2)}(u) = \int_{-1}^{1} K(v) \cdot K(u - v) \, dv
 where \eqn{K} is the original kernel function. The function evaluates this convolution for each
 input \code{u} within the interval \([-2, 2]\) and sets it to zero outside this range.
 }
+\examples{
+\dontrun{
+# Define the Epanechnikov kernel function
+epanechnikov_kernel <- function(u) {
+  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
+}
+
+# Define a range of u values
+u_values <- seq(-3, 3, by = 0.1)
+
+# Compute two-fold convolution kernel values
+conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanechnikov_kernel)
+}
+
+
+}

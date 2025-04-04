@@ -7,7 +7,7 @@
 determine_factors(returns, max_m, bandwidth)
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.}
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.}
 
 \item{max_m}{Integer. The maximum number of factors to consider.}
 
@@ -35,16 +35,16 @@ For each candidate number of factors \eqn{R} (from 1 to \code{max_m}), the funct
   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{R} factors.
   \item Computes a reconstruction of the returns and the corresponding residuals:
         \deqn{\text{Residual}_r = R_r - F_r \Lambda_r,}
-        where \eqn{R_r} is the return at time \eqn{r}, and \eqn{F_r} and \(\Lambda_r\) are the local factors and loadings, respectively.
+        where \eqn{R_r} is the return at time \eqn{r}, and \eqn{F_r} and \eqn{\Lambda_r} are the local factors and loadings, respectively.
   \item Computes the average sum of squared residuals (SSR) as:
         \deqn{V(R) = \frac{1}{pT} \sum_{r=1}^{T} \| \text{Residual}_r \|^2.}
   \item Adds a penalty term that increases with \eqn{R}:
-        \deqn{\text{Penalty}(R) = R \times \frac{(p + T \times \text{bandwidth})}{(pT \times \text{bandwidth})} \log\left(\frac{pT \times \text{bandwidth}}{(p + T \times \text{bandwidth})}\right).}
+        \deqn{\text{Penalty}(R) = R × \frac{(p + T × \text{bandwidth})}{(pT × \text{bandwidth})} \log\left(\frac{pT × \text{bandwidth}}{(p + T × \text{bandwidth})}\right).}
   \item The information criterion is defined as:
         \deqn{\text{IC}(R) = \log\big(V(R)\big) + \text{Penalty}(R).}
 }
 
-The optimal number of factors is then chosen as the value of \eqn{R} that minimizes \(\text{IC}(R)\).
+The optimal number of factors is then chosen as the value of \eqn{R} that minimizes \eqn{\text{IC}(R)}.
 }
 \examples{
 \dontrun{
