@@ -34,7 +34,6 @@ This function applies the above formula to each element of the input vector \cod
 u_values <- seq(-1.5, 1.5, by = 0.1)
 
 # Compute Epanechnikov kernel values
-kernel_values <- epanechnikov_kernel(u_values)
+kernel_values <- epanechnikov_kernel(u_values)}
 
-}
 }

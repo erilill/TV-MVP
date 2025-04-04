@@ -43,7 +43,7 @@ The function performs the following steps:
   matrix.
   \item Computes the squared dot product of residuals between time periods \eqn{s} and \eqn{r}.
   \item Aggregates these values across all relevant time period pairs and scales by
-  \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
+  \eqn{\frac{2}{T^2 × p × h}} to obtain \eqn{V_{pT}}.
 }
 }
 \keyword{internal}

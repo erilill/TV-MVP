@@ -138,7 +138,7 @@ compute_B_pT <- function(local_factors, global_factors, residuals, h, iT, ip, ke
 #'   matrix.
 #'   \item Computes the squared dot product of residuals between time periods \eqn{s} and \eqn{r}.
 #'   \item Aggregates these values across all relevant time period pairs and scales by
-#'   \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
+#'   \eqn{\frac{2}{T^2 × p × h}} to obtain \eqn{V_{pT}}.
 #' }
 #'
 #'
@@ -162,7 +162,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' using a local principal component analysis (Local PCA) approach. The test statistic \(J_{pT}\)
 #' is computed and its significance is assessed using a bootstrap procedure.
 #'
-#' @param returns A numeric matrix of asset returns with dimensions \(T \times p\) (time periods by assets).
+#' @param returns A numeric matrix of asset returns with dimensions \(T × p\) (time periods by assets).
 #' @param m Integer. The number of factors to extract in the local PCA.
 #' @param B Integer. The number of bootstrap replications to perform. Default is 200
 #' @param kernel_func Function. A kernel function for weighting observations in the local PCA. Default is \code{epanechnikov_kernel}.
