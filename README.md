@@ -86,6 +86,8 @@ evaluate the performance of a minimum variance portfolio implemented
 using the time-varying covariance matrix, and `predict_portfolio` which
 implements an out of sample prediction of the portfolio.
 
+Note that these functions expect log returns and log risk free rates. 
+
 ``` r
 mvp_result <- rolling_time_varying_mvp(
   returns        = returns,
@@ -124,7 +126,7 @@ rebalancing period to be used in the evaluation, `max_factors` used in
 the determination of the optimal number of factors, can be set to
 “daily”, “weekly”, and “monthly”, and is used for annualization of the
 results, `kernel_func`, and `rf` which denotes the risk free rate, this
-can be input either as a scalar or at $(T-initial\_window)\times 1)$
+can be input either as a scalar or at $(T-initialwindow)\times 1$
 numerical vector. The function outputs relevant metrics for evaluation
 of the performance of the portfolio such as cumulative excess returns,
 standard deviation, and Sharpe ratio.
@@ -173,15 +175,15 @@ If the pre-built functions does not fit your purpose, you can utilize
 the covariance function by running:
 
 ``` r
-time_varying_cov <- function(returns,
-                             m,
-                             bandwidth = silverman(returns),
-                             kernel_func = epanechnikov_kernel,
-                             M0 = 10,
-                             rho_grid = seq(0.005, 2, length.out = 30),
-                             floor_value = 1e-12,
-                             epsilon2 = 1e-6,
-                             full_output = FALSE)
+time_varying_cov(returns,
+                 m,
+                 bandwidth = silverman(returns),
+                 kernel_func = epanechnikov_kernel,
+                 M0 = 10,
+                 rho_grid = seq(0.005, 2, length.out = 30),
+                 floor_value = 1e-12,
+                 epsilon2 = 1e-6,
+                 full_output = FALSE)
 ```
 
 Which outputs the covariance matrix weighted around the last observation
