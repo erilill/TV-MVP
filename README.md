@@ -173,13 +173,15 @@ If the pre-built functions does not fit your purpose, you can utilize
 the covariance function by running:
 
 ``` r
-local_res <- localPCA(returns = returns, bandwidth = silverman(returns), m= m, kernel_func = epanechnikov_kernel)
-Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results = local_res,
-                                              returns = returns,
-                                              M0 = 10, 
-                                              rho_grid = seq(0.005, 2, length.out = 30),
-                                              floor_value = 1e-12,
-                                              epsilon2 = 1e-6)$total_cov
+time_varying_cov <- function(returns,
+                             m,
+                             bandwidth = silverman(returns),
+                             kernel_func = epanechnikov_kernel,
+                             M0 = 10,
+                             rho_grid = seq(0.005, 2, length.out = 30),
+                             floor_value = 1e-12,
+                             epsilon2 = 1e-6,
+                             full_output = FALSE)
 ```
 
 Which outputs the covariance matrix weighted around the last observation
