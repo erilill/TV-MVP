@@ -1,11 +1,14 @@
 Package: TVMVP
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Time-Varying Minimum Variance Portfolio
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Erik Lillrank and Yukai Yang
+Maintainer: Erik Lillrank <erik.lillrank.9607@student.uu.se>
+Description: Provides the estimation of time-dependent covariance matrix of
+   returns with the intended use for portfolio optimization. The package also offers
+   methods for determining the optimal number of factors to be used in the covariance
+   estimation, a hypothesis test of time-varying covariance, and user-friendly
+   functions for portfolio optimization and rolling window evaluation.
 License: MIT
 Encoding: UTF-8
 LazyData: true
@@ -14,4 +17,8 @@ Imports:
     tibble,
     cli,
     prettyunits
+Suggests: 
+    knitr, 
+    rmarkdown
 RoxygenNote: 7.3.2
+VignetteBuilder: knitr
