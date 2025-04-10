@@ -155,7 +155,6 @@ determine_factors <- function(returns, max_m, bandwidth) {
 #'
 #' @importFrom stats cor
 #'@keywords internal
-#' @export
 local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
   iT <- nrow(returns)
   ip <- ncol(returns)
@@ -247,7 +246,6 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
 #' str(results$f_hat)
 #' }
 #'
-#' @export
 localPCA <- function(returns,
                      bandwidth,
                      m,
