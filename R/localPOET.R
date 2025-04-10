@@ -65,7 +65,6 @@
 #' }
 #'
 #' @keywords internal
-#' @export
 estimate_residual_cov_poet_local <- function(localPCA_results, 
                                              returns,
                                              M0 = 10, 
@@ -205,7 +204,6 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #' }
 #'
 #' @keywords internal
-#' @export
 adaptive_poet_rho <- function(R, M0 = 10,
                                      rho_grid = seq(0.001, 2, length.out = 20),
                                      epsilon2 = 1e-6) {
@@ -317,4 +315,71 @@ adaptive_poet_rho <- function(R, M0 = 10,
     }
   }
   return(list(best_rho = best_rho, rho_1 = rho_1, min_Fnorm = min_val))
+}
+
+
+#' Estimate Time-Varying Covariance Matrix Using Local PCA and POET
+#'
+#' This function estimates a time-varying covariance matrix using local principal component
+#' analysis and the POET method for residual shrinkage. By default, only the total
+#' covariance matrix is returned. Optionally, the user can retrieve all intermediate
+#' components of the estimation process.
+#'
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}.
+#' @param m The number of factors to use in local PCA.
+#' @param bandwidth Optional bandwidth for the local PCA. If not provided, Silverman's rule is used.
+#' @param kernel_func The kernel function to use (default is \code{epanechnikov_kernel}).
+#' #' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.
+#' @param rho_grid A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.
+#' @param floor_value A small positive number specifying the lower bound for eigenvalues in the final positive semidefinite repair. Default is \code{1e-12}.
+#' @param epsilon2 A small positive tuning parameter for the adaptive thresholding. Default is \code{1e-6}.
+#' @param full_output Logical; if \code{TRUE}, returns all components of the estimation.
+#'
+#' @return By default, a covariance matrix. If \code{full_output = TRUE}, a list containing:
+#' \itemize{
+#'   \item \code{total_cov} – the estimated covariance matrix,
+#'   \item \code{residual_cov} – the residual (idiosyncratic) covariance,
+#'   \item \code{loadings} – estimated factor loadings,
+#'   \item \code{best_rho} – optimal shrinkage parameter,
+#'   \item \code{naive_resid_cov} – residual covariance before shrinkage
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' estimate_tvmvp_covariance(returns = my_returns, m = 3)
+#' }
+#' 
+#' @export
+time_varying_cov <- function(returns,
+                             m,
+                             bandwidth = silverman(returns),
+                             kernel_func = epanechnikov_kernel,
+                             M0 = 10,
+                             rho_grid = seq(0.005, 2, length.out = 30),
+                             floor_value = 1e-12,
+                             epsilon2 = 1e-6,
+                             full_output = FALSE) {
+  # Step 1: Local PCA
+  local_res <- localPCA(
+    returns     = returns,
+    bandwidth   = bandwidth,
+    m           = m,
+    kernel_func = kernel_func
+  )
+  
+  # Step 2: Residual covariance estimation with POET
+  res <- estimate_residual_cov_poet_local(
+    localPCA_results = local_res,
+    returns           = returns,
+    M0                = M0,
+    rho_grid          = rho_grid,
+    floor_value       = floor_value,
+    epsilon2          = epsilon2
+  )
+  
+  if (full_output) {
+    return(res)
+  } else {
+    return(res$total_cov)
+  }
 }

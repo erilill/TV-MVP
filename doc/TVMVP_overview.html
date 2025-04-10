@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>TVMVP: Overview and Getting Started</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">TVMVP: Overview and Getting Started</h1>
+
+
+
+<div id="time-varying-minimum-variance-portfolio-tvmvp" class="section level1">
+<h1>Time-Varying Minimum Variance Portfolio (TVMVP)</h1>
+<p>The TVMVP package implements a method for estimating a time-dependent
+covariance matrix based on time series data using principal component
+analysis on kernel-weighted data. It also includes:</p>
+<div id="example" class="section level2">
+<h2>Example</h2>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(TVMVP)</span></code></pre></div>
+<div id="simulate-data" class="section level3">
+<h3>Simulate data</h3>
+<p>For this example we will us simulated data, however most use cases
+for this package will be using financial data. This can be accessed
+using one of the many API’s available in R and elsewhere</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>uT <span class="ot">&lt;-</span> <span class="dv">100</span>  <span class="co"># Number of time periods</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>up <span class="ot">&lt;-</span> <span class="dv">20</span>   <span class="co"># Number of assets</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>returns <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(uT <span class="sc">*</span> up, <span class="at">mean =</span> <span class="fl">0.001</span>, <span class="at">sd =</span> <span class="fl">0.02</span>), <span class="at">ncol =</span> up)</span></code></pre></div>
+</div>
+</div>
+<div id="determine-optimal-number-of-factors-and-run-hypothesis-test" class="section level2">
+<h2>Determine optimal number of factors and run hypothesis test</h2>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">determine_factors</span>(<span class="at">returns =</span> returns, <span class="at">max_m =</span> <span class="dv">10</span>, <span class="at">bandwidth =</span> <span class="fu">silverman</span>(returns))<span class="sc">$</span>optimal_m</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>m</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>hypothesis_test <span class="ot">&lt;-</span> <span class="fu">hyptest1</span>(<span class="at">returns =</span> returns,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>                            <span class="at">m =</span> m,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>                            <span class="at">B =</span> <span class="dv">10</span>, <span class="co"># Use larger B in practice</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>                            <span class="at">kernel_func =</span> epanechnikov_kernel)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.</span></span></code></pre></div>
+<p>The function <code>determine_factors</code> uses a BIC-type
+information criterion in order to determine the optimal number of
+factors to be used in the model. More information can be seen in section
+2.2 of the thesis. The input variables are the data matrix
+<code>returns</code>, the max number of factors to be tested
+<code>max_m</code>, and the bandwidth to be used <code>bandwidth</code>.
+The package offers the functionality of computing the bandwidth using
+Silverman’s rule of thumb with the function <code>silverman()</code>,
+however other methods could be used. The function outputs the optimal
+number of factors <code>optimal_m</code>, and the values of the
+information criteria for the different number of factors
+<code>IC_values</code>.</p>
+<p><code>hyptest1</code> implements the hypothesis test of constant
+factor loadings introduced by Su &amp; Wong (2017). Under some
+conditions, the test statistic <span class="math inline">\(J\)</span>
+follows a standard normal distribution under the null. However, the test
+have been proven to be somewhat unreliable in finite sample usage, which
+is why the option of computing a bootstrap p-value is included. More
+information can be found in section 2.3 in the thesis. The function take
+the input: a data matrix of multiple time series <code>returns</code>,
+the number of factors <code>m</code>, the number of bootstrap
+replications <code>B</code>, and the kernel function
+<code>kernel_func.</code> The package offers the Epanechnikov kernel,
+however others could also be used.</p>
+</div>
+<div id="portfolio-optimization" class="section level2">
+<h2>Portfolio optimization</h2>
+<p>The package offers two functions for the purpose of portfolio
+estimation and evaluation: <code>rolling_time_varying_mvp</code> which
+implements a rolling window in order to evaluate the performance of a
+minimum variance portfolio implemented using the time-varying covariance
+matrix, and <code>predict_portfolio</code> which implements an out of
+sample prediction of the portfolio.</p>
+<p>Note that these functions expect log returns and log risk free
+rates.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>mvp_result <span class="ot">&lt;-</span> <span class="fu">rolling_time_varying_mvp</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">returns        =</span> returns,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">initial_window =</span> <span class="dv">60</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">rebal_period   =</span> <span class="dv">5</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">max_factors    =</span> <span class="dv">10</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">return_type    =</span> <span class="st">&quot;daily&quot;</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">kernel_func    =</span> epanechnikov_kernel,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">rf             =</span> <span class="fl">1e-04</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>mvp_result</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; ── Rolling Window Portfolio Analysis ───────────────────────────────────────────</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; ── Summary Metrics ──</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt;            Method Cumulative_Excess_Return Mean_Excess_Return</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt;  Time-Varying MVP               0.07378433        0.001844608</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt;      Equal Weight               0.07346762        0.001836690</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt;  Standard_Deviation Sharpe_Ratio Mean_Annualized SD_Annualized</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="co">#&gt;         0.006331619    0.2913328       0.4648413     0.1005113</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="co">#&gt;         0.004647621    0.3951894       0.4628460     0.0737787</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="co">#&gt; ── Detailed Components ──</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="co">#&gt; The detailed portfolio outputs are stored in the following elements:</span></span>
+<span id="cb4-27"><a href="#cb4-27" tabindex="-1"></a><span class="co">#&gt; - Time-Varying MVP: Access via `$TVMVP`</span></span>
+<span id="cb4-28"><a href="#cb4-28" tabindex="-1"></a><span class="co">#&gt; - Equal Weight: Access via `$Equal`</span></span></code></pre></div>
+<p>The <code>rolling_time_varying_mvp</code> function takes the input:
+<code>returns</code> a <span class="math inline">\(T\times p\)</span>
+data matrix of log returns, <code>initial_window</code> which is the
+initial holding window used for estimation, <code>rebal_period</code>
+which is the length of the rebalancing period to be used in the
+evaluation, <code>max_factors</code> used in the determination of the
+optimal number of factors, <code>return_type</code> can be set to
+“daily”, “weekly”, and “monthly”, and is used for annualization of the
+results, <code>kernel_func</code>, and <code>rf</code> which denotes the
+risk free rate, this can be input either as a scalar or at <span class="math inline">\((T-initial\_window)\times1\)</span> numerical
+vector. The function outputs relevant metrics for evaluation of the
+performance of the portfolio such as cumulative log excess returns,
+standard deviation, and Sharpe ratio.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>prediction <span class="ot">&lt;-</span> <span class="fu">predict_portfolio</span>(<span class="at">returns =</span> returns, </span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>                                <span class="at">horizon =</span> <span class="dv">21</span>, </span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>                                <span class="at">max_factors =</span> <span class="dv">10</span>,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>                                <span class="at">kernel_func =</span> epanechnikov_kernel,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>                                <span class="at">min_return=</span><span class="fl">0.5</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>                                <span class="at">max_SR =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>                                <span class="at">rf =</span> <span class="fl">1e-04</span>)</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>prediction</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a><span class="co">#&gt; ── Portfolio Optimization Predictions ──────────────────────────────────────────</span></span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="co">#&gt; ── Summary Metrics ──</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a><span class="co">#&gt;                        Method expected_return       risk    sharpe</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a><span class="co">#&gt;    Minimum Variance Portfolio      0.03145982 0.01843029 0.3724899</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a><span class="co">#&gt;          Maximum SR Portfolio      0.06677812 0.02685166 0.5426920</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a><span class="co">#&gt;  Return-Constrained Portfolio      0.50000000 0.25971512 0.4201101</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="co">#&gt; ────────────────────────────────────────────────────────────────────────────────</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; ── Detailed Components ──</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; The detailed portfolio outputs are stored in the following elements:</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt; - GMV: Use object$GMV</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt; - Maximum Sharpe Ratio Portfolio: Use object$max_SR</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt; - Minimum Variance Portfolio with Return Constraint: Use</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt; object$MinVarWithReturnConstraint</span></span></code></pre></div>
+<p>The <code>predict_portfolio</code> functions makes out of sample
+predictions of the portfolio performance. The functions offers three
+different methods of portfolio optimization: Minimum variance, Minimum
+variance with minimum returns constraint, and maximum Sharpe ratio
+portfolio. The minimum variance portfolio is the default portfolio and
+will always be computed when running this function. The minimum returns
+constraint is set by imputing some <code>min_return</code>-value when
+running the function, important to note is that the minimum return
+constraint is set for the entire horizon and is not a daily constraint.
+The maximum SR portfolio is computed when <code>max_SR</code> is set to
+<code>TRUE</code>.</p>
+</div>
+<div id="covariance-matrix-estimation" class="section level2">
+<h2>Covariance matrix estimation</h2>
+<p>If the pre-built functions does not fit your purpose, you can utilize
+the covariance function by running:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>cov_mat <span class="ot">&lt;-</span> <span class="fu">time_varying_cov</span>(returns,</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>                            m,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                            <span class="at">bandwidth =</span> <span class="fu">silverman</span>(returns),</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>                            <span class="at">kernel_func =</span> epanechnikov_kernel,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>                            <span class="at">M0 =</span> <span class="dv">10</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>                            <span class="at">rho_grid =</span> <span class="fu">seq</span>(<span class="fl">0.005</span>, <span class="dv">2</span>, <span class="at">length.out =</span> <span class="dv">30</span>),</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>                            <span class="at">floor_value =</span> <span class="fl">1e-12</span>,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>                            <span class="at">epsilon2 =</span> <span class="fl">1e-6</span>,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>                            <span class="at">full_output =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>  </span></code></pre></div>
+<p>Which outputs the covariance matrix weighted around the last
+observation in returns.</p>
+</div>
+<div id="references" class="section level2">
+<h2>References</h2>
+
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

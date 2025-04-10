@@ -391,17 +391,29 @@ predict_portfolio <- function(
 #' @param horizon Length of forecasting horizon
 comp_expected_returns <- function(returns, horizon) {
   exp_ret <- numeric(ncol(returns))
+  
   for (i in seq_len(ncol(returns))) {
-    candidate_models <- list(
-      arima(returns[, i], order = c(0,0,0)),
-      arima(returns[, i], order = c(1,0,0)),
-      arima(returns[, i], order = c(0,0,1)),
-      arima(returns[, i], order = c(1,0,1))
-    )
-    aics <- sapply(candidate_models, AIC)
-    best_model <- candidate_models[[which.min(aics)]]
-    fc <- predict(best_model, n.ahead = horizon)$pred
-    exp_ret[i] <- mean(fc)
+    candidate_models <- list()
+    aics <- numeric()
+    
+    for (order in list(c(0,0,0), c(1,0,0), c(0,0,1), c(1,0,1))) {
+      model <- tryCatch(
+        arima(returns[, i], order = order),
+        error = function(e) NULL
+      )
+      candidate_models <- c(candidate_models, list(model))
+      aics <- c(aics, if (!is.null(model)) AIC(model) else Inf)
+    }
+    
+    # If all models failed, fallback to mean return
+    if (all(is.infinite(aics))) {
+      exp_ret[i] <- mean(returns[, i])
+    } else {
+      best_model <- candidate_models[[which.min(aics)]]
+      fc <- predict(best_model, n.ahead = horizon)$pred
+      exp_ret[i] <- mean(fc)
+    }
   }
+  
   return(exp_ret)
 }

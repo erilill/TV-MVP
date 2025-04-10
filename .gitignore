@@ -18,8 +18,8 @@ cran-comments.md
 
 *.Rproj
 *.swp
-*.Rmd
 
-**/vignettes
+
 **/tests
 **/.DS_Store
+/Meta/

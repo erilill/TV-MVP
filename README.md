@@ -52,9 +52,9 @@ m
 #> [1] 1
 hypothesis_test <- hyptest1(returns = returns,
                             m = m,
-                            B = 200,
+                            B = 10, # Use larger B in practice
                             kernel_func = epanechnikov_kernel)
-#> J_pT = 34.7556, p-value = 0.0300: Strong evidence that the covariance is time-varying.
+#> J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
 ```
 
 The function `determine_factors` uses a BIC-type information criterion
@@ -86,7 +86,7 @@ evaluate the performance of a minimum variance portfolio implemented
 using the time-varying covariance matrix, and `predict_portfolio` which
 implements an out of sample prediction of the portfolio.
 
-Note that these functions expect log returns and log risk free rates. 
+Note that these functions expect log returns and log risk free rate.
 
 ``` r
 mvp_result <- rolling_time_varying_mvp(
@@ -115,8 +115,8 @@ mvp_result
 #> ── Detailed Components ──
 #> 
 #> The detailed portfolio outputs are stored in the following elements:
-#> • Time-Varying MVP: Access via `$TVMVP`
-#> • Equal Weight: Access via `$Equal`
+#> - Time-Varying MVP: Access via `$TVMVP`
+#> - Equal Weight: Access via `$Equal`
 ```
 
 The `rolling_time_varying_mvp` function takes the input: `returns` a
@@ -154,9 +154,9 @@ prediction
 #> ── Detailed Components ──
 #> 
 #> The detailed portfolio outputs are stored in the following elements:
-#> • GMV: Use object$GMV
-#> • Maximum Sharpe Ratio Portfolio: Use object$max_SR
-#> • Minimum Variance Portfolio with Return Constraint: Use
+#> - GMV: Use object$GMV
+#> - Maximum Sharpe Ratio Portfolio: Use object$max_SR
+#> - Minimum Variance Portfolio with Return Constraint: Use
 #> object$MinVarWithReturnConstraint
 ```
 
@@ -175,15 +175,14 @@ If the pre-built functions does not fit your purpose, you can utilize
 the covariance function by running:
 
 ``` r
-time_varying_cov(returns,
-                 m,
-                 bandwidth = silverman(returns),
-                 kernel_func = epanechnikov_kernel,
-                 M0 = 10,
-                 rho_grid = seq(0.005, 2, length.out = 30),
-                 floor_value = 1e-12,
-                 epsilon2 = 1e-6,
-                 full_output = FALSE)
+                            m,
+                            bandwidth = silverman(returns),
+                            kernel_func = epanechnikov_kernel,
+                            M0 = 10,
+                            rho_grid = seq(0.005, 2, length.out = 30),
+                            floor_value = 1e-12,
+                            epsilon2 = 1e-6,
+                            full_output = FALSE)
 ```
 
 Which outputs the covariance matrix weighted around the last observation
