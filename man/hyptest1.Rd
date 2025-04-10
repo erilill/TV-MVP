@@ -7,9 +7,9 @@
 hyptest1(returns, m, B = 200, kernel_func = epanechnikov_kernel)
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \(T × p\) (time periods by assets).}
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p} (time periods by assets).}
 
-\item{m}{Integer. The number of factors to extract in the local PCA.}
+\item{m}{Integer. The number of factors to extract in the local PCA. See \code{\link{determine_factors}}.}
 
 \item{B}{Integer. The number of bootstrap replications to perform. Default is 200}
 
@@ -24,7 +24,7 @@ A list containing:
 \description{
 This function performs a hypothesis test for time-varying covariance in asset returns based on Su and Wang (2017).
 It first standardizes the input returns and then computes a time-varying covariance estimator
-using a local principal component analysis (Local PCA) approach. The test statistic \(J_{pT}\)
+using a local principal component analysis (Local PCA) approach. The test statistic \eqn{J_{pT}}
 is computed and its significance is assessed using a bootstrap procedure.
 }
 \details{
@@ -55,11 +55,16 @@ The function follows the steps below:
 
 The function prints a message indicating the strength of evidence for time-varying covariance based on the p-value.
 }
+\section{References}{
+ 
+Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101
+}
+
 \examples{
 \dontrun{
-# Simulate some random returns (e.g., 500 periods, 10 assets)
+# Simulate some random returns (e.g., 100 periods, 30 assets)
 set.seed(123)
-returns <- matrix(rnorm(500*10, mean = 0, sd = 0.02), nrow = 500, ncol = 10)
+returns <- matrix(rnorm(100*30, mean = 0, sd = 0.02), nrow = 100, ncol = 30)
 
 # Test for time-varying covariance using 3 factors and 200 bootstrap replications
 test_result <- hyptest1(returns, m = 3, B = 200, kernel_func = epanechnikov_kernel)

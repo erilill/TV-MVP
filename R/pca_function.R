@@ -8,7 +8,7 @@
 #'
 #' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.
 #' @param max_m Integer. The maximum number of factors to consider.
-#' @param bandwidth Numeric. The bandwidth used in the kernel weighting for the local PCA.
+#' @param bandwidth Numeric. The bandwidth used in the kernel weighting for the local PCA. See \code{link{silverman}}.
 #'
 #' @return A list with two components:
 #' \itemize{
@@ -18,34 +18,32 @@
 #' }
 #'
 #' @details
-#' For each candidate number of factors \eqn{R} (from 1 to \code{max_m}), the function:
+#' For each candidate number of factors \eqn{m} (from 1 to \code{max_m}), the function:
 #'
 #' \enumerate{
-#'   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{R} factors.
+#'   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{m} factors.
 #'   \item Computes a reconstruction of the returns and the corresponding residuals:
 #'         \deqn{\text{Residual}_r = R_r - F_r \Lambda_r,}
 #'         where \eqn{R_r} is the return at time \eqn{r}, and \eqn{F_r} and \eqn{\Lambda_r} are the local factors and loadings, respectively.
 #'   \item Computes the average sum of squared residuals (SSR) as:
-#'         \deqn{V(R) = \frac{1}{pT} \sum_{r=1}^{T} \| \text{Residual}_r \|^2.}
+#'         \deqn{V(m) = \frac{1}{pT} \sum_{r=1}^{T} \| \text{Residual}_r \|^2.}
 #'   \item Adds a penalty term that increases with \eqn{R}:
-#'         \deqn{\text{Penalty}(R) = R × \frac{(p + T × \text{bandwidth})}{(pT × \text{bandwidth})} \log\left(\frac{pT × \text{bandwidth}}{(p + T × \text{bandwidth})}\right).}
+#'         \deqn{\text{Penalty}(m) = m × \frac{(p + T × \text{bandwidth})}{(pT × \text{bandwidth})} \log\left(\frac{pT × \text{bandwidth}}{(p + T × \text{bandwidth})}\right).}
 #'   \item The information criterion is defined as:
-#'         \deqn{\text{IC}(R) = \log\big(V(R)\big) + \text{Penalty}(R).}
+#'         \deqn{\text{IC}(m) = \log\big(V(m)\big) + \text{Penalty}(m).}
 #' }
 #'
-#' The optimal number of factors is then chosen as the value of \eqn{R} that minimizes \eqn{\text{IC}(R)}.
+#' The optimal number of factors is then chosen as the value of \eqn{m} that minimizes \eqn{\text{IC}(m)}.
 #'
 #' @examples
-#' \dontrun{
-#' # Simulate a returns matrix with 200 observations and 10 assets
+#' # Simulate a returns matrix with 100 observations and 30 assets
 #' set.seed(123)
-#' returns <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
+#' returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
 #'
-#' # Determine the optimal number of factors (up to 5) using a specified bandwidth.
-#' result <- determine_factors(returns, max_m = 5, bandwidth = 0.2)
-#' print(result$optimal_R)
+#' # Determine the optimal number of factors (up to max_m) using a specified bandwidth.
+#' result <- determine_factors(returns, max_m = 5, bandwidth = silverman(returns))
+#' print(result$optimal_m)
 #' print(result$IC_values)
-#' }
 #'
 #' @export
 determine_factors <- function(returns, max_m, bandwidth) {
