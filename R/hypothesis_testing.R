@@ -15,8 +15,8 @@
 #' rows (assets) and \eqn{m} columns (factors).
 #' @param global_loadings A numeric matrix of global factor loadings with \eqn{N} rows
 #' (assets) and \eqn{m} columns (factors).
-#' @param T An integer specifying the number of time periods.
-#' @param N An integer specifying the number of assets.
+#' @param iT An integer specifying the number of time periods.
+#' @param ip An integer specifying the number of assets.
 #' @param m An integer specifying the number of factors.
 #'
 #' @return A numeric scalar \eqn{M_{\hat{}}} representing the average squared discrepancy
@@ -71,8 +71,8 @@ compute_M_hat <- function(local_factors, global_factors, local_loadings, global_
 #' (time periods) and \eqn{m} columns (factors).
 #' @param residuals A numeric matrix of residuals with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
 #' @param h A numeric value indicating the bandwidth parameter for the kernel function.
-#' @param T An integer specifying the number of time periods.
-#' @param p An integer specifying the number of assets.
+#' @param iT An integer specifying the number of time periods.
+#' @param ip An integer specifying the number of assets.
 #' @param kernel_func A function representing the kernel used for weighting. Typically, an
 #' Epanechnikov kernel or another boundary kernel function.
 #'
@@ -119,9 +119,8 @@ compute_B_pT <- function(local_factors, global_factors, residuals, h, iT, ip, ke
 #' (time periods) and \eqn{m} columns (factors).
 #' @param residuals A numeric matrix of residuals with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
 #' @param h A numeric value indicating the bandwidth parameter for the kernel function.
-#' @param T An integer specifying the number of time periods.
-#' @param p An integer specifying the number of assets.
-#' @param factor_cov A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.
+#' @param iT An integer specifying the number of time periods.
+#' @param ip An integer specifying the number of assets.
 #' @param kernel_func A function representing the kernel used for weighting. Typically, an
 #' Epanechnikov kernel or another boundary kernel function.
 #'
@@ -138,7 +137,7 @@ compute_B_pT <- function(local_factors, global_factors, residuals, h, iT, ip, ke
 #'   matrix.
 #'   \item Computes the squared dot product of residuals between time periods \eqn{s} and \eqn{r}.
 #'   \item Aggregates these values across all relevant time period pairs and scales by
-#'   \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
+#'   \eqn{\frac{2}{T^2 × p × h}} to obtain \eqn{V_{pT}}.
 #' }
 #'
 #'
@@ -162,7 +161,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' using a local principal component analysis (Local PCA) approach. The test statistic \(J_{pT}\)
 #' is computed and its significance is assessed using a bootstrap procedure.
 #'
-#' @param returns A numeric matrix of asset returns with dimensions \(T \times p\) (time periods by assets).
+#' @param returns A numeric matrix of asset returns with dimensions \(T × p\) (time periods by assets).
 #' @param m Integer. The number of factors to extract in the local PCA.
 #' @param B Integer. The number of bootstrap replications to perform. Default is 200
 #' @param kernel_func Function. A kernel function for weighting observations in the local PCA. Default is \code{epanechnikov_kernel}.

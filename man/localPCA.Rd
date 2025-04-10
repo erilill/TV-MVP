@@ -7,7 +7,7 @@
 localPCA(returns, bandwidth, m, kernel_func = epanechnikov_kernel)
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the 
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the 
 number of time periods and \eqn{p} is the number of assets.}
 
 \item{bandwidth}{Numeric. The bandwidth parameter used in the kernel weighting for the local PCA.}
@@ -20,11 +20,11 @@ number of time periods and \eqn{p} is the number of assets.}
 \value{
 A list with the following components:
 \itemize{
-  \item \code{factors}: A list of length \eqn{T}, where each element is a \eqn{T \times m} matrix of local factors.
-  \item \code{loadings}: A list of length \eqn{T}, where each element is a \eqn{p \times m} matrix of factor loadings.
+  \item \code{factors}: A list of length \eqn{T}, where each element is a \eqn{T × m} matrix of local factors.
+  \item \code{loadings}: A list of length \eqn{T}, where each element is a \eqn{p × m} matrix of factor loadings.
   \item \code{m}: The number of factors extracted.
   \item \code{weights}: A list of length \eqn{T}, where each element is a vector of kernel weights used at that time point.
-  \item \code{f_hat}: A \eqn{T \times m} matrix of one-step-ahead factor estimates.
+  \item \code{f_hat}: A \eqn{T × m} matrix of one-step-ahead factor estimates.
 }
 }
 \description{
@@ -41,7 +41,7 @@ The function processes the input returns over \eqn{T} time periods by iterativel
   \item Kernel weights are computed using the specified \code{kernel_func} and \code{bandwidth}.
   \item The returns are weighted by the square root of these kernel weights.
   \item An eigen decomposition is performed on the weighted returns' covariance matrix to extract the 
-        top \eqn{m} eigenvectors, which are scaled by \(\sqrt{T}\) to form the local factors.
+        top \eqn{m} eigenvectors, which are scaled by sqrt(T) to form the local factors.
   \item The signs of the new factors are aligned with those of the previous factors.
   \item The factor loadings are computed by projecting the weighted returns onto the local factors, 
         normalized by \eqn{T}.

@@ -6,34 +6,34 @@
 #' penalty term that increases with the number of factors. The optimal number of factors is chosen as the
 #' one that minimizes the IC.
 #'
-#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.
-#' @param max_R Integer. The maximum number of factors to consider.
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.
+#' @param max_m Integer. The maximum number of factors to consider.
 #' @param bandwidth Numeric. The bandwidth used in the kernel weighting for the local PCA.
 #'
 #' @return A list with two components:
 #' \itemize{
 #'   \item \code{optimal_R}: The optimal number of factors (an integer) that minimizes the information criterion.
-#'   \item \code{IC_values}: A numeric vector of length \code{max_R} containing the information criterion values
+#'   \item \code{IC_values}: A numeric vector of length \code{max_m} containing the information criterion values
 #'         for each candidate number of factors.
 #' }
 #'
 #' @details
-#' For each candidate number of factors \eqn{R} (from 1 to \code{max_R}), the function:
+#' For each candidate number of factors \eqn{R} (from 1 to \code{max_m}), the function:
 #'
 #' \enumerate{
 #'   \item Performs a local PCA on the returns at each time point \eqn{r = 1,\dots,T} using \eqn{R} factors.
 #'   \item Computes a reconstruction of the returns and the corresponding residuals:
 #'         \deqn{\text{Residual}_r = R_r - F_r \Lambda_r,}
-#'         where \eqn{R_r} is the return at time \eqn{r}, and \eqn{F_r} and \(\Lambda_r\) are the local factors and loadings, respectively.
+#'         where \eqn{R_r} is the return at time \eqn{r}, and \eqn{F_r} and \eqn{\Lambda_r} are the local factors and loadings, respectively.
 #'   \item Computes the average sum of squared residuals (SSR) as:
 #'         \deqn{V(R) = \frac{1}{pT} \sum_{r=1}^{T} \| \text{Residual}_r \|^2.}
 #'   \item Adds a penalty term that increases with \eqn{R}:
-#'         \deqn{\text{Penalty}(R) = R \times \frac{(p + T \times \text{bandwidth})}{(pT \times \text{bandwidth})} \log\left(\frac{pT \times \text{bandwidth}}{(p + T \times \text{bandwidth})}\right).}
+#'         \deqn{\text{Penalty}(R) = R × \frac{(p + T × \text{bandwidth})}{(pT × \text{bandwidth})} \log\left(\frac{pT × \text{bandwidth}}{(p + T × \text{bandwidth})}\right).}
 #'   \item The information criterion is defined as:
 #'         \deqn{\text{IC}(R) = \log\big(V(R)\big) + \text{Penalty}(R).}
 #' }
 #'
-#' The optimal number of factors is then chosen as the value of \eqn{R} that minimizes \(\text{IC}(R)\).
+#' The optimal number of factors is then chosen as the value of \eqn{R} that minimizes \eqn{\text{IC}(R)}.
 #'
 #' @examples
 #' \dontrun{
@@ -42,7 +42,7 @@
 #' returns <- matrix(rnorm(200 * 10), nrow = 200, ncol = 10)
 #'
 #' # Determine the optimal number of factors (up to 5) using a specified bandwidth.
-#' result <- determine_factors(returns, max_R = 5, bandwidth = 0.2)
+#' result <- determine_factors(returns, max_m = 5, bandwidth = 0.2)
 #' print(result$optimal_R)
 #' print(result$IC_values)
 #' }
@@ -53,9 +53,9 @@ determine_factors <- function(returns, max_m, bandwidth) {
   ip <- ncol(returns)
 
   # Initialize storage
-  V <- numeric(max_R)
-  penalty <- numeric(max_R)
-  IC_values <- numeric(max_R)
+  V <- numeric(max_m)
+  penalty <- numeric(max_m)
+  IC_values <- numeric(max_m)
 
   # Loop over possible number of factors (R)
   for (mi in 1:max_m) {
@@ -88,7 +88,7 @@ determine_factors <- function(returns, max_m, bandwidth) {
     IC_values[mi] <- log(V[mi]) + penalty[mi]
   }
   # Step 4: Determine optimal number of factors
-  optimal_R <- which.min(IC_values)
+  optimal_m <- which.min(IC_values)
   #message(sprintf("Optimal number of factors is %s.", optimal_R))
   return(list(optimal_m = optimal_m, IC_values = IC_values))
 }
@@ -99,18 +99,18 @@ determine_factors <- function(returns, max_m, bandwidth) {
 #' returns and computes a factor estimate. Optionally, previously estimated factors can
 #' be provided to align the new factors' directions.
 #'
-#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.
 #' @param r Integer. The current time index at which to perform the local PCA.
 #' @param bandwidth Numeric. The bandwidth used in the kernel weighting.
 #' @param m Integer. The number of factors to extract.
 #' @param kernel_func Function. The kernel function used for weighting observations (e.g., \code{epanechnikov_kernel}).
-#' @param prev_F Optional. A numeric matrix of previously estimated factors (with dimensions \eqn{T \times m}) used for aligning eigenvector directions. Default is \code{NULL}.
+#' @param prev_F Optional. A numeric matrix of previously estimated factors (with dimensions \eqn{T × m}) used for aligning eigenvector directions. Default is \code{NULL}.
 #'
 #' @return A list with the following components:
 #' \itemize{
-#'   \item \code{factors}: A \eqn{T \times m} matrix of local factors estimated from the weighted returns.
-#'   \item \code{f_hat}: A \eqn{1 \times m} vector containing the factor estimate for time \eqn{r}.
-#'   \item \code{loadings}: A \eqn{p \times m} matrix of factor loadings.
+#'   \item \code{factors}: A \eqn{T × m} matrix of local factors estimated from the weighted returns.
+#'   \item \code{f_hat}: A \eqn{1 × m} vector containing the factor estimate for time \eqn{r}.
+#'   \item \code{loadings}: A \eqn{p × m} matrix of factor loadings.
 #'   \item \code{w_r}: A numeric vector of kernel weights used in the computation.
 #' }
 #'
@@ -121,12 +121,12 @@ determine_factors <- function(returns, max_m, bandwidth) {
 #'   \item **Kernel Weight Computation:**  
 #'         For each time point \eqn{t = 1, \dots, T}, the kernel weight is computed using 
 #'         \code{boundary_kernel(r, t, T, bandwidth, kernel_func)}. The weighted returns are given by
-#'         \deqn{X_r = \text{returns} \odot \sqrt{k_h},}
-#'         where \(\odot\) denotes element-wise multiplication and \(k_h\) is the vector of kernel weights.
+#'         \deqn{X_r = \text{returns} ∘ \sqrt{k_h},}
+#'         where ∘ denotes element-wise multiplication and \eqn{k_h} is the vector of kernel weights.
 #'
 #'   \item **Eigen Decomposition:**  
 #'         The function computes the eigen decomposition of the matrix \eqn{X_r X_r^\top} and orders the eigenvalues in
-#'         descending order. The top \eqn{m} eigenvectors are scaled by \(\sqrt{T}\) to form the local factors:
+#'         descending order. The top \eqn{m} eigenvectors are scaled by \eqn{\sqrt{T}} to form the local factors:
 #'         \deqn{\hat{F}_r = \sqrt{T} \, \text{eigvecs}_{1:m}.}
 #'
 #'   \item **Direction Alignment:**  
@@ -136,12 +136,12 @@ determine_factors <- function(returns, max_m, bandwidth) {
 #'   \item **Loadings Computation:**  
 #'         The loadings are computed by projecting the weighted returns onto the factors:
 #'         \deqn{\Lambda_r = \frac{1}{T} X_r^\top \hat{F}_r,}
-#'         where the result is transposed to yield a \eqn{p \times m} matrix.
+#'         where the result is transposed to yield a \eqn{p × m} matrix.
 #'
 #'   \item **One-Step-Ahead Factor Estimation:**  
 #'         A second pass computes the factor estimate for the current time index \eqn{r} by solving
 #'         \deqn{\hat{F}_r = \left(\Lambda_r^\top \Lambda_r\right)^{-1} \Lambda_r^\top R_r,}
-#'         where \(R_r\) is the return vector at time \eqn{r}.
+#'         where \eqn{R_r} is the return vector at time \eqn{r}.
 #' }
 #'
 #' @examples
@@ -206,7 +206,7 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
 #' time index to extract local factors, loadings, and one-step-ahead factor estimates, and stores these 
 #' results in lists. It uses previously computed factors to align the sign of the new factors.
 #'
-#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}, where \eqn{T} is the 
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the 
 #' number of time periods and \eqn{p} is the number of assets.
 #' @param bandwidth Numeric. The bandwidth parameter used in the kernel weighting for the local PCA.
 #' @param m Integer. The number of factors to extract.
@@ -215,11 +215,11 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
 #'
 #' @return A list with the following components:
 #' \itemize{
-#'   \item \code{factors}: A list of length \eqn{T}, where each element is a \eqn{T \times m} matrix of local factors.
-#'   \item \code{loadings}: A list of length \eqn{T}, where each element is a \eqn{p \times m} matrix of factor loadings.
+#'   \item \code{factors}: A list of length \eqn{T}, where each element is a \eqn{T × m} matrix of local factors.
+#'   \item \code{loadings}: A list of length \eqn{T}, where each element is a \eqn{p × m} matrix of factor loadings.
 #'   \item \code{m}: The number of factors extracted.
 #'   \item \code{weights}: A list of length \eqn{T}, where each element is a vector of kernel weights used at that time point.
-#'   \item \code{f_hat}: A \eqn{T \times m} matrix of one-step-ahead factor estimates.
+#'   \item \code{f_hat}: A \eqn{T × m} matrix of one-step-ahead factor estimates.
 #' }
 #'
 #' @details
@@ -230,7 +230,7 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
 #'   \item Kernel weights are computed using the specified \code{kernel_func} and \code{bandwidth}.
 #'   \item The returns are weighted by the square root of these kernel weights.
 #'   \item An eigen decomposition is performed on the weighted returns' covariance matrix to extract the 
-#'         top \eqn{m} eigenvectors, which are scaled by \(\sqrt{T}\) to form the local factors.
+#'         top \eqn{m} eigenvectors, which are scaled by sqrt(T) to form the local factors.
 #'   \item The signs of the new factors are aligned with those of the previous factors.
 #'   \item The factor loadings are computed by projecting the weighted returns onto the local factors, 
 #'         normalized by \eqn{T}.

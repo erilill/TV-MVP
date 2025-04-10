@@ -7,22 +7,22 @@
 #'
 #' @param localPCA_results A list containing the results from local PCA, with components:
 #'   \itemize{
-#'     \item \code{loadings}: a list where each element is a \eqn{p \times m} matrix of factor loadings.
-#'     \item \code{f_hat}: a \eqn{T \times m} matrix of estimated factors.
+#'     \item \code{loadings}: a list where each element is a \eqn{p × m} matrix of factor loadings.
+#'     \item \code{f_hat}: a \eqn{T × m} matrix of estimated factors.
 #'     \item \code{weights}: a list of kernel weight vectors.
 #'   }
-#' @param returns A numeric matrix of asset returns with dimensions \eqn{T \times p}.
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}.
 #' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.
-#' @param rho_grid A numeric vector of candidate shrinkage parameters \(\rho\) used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.
+#' @param rho_grid A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.
 #' @param floor_value A small positive number specifying the lower bound for eigenvalues in the final positive semidefinite repair. Default is \code{1e-12}.
 #' @param epsilon2 A small positive tuning parameter for the adaptive thresholding. Default is \code{1e-6}.
 #'
 #' @return A list containing:
 #'   \itemize{
-#'     \item \code{best_rho}: The selected shrinkage parameter \(\hat{\rho}_t\) for the local residual covariance.
-#'     \item \code{residual_cov}: The shrunk residual covariance matrix \(\hat{\Sigma}_e(T)\).
-#'     \item \code{total_cov}: The final estimated time-varying covariance matrix \(\Sigma_R(t)\).
-#'     \item \code{loadings}: The local factor loadings \(\Lambda_t\) from the local PCA.
+#'     \item \code{best_rho}: The selected shrinkage parameter \eqn{\hat{\rho}_t} for the local residual covariance.
+#'     \item \code{residual_cov}: The shrunk residual covariance matrix \eqn{\hat{\Sigma}_e(T)}.
+#'     \item \code{total_cov}: The final estimated time-varying covariance matrix \eqn{\Sigma_R(t)}.
+#'     \item \code{loadings}: The local factor loadings \eqn{\Lambda_t} from the local PCA.
 #'     \item \code{naive_resid_cov}: The raw (unshrunk) residual covariance matrix.
 #'   }
 #'
@@ -31,23 +31,23 @@
 #'
 #' \enumerate{
 #'   \item **Local Residuals:**  
-#'         Extract the local loadings \(\Lambda_t\) from the last element of \code{localPCA_results\$loadings} and 
-#'         factors \(\hat{F}\) from \code{localPCA_results\$f_hat}. Let \(w_t\) denote the corresponding kernel weights.
+#'         Extract the local loadings \eqn{\Lambda_t} from the last element of \code{localPCA_results\$loadings} and 
+#'         factors \eqn{\hat{F}} from \code{localPCA_results\$f_hat}. Let \eqn{w_t} denote the corresponding kernel weights.
 #'         The local residuals are computed as:
 #'         \deqn{U_{\text{local}} = R - F \Lambda_t,}
-#'         where \(R\) is the returns matrix.
+#'         where \eqn{R} is the returns matrix.
 #'
 #'   \item **Adaptive Thresholding:**  
-#'         The function calls \code{adaptive_poet_rho()} on \(U_{\text{local}}\) to select an optimal shrinkage parameter 
-#'         \(\hat{\rho}_t\). 
+#'         The function calls \code{adaptive_poet_rho()} on \eqn{U_{\text{local}} }to select an optimal shrinkage parameter 
+#'         \eqn{\hat{\rho}_t}. 
 #'
 #'   \item **Residual Covariance Estimation:**  
 #'         The raw residual covariance is computed as:
 #'         \deqn{S_{u,\text{raw}} = \frac{1}{T} U_{\text{local}}^\top U_{\text{local}},}
 #'         and a threshold is set as:
-#'         \deqn{\text{threshold} = \hat{\rho}_t \times \text{mean}(|S_{u,\text{raw}}|),}
+#'         \deqn{\text{threshold} = \hat{\rho}_t × \text{mean}(|S_{u,\text{raw}}|),}
 #'         where the mean is taken over the off-diagonal elements.
-#'         Soft-thresholding is then applied to obtain the shrunk residual covariance matrix \(\hat{S}_u\).
+#'         Soft-thresholding is then applied to obtain the shrunk residual covariance matrix \eqn{\hat{S}_u}.
 #'
 #'   \item **Total Covariance Estimation:**  
 #'         The final covariance matrix is constructed by combining the factor component with the shrunk residual covariance:
@@ -65,7 +65,6 @@
 #' }
 #'
 #' @keywords internal
-#' @export
 estimate_residual_cov_poet_local <- function(localPCA_results, 
                                              returns,
                                              M0 = 10, 
@@ -148,7 +147,7 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #' the Frobenius norm. The candidate \eqn{\rho} that minimizes the total squared Frobenius norm difference 
 #' is selected.
 #'
-#' @param R A numeric matrix of data (e.g., residuals) with dimensions \eqn{T \times p}, where \eqn{T} 
+#' @param R A numeric matrix of data (e.g., residuals) with dimensions \eqn{T × p}, where \eqn{T} 
 #' is the number of observations and \eqn{p} is the number of variables.
 #' @param M0 Integer. The number of observations to leave out between two subsamples when forming groups. 
 #' Default is 10.
@@ -159,9 +158,9 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #'
 #' @return A list containing:
 #' \itemize{
-#'   \item \code{best_rho}: The selected optimal shrinkage parameter \(\hat{\rho}\) that minimizes the total 
+#'   \item \code{best_rho}: The selected optimal shrinkage parameter \eqn{\hat{\rho}} that minimizes the total 
 #'   squared Frobenius norm difference.
-#'   \item \code{rho_1}: The lower bound for \(\rho\) derived from the minimum eigenvalue criteria (adjusted by \code{epsilon2}).
+#'   \item \code{rho_1}: The lower bound for \eqn{\rh} derived from the minimum eigenvalue criteria (adjusted by \code{epsilon2}).
 #'   \item \code{min_Fnorm}: The minimum total squared Frobenius norm difference achieved.
 #' }
 #'
@@ -170,26 +169,26 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #'
 #' \enumerate{
 #'   \item The total number of observations \eqn{T} is halved (floored) to define \eqn{T_1} and \eqn{T_2}:
-#'         \deqn{T_1 = \left\lfloor \frac{T/2 \times \left(1 - 1/\log(T)\right)} \right\rfloor,\quad T_2 = \lfloor T/2 \rfloor - T_1.}
+#'         \deqn{T_1 = \left\lfloor \frac{T/2 × \left(1 - 1/\log(T)\right)} \right\rfloor,\quad T_2 = \lfloor T/2 \rfloor - T_1.}
 #'
-#'   \item The sample is divided into \(\lfloor T/(2M_0) \rfloor\) groups (with \(M_0\) observations left out in between).
+#'   \item The sample is divided into \eqn{\lfloor T/(2M_0) \rfloor} groups (with \eqn{M_0} observations left out in between).
 #'
 #'   \item For each group, two subsamples are defined:
 #'     \itemize{
 #'       \item Subsample 1: the first \eqn{T_1} observations of the group.
-#'       \item Subsample 2: the last \eqn{T_2} observations of the group, after skipping \(M_0\) observations following subsample 1.
+#'       \item Subsample 2: the last \eqn{T_2} observations of the group, after skipping \eqn{M_0} observations following subsample 1.
 #'     }
 #'
-#'   \item For each group and for a given candidate \(\rho\) in \code{rho_grid}, the covariance matrix \eqn{S_1} 
+#'   \item For each group and for a given candidate \eqn{\rho} in \code{rho_grid}, the covariance matrix \eqn{S_1} 
 #'         is computed from subsample 1, and then shrunk by applying a soft-thresholding function:
 #'
-#'         \deqn{S_{1,\text{shrunk}} = \text{soft\_threshold}\left(S_1, \rho \times \text{mean}\left(|S_1|_{\text{off-diag}}\right)\right).}
+#'         \deqn{S_{1,\text{shrunk}} = \text{soft\_threshold}\left(S_1, \rho × \text{mean}\left(|S_1|_{\text{off-diag}}\right)\right).}
 #'
 #'   \item The function computes the total squared Frobenius norm difference between \eqn{S_{1,\text{shrunk}}} 
 #'         and the covariance matrix \eqn{S_2} (computed from subsample 2) over all groups.
 #'
-#'   \item Finally, the function scans across the \code{rho_grid} to select the \(\rho\) that minimizes this 
-#'         total error. In addition, \(\rho_1\) is computed as \(\epsilon_2\) plus the smallest candidate \(\rho\) 
+#'   \item Finally, the function scans across the \code{rho_grid} to select the \eqn{\rho} that minimizes this 
+#'         total error. In addition, \eqn{\rho_1} is computed as \eqn{\epsilon_2} plus the smallest candidate \eqn{\rho}
 #'         for which the smallest eigenvalue of the shrunk covariance is positive.
 #' }
 #'
@@ -205,7 +204,6 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #' }
 #'
 #' @keywords internal
-#' @export
 adaptive_poet_rho <- function(R, M0 = 10,
                                      rho_grid = seq(0.001, 2, length.out = 20),
                                      epsilon2 = 1e-6) {
@@ -317,4 +315,71 @@ adaptive_poet_rho <- function(R, M0 = 10,
     }
   }
   return(list(best_rho = best_rho, rho_1 = rho_1, min_Fnorm = min_val))
+}
+
+
+#' Estimate Time-Varying Covariance Matrix Using Local PCA and POET
+#'
+#' This function estimates a time-varying covariance matrix using local principal component
+#' analysis and the POET method for residual shrinkage. By default, only the total
+#' covariance matrix is returned. Optionally, the user can retrieve all intermediate
+#' components of the estimation process.
+#'
+#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}.
+#' @param m The number of factors to use in local PCA.
+#' @param bandwidth Optional bandwidth for the local PCA. If not provided, Silverman's rule is used.
+#' @param kernel_func The kernel function to use (default is \code{epanechnikov_kernel}).
+#' #' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.
+#' @param rho_grid A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.
+#' @param floor_value A small positive number specifying the lower bound for eigenvalues in the final positive semidefinite repair. Default is \code{1e-12}.
+#' @param epsilon2 A small positive tuning parameter for the adaptive thresholding. Default is \code{1e-6}.
+#' @param full_output Logical; if \code{TRUE}, returns all components of the estimation.
+#'
+#' @return By default, a covariance matrix. If \code{full_output = TRUE}, a list containing:
+#' \itemize{
+#'   \item \code{total_cov} – the estimated covariance matrix,
+#'   \item \code{residual_cov} – the residual (idiosyncratic) covariance,
+#'   \item \code{loadings} – estimated factor loadings,
+#'   \item \code{best_rho} – optimal shrinkage parameter,
+#'   \item \code{naive_resid_cov} – residual covariance before shrinkage
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' estimate_tvmvp_covariance(returns = my_returns, m = 3)
+#' }
+#' 
+#' @export
+time_varying_cov <- function(returns,
+                             m,
+                             bandwidth = silverman(returns),
+                             kernel_func = epanechnikov_kernel,
+                             M0 = 10,
+                             rho_grid = seq(0.005, 2, length.out = 30),
+                             floor_value = 1e-12,
+                             epsilon2 = 1e-6,
+                             full_output = FALSE) {
+  # Step 1: Local PCA
+  local_res <- localPCA(
+    returns     = returns,
+    bandwidth   = bandwidth,
+    m           = m,
+    kernel_func = kernel_func
+  )
+  
+  # Step 2: Residual covariance estimation with POET
+  res <- estimate_residual_cov_poet_local(
+    localPCA_results = local_res,
+    returns           = returns,
+    M0                = M0,
+    rho_grid          = rho_grid,
+    floor_value       = floor_value,
+    epsilon2          = epsilon2
+  )
+  
+  if (full_output) {
+    return(res)
+  } else {
+    return(res$total_cov)
+  }
 }

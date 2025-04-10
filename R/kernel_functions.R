@@ -25,9 +25,8 @@
 #' u_values <- seq(-1.5, 1.5, by = 0.1)
 #'
 #' # Compute Epanechnikov kernel values
-#' kernel_values <- epanechnikov_kernel(u_values)
-#'
-#' }
+#' kernel_values <- epanechnikov_kernel(u_values)}
+#' 
 #' @export
 epanechnikov_kernel <- function(u) {
   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
@@ -40,7 +39,7 @@ epanechnikov_kernel <- function(u) {
 #'
 #' @param t An integer specifying the current time period for which the kernel weights are computed.
 #' @param r An integer representing the reference time period.
-#' @param T An integer indicating the total number of time periods in the dataset.
+#' @param iT An integer indicating the total number of time periods in the dataset.
 #' @param h A numeric value representing the bandwidth parameter for the kernel function.
 #' @param kernel_func A function representing the kernel used for weighting.
 #'
@@ -111,7 +110,7 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #' input \code{u} within the interval \([-2, 2]\) and sets it to zero outside this range.
 #'
 #' @examples
-#' \dontrun
+#' \dontrun{
 #' # Define the Epanechnikov kernel function
 #' epanechnikov_kernel <- function(u) {
 #'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
@@ -122,8 +121,8 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #'
 #' # Compute two-fold convolution kernel values
 #' conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanechnikov_kernel)
-#'
-#' }
+#'}
+#' 
 #'
 #' @export
 two_fold_convolution_kernel <- function(u, kernel_func) {

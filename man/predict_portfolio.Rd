@@ -10,50 +10,65 @@ predict_portfolio(
   max_factors = 3,
   kernel_func = epanechnikov_kernel,
   min_return = NULL,
+  max_SR = NULL,
   rf = NULL
 )
 }
 \arguments{
 \item{returns}{A numeric matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.}
 
-\item{horizon}{Integer. Investment horizon over which expected return and risk are computed. Default is `1`.}
+\item{horizon}{Integer. Investment horizon over which expected return and risk are computed. Default is 1.}
 
-\item{max_factors}{Integer. The maximum number of latent factors to consider in the Local PCA model. Default is `3`.}
+\item{max_factors}{Integer. The maximum number of latent factors to consider in the Local PCA model. Default is 3.}
 
-\item{kernel_func}{Function. A kernel function used for weighting observations in Local PCA. Default is `epanechnikov_kernel`.}
+\item{kernel_func}{Function. A kernel function used for weighting observations in Local PCA. Default is \code{epanechnikov_kernel}.}
 
-\item{min_return}{Optional numeric. If provided, the function also computes a Minimum Variance Portfolio
-that meets this minimum expected return constraint.}
+\item{min_return}{Optional numeric. If provided, the function computes a Return-Constrained Portfolio that meets this minimum expected return constraint.}
 
-\item{rf}{The risk-free rate (scalar). 
-If `NULL`, it is assumed to be `0`. Default is `NULL`.}
+\item{max_SR}{Optional logical. If set to TRUE, the function also computes the Maximum SR Portfolio. Default is \code{NULL}.}
+
+\item{rf}{Numeric scalar. The risk-free rate. If \code{NULL}, it is assumed to be 0. Default is \code{NULL}.}
 }
 \value{
-A list with at least one component:
-- **`GMV`**: A list containing:
-    - `weights`: The optimal MVP weights (vector of length `p`).
-    - `expected_return`: Expected return of the GMVP.
-    - `risk`: Standard deviation (risk) of the GMVP.
-
-If `min_return` is specified, an additional component is returned:
-- **`MinVarWithReturnConstraint`**: A list containing:
-    - `weights`: The optimal MVP weights under the return constraint.
-    - `expected_return`: Expected return of the constrained MVP.
-    - `risk`: Standard deviation (risk) of the constrained MVP.
+An object of class \code{PortfolioPredictions} containing:
+\describe{
+  \item{summary}{A data frame summarizing the key performance metrics for each computed portfolio. The columns include:
+     \describe{
+        \item{Method}{Portfolio type: "Minimum Variance Portfolio", "Maximum SR Portfolio", or "Return-Constrained Portfolio".}
+        \item{expected_return}{The portfolio's expected return.}
+        \item{risk}{The portfolio's risk (standard deviation).}
+        \item{sharpe}{The portfolio's Sharpe ratio.}
+     }
+  }
+  \item{GMV}{A list containing the weights, expected return, risk, and Sharpe ratio for the Minimum Variance Portfolio.}
+  \item{max_SR}{A list containing the corresponding metrics for the Maximum SR Portfolio (if computed).}
+  \item{MinVarWithReturnConstraint}{A list containing the corresponding metrics for the Return-Constrained Portfolio (if computed).}
+}
 }
 \description{
-This function estimates the Global Minimum Variance Portfolio (MVP)
-and optionally a Minimum Variance Portfolio (MVP) with a return constraint, 
-using time-varying covariance estimation based on Local Principal Component Analysis (Local PCA).
+This function estimates optimal portfolio weights by employing a time-varying covariance estimation
+approach based on Local Principal Component Analysis (Local PCA). It computes the following portfolios:
+\enumerate{
+  \item The **Minimum Variance Portfolio (GMV)**, i.e., the portfolio with the lowest variance.
+  \item The **Maximum SR Portfolio**, i.e., the portfolio that maximizes the Sharpe ratio (if \code{max_SR = TRUE}).
+  \item The **Return-Constrained Portfolio**, i.e., the portfolio that minimizes variance while meeting a specified minimum expected return (if \code{min_return} is provided).
+}
 }
 \details{
-The function implements a time-varying PCA approach to estimate latent factor structures 
-and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
-The covariance matrix is used to determine the global minimum variance portfolio (MVP). 
-The number of factors is determined by a BIC-type information criterion using the function 
-`determine_factors`, and the bandwidth is determined by Silverman's rule of thumb. If 
-`min_return` is provided, solves a quadratic optimization problem to find an MVP 
-that satisfies the expected return constraint.
+The function employs a Local PCA approach to estimate latent factor structures and uses this to obtain a time-varying
+estimate of the covariance matrix via POET. The number of factors is determined by an information criterion (using
+\code{determine_factors}) and the bandwidth is set according to Silverman's rule of thumb.
+
+Expected returns for each asset are forecasted via a simple ARIMA model selection procedure. If a risk-free rate (\code{rf})
+is provided, it is subtracted from the forecasts to yield excess returns.
+
+The optimization then proceeds as follows:
+\enumerate{
+  \item The Global Minimum Variance Portfolio (GMV) is computed in closed form.
+  \item If \code{max_SR = TRUE}, the Maximum Sharpe Ratio Portfolio is computed using the closed-form
+        solution \eqn{w \propto \Sigma^{-1} (\mu - r_f)}.
+  \item If \code{min_return} is provided, a quadratic optimization problem is solved to obtain a Return-Constrained Portfolio.
+}
 }
 \examples{
 \dontrun{
@@ -61,13 +76,15 @@ that satisfies the expected return constraint.
 set.seed(123)
 returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
 
-# Compute GMVP
-result <- predict_portfolio(returns)
-print(result$GMV$weights)
+# Compute portfolios using the function
+result <- predict_portfolio(returns, horizon = 5, max_factors = 3,
+                             min_return = 0.005, max_SR = TRUE)
 
-# Compute GMVP with return constraint
-result <- predict_portfolio(returns, min_return = 0.005)
-print(result$MinVarWithReturnConstraint$weights)
+# Print the summary of portfolio performance
+print(result)
+
+# Access the weights of the Minimum Variance Portfolio
+result$GMV$weights
 }
 
 }

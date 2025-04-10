@@ -15,14 +15,12 @@ local factor scores for a specific time period. Each matrix should have \eqn{T} 
 
 \item{h}{A numeric value indicating the bandwidth parameter for the kernel function.}
 
+\item{iT}{An integer specifying the number of time periods.}
+
+\item{ip}{An integer specifying the number of assets.}
+
 \item{kernel_func}{A function representing the kernel used for weighting. Typically, an
 Epanechnikov kernel or another boundary kernel function.}
-
-\item{T}{An integer specifying the number of time periods.}
-
-\item{p}{An integer specifying the number of assets.}
-
-\item{factor_cov}{A numeric covariance matrix of the factors with dimensions \eqn{m} x \eqn{m}.}
 }
 \value{
 A numeric scalar \eqn{V_{pT}} representing the computed statistic based on
@@ -43,7 +41,7 @@ The function performs the following steps:
   matrix.
   \item Computes the squared dot product of residuals between time periods \eqn{s} and \eqn{r}.
   \item Aggregates these values across all relevant time period pairs and scales by
-  \eqn{\frac{2}{T^2 \times p \times h}} to obtain \eqn{V_{pT}}.
+  \eqn{\frac{2}{T^2 × p × h}} to obtain \eqn{V_{pT}}.
 }
 }
 \keyword{internal}
