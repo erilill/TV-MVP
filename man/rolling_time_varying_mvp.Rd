@@ -2,7 +2,7 @@
 % Please edit documentation in R/forecasting_functions.R
 \name{rolling_time_varying_mvp}
 \alias{rolling_time_varying_mvp}
-\title{#' Rolling Time-Varying Minimum Variance Portfolio Optimization}
+\title{#' Rolling Window Time-Varying Minimum Variance Portfolio Optimization}
 \usage{
 rolling_time_varying_mvp(
   returns,
@@ -42,19 +42,15 @@ rolling_time_varying_mvp(
 \item{epsilon2}{A small positive value used in the adaptive thresholding of the residual covariance estimation. Default is `1e-6`.}
 }
 \value{
-A list containing:
-\item{rebal_dates}{Vector of rebalancing dates.}
-\item{weights}{A list of portfolio weights at each rebalancing date.}
-\item{excess_returns}{A numeric vector of excess portfolio returns.}
-\item{cum_rebal_returns}{A numeric vector of cumulative portfolio returns.}
-\item{cumulative_excess_return}{Total cumulative excess return over the period.}
-\item{standard_deviation}{Standard deviation of the excess returns.}
-\item{sharpe_ratio}{Sharpe ratio of the strategy.}
-\item{standard_deviation_annualized}{Annualized standard deviation of returns.}
-\item{sharpe_ratio_annualized}{Annualized Sharpe ratio.}
+An R6 object of class \code{RollingWindow} with the following accessible elements:
+\describe{
+  \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return, Sharpe ratio, and standard deviation (raw and annualized).}
+  \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
+  \item{\code{Equal}}{A list with similar structure for the equal-weight portfolio.}
+}
 }
 \description{
-This function performs rolling time-varying minimum variance portfolio (TV-MVP) optimization using 
+This function performs time-varying minimum variance portfolio (TV-MVP) optimization using 
 time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The 
 optimization is performed over a rolling window, with periodic rebalancing.
 }
@@ -69,15 +65,14 @@ bandwidth is determined by Silverman's rule of thumb.
 If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 }
 \examples{
-\dontrun{
-# Generate random returns for 20 assets over 500 periods
+# Generate random returns for 20 assets over 100 periods
 set.seed(123)
-returns <- matrix(rnorm(5000), nrow = 500, ncol = 20)
+returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)
 
 # Run rolling TV-MVP optimization
 results <- rolling_time_varying_mvp(
   returns = returns,
-  initial_window = 100,
+  initial_window = 50,
   rebal_period = 20,
   max_factors = 3,
   return_type = "daily",
@@ -85,8 +80,10 @@ results <- rolling_time_varying_mvp(
   rf = NULL
 )
 
-# View Sharpe ratio
-print(results$sharpe_ratio)
-}
+# Print summary
+print(results)
+
+# Plot cumulative log excess returns
+plot.RollingWindow(results)
 
 }
