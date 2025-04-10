@@ -183,3 +183,42 @@ RollingWindow <- R6::R6Class(
     }
   )
 )
+
+#' @export
+#' @method plot RollingWindow
+plot.RollingWindow <- function(x, ...) {
+  stopifnot(inherits(x, "RollingWindow"))
+  
+  # Calculate cumulative returns
+  tvmvp_cum <- cumsum(x$TVMVP$returns)
+  equal_cum <- cumsum(x$Equal$returns)
+  T_len <- length(tvmvp_cum)
+  
+  # Adjust margins to make room for legend
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))  # Reset par on exit
+  par(mar = c(6, 4, 4, 2) + 0.1)  # Extra space at bottom
+  
+  # Set up plotting area
+  plot(
+    1:T_len, tvmvp_cum,
+    type = "l", col = "blue", lwd = 2,
+    ylim = range(c(tvmvp_cum, equal_cum)),
+    xlab = "Time",
+    ylab = "Cumulative log Excess Return",
+    main = "Cumulative log Excess Returns: TVMVP vs Equal",
+    ...
+  )
+  
+  # Add Equal Weight portfolio line
+  lines(1:T_len, equal_cum, col = "red", lwd = 2, lty = 2)
+  
+  # Add legend BELOW the plot
+  legend(
+    "bottom", inset = -0.45, xpd = TRUE,
+    legend = c("Time-Varying MVP", "Equal Weight"),
+    col = c("blue", "red"),
+    lty = c(1, 2), lwd = 2,
+    horiz = TRUE, bty = "n", cex = 0.9
+  )
+}
