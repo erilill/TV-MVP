@@ -167,7 +167,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' @param kernel_func Function. A kernel function for weighting observations in the local PCA. Default is \code{epanechnikov_kernel}.
 #'
 #' @return A list containing:
-#' \item{J_NT}{The test statistic \(J_{pT}\) computed on the original data.}
+#' \item{J_NT}{The test statistic \eqn{J_{pT}} computed on the original data.}
 #' \item{p_value}{The bootstrap p-value, indicating the significance of time variation in covariance.}
 #' \item{J_pT_bootstrap}{A numeric vector of bootstrap test statistics from each replication.}
 #'
@@ -216,6 +216,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' print(test_result$p_value)
 #' }
 #'
+#' @importFrom stats rnorm
 #' @export
 hyptest1 <- function(returns, m, B = 200, kernel_func = epanechnikov_kernel) {
   # Standardize returns

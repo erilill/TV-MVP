@@ -41,5 +41,4 @@ u_values <- seq(-3, 3, by = 0.1)
 conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanechnikov_kernel)
 }
 
-
 }
