@@ -34,5 +34,14 @@
 #'   \item{\code{\link{time_varying_cov}}}{Estimates the time-varying covariance matrix.}
 #' }
 #'
+#' @section Other functions: 
+#' \describe{
+#' \item{\code{\link{silverman}}: Silverman's rule of thumb bandwidth formula.}
+#' \item{\code{\link{epanechnikov_kernel}}: Epanechnikov kernel used for kernel-weighting the data in the local PCA.}
+#' }
+#' 
+#' @section References: 
+#' Lillank, E. (2025). Time-Varying Minimum Variance Portfolio.
+#' 
 #' @keywords package
 "_PACKAGE"
