@@ -2,7 +2,7 @@
 % Please edit documentation in R/localPOET.R
 \name{time_varying_cov}
 \alias{time_varying_cov}
-\title{Estimate Time-Varying Covariance Matrix Using Local PCA and POET}
+\title{Estimate Time-Varying Covariance Matrix Using Local PCA}
 \usage{
 time_varying_cov(
   returns,
@@ -23,10 +23,11 @@ time_varying_cov(
 
 \item{bandwidth}{Optional bandwidth for the local PCA. If not provided, Silverman's rule is used.}
 
-\item{kernel_func}{The kernel function to use (default is \code{epanechnikov_kernel}).
-#' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.}
+\item{kernel_func}{The kernel function to use (default is \code{\link{epanechnikov_kernel}}).}
 
-\item{rho_grid}{A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.}
+\item{M0}{Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.}
+
+\item{rho_grid}{A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{\link{adaptive_poet_rho}}. Default is \code{seq(0.005, 2, length.out = 30)}.}
 
 \item{floor_value}{A small positive number specifying the lower bound for eigenvalues in the final positive semidefinite repair. Default is \code{1e-12}.}
 
@@ -46,9 +47,14 @@ By default, a covariance matrix. If \code{full_output = TRUE}, a list containing
 }
 \description{
 This function estimates a time-varying covariance matrix using local principal component
-analysis and the POET method for residual shrinkage. By default, only the total
+analysis and the soft thresholding for residual shrinkage. By default, only the total
 covariance matrix is returned. Optionally, the user can retrieve all intermediate
 components of the estimation process.
+}
+\details{
+The function estimates a time-varying covariance matrix using Local PCA:
+\deqn{\hat{\Sigma}_{r,t}=\hat{\Lambda}_t \hat{\Sigma}_F \hat{\Lambda}_t' + \tilde{\Sigma}_e}
+Where \eqn{\hat{\Lambda}_t} is the factor loadings at time t, \eqn{\hat{\Sigma}_F} is the factor covariance matrix, and \eqn{\tilde{\Sigma}_e} is regularized covariance matrix of the idiosyncratic errors.
 }
 \examples{
 \dontrun{
