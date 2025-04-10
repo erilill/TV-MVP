@@ -127,7 +127,7 @@ the determination of the optimal number of factors, `return_type` can be
 set to “daily”, “weekly”, and “monthly”, and is used for annualization
 of the results, `kernel_func`, and `rf` which denotes the risk free
 rate, this can be input either as a scalar or at
-$(T-initialwindow)\times 1)$ numerical vector. The function outputs
+$(T-initialwindow)\times 1$ numerical vector. The function outputs
 relevant metrics for evaluation of the performance of the portfolio such
 as cumulative excess returns, standard deviation, and Sharpe ratio.
 
