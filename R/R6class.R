@@ -24,6 +24,10 @@
 #' @docType class
 NULL
 
+#' @import R6
+#' @import cli
+#' @import prettyunits
+#' @import tibble
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
@@ -63,6 +67,7 @@ TVMVP <- R6::R6Class(
   )
 )
 #' @import R6
+#' @import cli
 PortfolioPredictions <- R6Class("PortfolioPredictions",
                                 public = list(
                                   summary = NULL,
@@ -127,6 +132,7 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                 )
 )
 #' @import R6
+#' @import cli
 RollingWindow <- R6::R6Class(
   "RollingWindow",
   public = list(
@@ -178,7 +184,7 @@ RollingWindow <- R6::R6Class(
     }
   )
 )
-
+#' @importFrom graphics legend lines par plot
 #' @export
 #' @method plot RollingWindow
 plot.RollingWindow <- function(x, ...) {

@@ -38,6 +38,7 @@ compute_sigma_0 <- function(res_set, iT, ip) {
 #' the function will return the size of obj
 #' and it is smart in the sense that it will choose the suitable unit
 #' @param obj Object
+#' @importFrom utils object.size
 get_object_size <- function(obj) {
   size_bytes <- object.size(obj)  # Get object size in bytes
 

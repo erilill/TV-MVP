@@ -203,6 +203,7 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #' print(result)
 #' }
 #'
+#' @importFrom stats cov
 #' @keywords internal
 adaptive_poet_rho <- function(R, M0 = 10,
                                      rho_grid = seq(0.001, 2, length.out = 20),

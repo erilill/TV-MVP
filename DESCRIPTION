@@ -9,7 +9,7 @@ Description: Provides the estimation of time-dependent covariance matrix of
    methods for determining the optimal number of factors to be used in the covariance
    estimation, a hypothesis test of time-varying covariance, and user-friendly
    functions for portfolio optimization and rolling window evaluation.
-License: MIT
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:

@@ -49,4 +49,5 @@ epanechnikov_kernel <- function(u) {
 weight <- boundary_kernel(t = 5, r = 5, T = 100, h = 0.1, kernel_func = epanechnikov_kernel)
 print(weight)
 }
+
 }

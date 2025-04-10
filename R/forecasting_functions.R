@@ -53,8 +53,9 @@
 #' print(results)
 #'
 #' # Plot cumulative log excess returns
-#' plot.RollingWindow(results)
+#' plot(results)
 #'
+#' @importFrom stats var
 #' @export
 rolling_time_varying_mvp <- function(
     returns,            # Log returns matrix
@@ -386,6 +387,7 @@ predict_portfolio <- function(
 #' Function to compute expected returns using a simple model selection approach
 #' @param returns T times p matrix of returns
 #' @param horizon Length of forecasting horizon
+#' @importFrom stats arima AIC predict 
 comp_expected_returns <- function(returns, horizon) {
   exp_ret <- numeric(ncol(returns))
   

@@ -36,8 +36,8 @@
 #'
 #' @section Other functions: 
 #' \describe{
-#' \item{\code{\link{silverman}}: Silverman's rule of thumb bandwidth formula.}
-#' \item{\code{\link{epanechnikov_kernel}}: Epanechnikov kernel used for kernel-weighting the data in the local PCA.}
+#' \item{\code{\link{silverman}}}{Silverman's rule of thumb bandwidth formula.}
+#' \item{\code{\link{epanechnikov_kernel}}}{Epanechnikov kernel used for kernel-weighting the data in the local PCA.}
 #' }
 #' 
 #' @section References: 

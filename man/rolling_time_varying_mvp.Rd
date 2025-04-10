@@ -84,6 +84,6 @@ results <- rolling_time_varying_mvp(
 print(results)
 
 # Plot cumulative log excess returns
-plot.RollingWindow(results)
+plot(results)
 
 }

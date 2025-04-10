@@ -69,6 +69,8 @@ epanechnikov_kernel <- function(u) {
 #' weight <- boundary_kernel(t = 5, r = 5, T = 100, h = 0.1, kernel_func = epanechnikov_kernel)
 #' print(weight)
 #' }
+#' 
+#' @importFrom stats integrate
 #' @export
 boundary_kernel <- function(t, r, iT, h, kernel_func) {
   scaled_diff <- (t - r) / (iT * h)
@@ -123,7 +125,7 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #' conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanechnikov_kernel)
 #'}
 #' 
-#'
+#' @importFrom stats integrate
 #' @export
 two_fold_convolution_kernel <- function(u, kernel_func) {
   result <- ifelse(
