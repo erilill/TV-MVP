@@ -318,19 +318,19 @@ adaptive_poet_rho <- function(R, M0 = 10,
 }
 
 
-#' Estimate Time-Varying Covariance Matrix Using Local PCA and POET
+#' Estimate Time-Varying Covariance Matrix Using Local PCA
 #'
 #' This function estimates a time-varying covariance matrix using local principal component
-#' analysis and the POET method for residual shrinkage. By default, only the total
+#' analysis and the soft thresholding for residual shrinkage. By default, only the total
 #' covariance matrix is returned. Optionally, the user can retrieve all intermediate
 #' components of the estimation process.
 #'
 #' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}.
 #' @param m The number of factors to use in local PCA.
 #' @param bandwidth Optional bandwidth for the local PCA. If not provided, Silverman's rule is used.
-#' @param kernel_func The kernel function to use (default is \code{epanechnikov_kernel}).
-#' #' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.
-#' @param rho_grid A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{adaptive_poet_rho()}. Default is \code{seq(0.005, 2, length.out = 30)}.
+#' @param kernel_func The kernel function to use (default is \code{\link{epanechnikov_kernel}}).
+#' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.
+#' @param rho_grid A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{\link{adaptive_poet_rho}}. Default is \code{seq(0.005, 2, length.out = 30)}.
 #' @param floor_value A small positive number specifying the lower bound for eigenvalues in the final positive semidefinite repair. Default is \code{1e-12}.
 #' @param epsilon2 A small positive tuning parameter for the adaptive thresholding. Default is \code{1e-6}.
 #' @param full_output Logical; if \code{TRUE}, returns all components of the estimation.
@@ -343,6 +343,12 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #'   \item \code{best_rho} – optimal shrinkage parameter,
 #'   \item \code{naive_resid_cov} – residual covariance before shrinkage
 #' }
+#' 
+#' @details
+#' The function estimates a time-varying covariance matrix using Local PCA:
+#' \deqn{\hat{\Sigma}_{r,t}=\hat{\Lambda}_t \hat{\Sigma}_F \hat{\Lambda}_t' + \tilde{\Sigma}_e}
+#' Where \eqn{\hat{\Lambda}_t} is the factor loadings at time t, \eqn{\hat{\Sigma}_F} is the factor covariance matrix, and \eqn{\tilde{\Sigma}_e} is regularized covariance matrix of the idiosyncratic errors.
+#' 
 #'
 #' @examples
 #' \dontrun{
