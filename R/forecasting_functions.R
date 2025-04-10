@@ -416,3 +416,163 @@ comp_expected_returns <- function(returns, horizon) {
   
   return(exp_ret)
 }
+
+
+#' @import R6
+#' @import cli
+PortfolioPredictions <- R6Class("PortfolioPredictions",
+                                public = list(
+                                  summary = NULL,
+                                  GMV = NULL,
+                                  max_SR = NULL,
+                                  MinVarWithReturnConstraint = NULL,
+                                  
+                                  initialize = function(summary, GMV, max_SR = NULL, MinVarWithReturnConstraint = NULL) {
+                                    self$summary <- summary
+                                    self$GMV <- GMV
+                                    self$max_SR <- max_SR
+                                    self$MinVarWithReturnConstraint <- MinVarWithReturnConstraint
+                                  },
+                                  
+                                  print = function(...) {
+                                    cli::cli_h1("Portfolio Optimization Predictions")
+                                    cli::cli_rule()
+                                    cli::cli_h2("Summary Metrics")
+                                    df <- self$summary
+                                    df$Method <- with(df, ifelse(Method == "GMV", 
+                                                                 "Minimum Variance Portfolio", 
+                                                                 ifelse(Method == "max_SR", 
+                                                                        "Maximum SR Portfolio", 
+                                                                        ifelse(Method == "MinVarWithReturnConstraint", 
+                                                                               "Return-Constrained Portfolio", Method))))
+                                    print(df, row.names = FALSE)
+                                    cli::cli_rule()
+                                    cli::cli_h2("Detailed Components")
+                                    cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
+                                    cli::cli_text("  - GMV: Use object$GMV")
+                                    if (!is.null(self$max_SR)) {
+                                      cli::cli_text("  - Maximum Sharpe Ratio Portfolio: Use object$max_SR")
+                                    }
+                                    if (!is.null(self$MinVarWithReturnConstraint)) {
+                                      cli::cli_text("  - Minimum Variance Portfolio with Return Constraint: Use object$MinVarWithReturnConstraint")
+                                    }
+                                    invisible(self)
+                                  },
+                                  
+                                  getWeights = function(method = "GMV") {
+                                    switch(method,
+                                           GMV = self$GMV$weights,
+                                           max_SR = {
+                                             if (!is.null(self$max_SR)) {
+                                               self$max_SR$weights
+                                             } else {
+                                               cli::cli_alert_danger("max_SR portfolio not available!")
+                                               NULL
+                                             }
+                                           },
+                                           MinVarWithReturnConstraint = {
+                                             if (!is.null(self$MinVarWithReturnConstraint)) {
+                                               self$MinVarWithReturnConstraint$weights
+                                             } else {
+                                               cli::cli_alert_danger("MinVarWithReturnConstraint portfolio not available!")
+                                               NULL
+                                             }
+                                           },
+                                           stop("Method not found")
+                                    )
+                                  }
+                                )
+)
+#' @import R6
+#' @import cli
+RollingWindow <- R6::R6Class(
+  "RollingWindow",
+  public = list(
+    summary = NULL,
+    TVMVP   = NULL,
+    Equal  = NULL,
+    
+    initialize = function(summary, TVMVP, Equal) {
+      self$summary <- summary
+      self$TVMVP   <- TVMVP
+      self$Equal   <- Equal
+    },
+    
+    print = function(...) {
+      # Header
+      cli::cli_h1("Rolling Window Portfolio Analysis")
+      cli::cli_rule()
+      
+      # Print summary
+      cli::cli_h2("Summary Metrics")
+      df <- self$summary
+      
+      # Here, if you want, you can rename the 'Method' column so it prints
+      # nicely, or leave it as is. For example:
+      # df$Method <- with(df, ifelse(Method == "Time-Varying MVP", 
+      #                              "Time-Varying MVP Portfolio",
+      #                       ifelse(Method == "Equal Weight", 
+      #                              "Equal-Weighted Portfolio", 
+      #                              Method)))
+      
+      print(df, row.names = FALSE)
+      
+      cli::cli_rule()
+      cli::cli_h2("Detailed Components")
+      cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
+      cli::cli_text("  - Time-Varying MVP: Access via `$TVMVP`")
+      cli::cli_text("  - Equal Weight: Access via `$Equal`")
+      
+      invisible(self)
+    },
+    
+    getWeights = function(method = c("TVMVP", "Equal")) {
+      method <- match.arg(method)
+      if (method == "TVMVP") {
+        return(self$TVMVP$weights)
+      } else {
+        return(self$Equal$weights)
+      }
+    }
+  )
+)
+#' @importFrom graphics legend lines par plot
+#' @export
+#' @method plot RollingWindow
+plot.RollingWindow <- function(x, ...) {
+  stopifnot(inherits(x, "RollingWindow"))
+  
+  # Calculate cumulative returns
+  tvmvp_cum <- cumsum(x$TVMVP$returns)
+  equal_cum <- cumsum(x$Equal$returns)
+  T_len <- length(tvmvp_cum)
+  
+  # Adjust margins to make room for legend
+  oldpar <- par(no.readonly = TRUE)
+  on.exit(par(oldpar))  # Reset par on exit
+  par(mar = c(6, 4, 4, 2) + 0.1)  # Extra space at bottom
+  
+  # Set up plotting area
+  plot(
+    1:T_len, tvmvp_cum,
+    type = "l", col = "blue", lwd = 2,
+    ylim = range(c(tvmvp_cum, equal_cum)),
+    xlab = "Time",
+    ylab = "Cumulative log Excess Return",
+    main = "Cumulative log Excess Returns: TVMVP vs Equal",
+    ...
+  )
+  
+  # Add Equal Weight portfolio line
+  lines(1:T_len, equal_cum, col = "red", lwd = 2, lty = 2)
+  
+  # Add legend BELOW the plot
+  legend(
+    "bottom", inset = -0.45, xpd = TRUE,
+    legend = c("Time-Varying MVP", "Equal Weight"),
+    col = c("blue", "red"),
+    lty = c(1, 2), lwd = 2,
+    horiz = TRUE, bty = "n", cex = 0.9
+  )
+}
+
