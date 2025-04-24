@@ -21,7 +21,7 @@ The TVMVP package implements a method for estimating a time-dependent covariance
 \item A BIC-type information criterion for determining the optimal number of factors
 \item A hypothesis test for time-invariant covariance
 \item Rolling-window evaluation of portfolio
-\item Multiple portfolio optimization texhniques
+\item Multiple portfolio optimization techniques
 \end{itemize}
 
 ## Example
