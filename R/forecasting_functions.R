@@ -568,7 +568,7 @@ plot.RollingWindow <- function(x, ...) {
   
   # Add legend BELOW the plot
   legend(
-    "bottom", inset = -0.45, xpd = TRUE,
+    "bottom", inset = 0.85, xpd = TRUE,
     legend = c("Time-Varying MVP", "Equal Weight"),
     col = c("blue", "red"),
     lty = c(1, 2), lwd = 2,
