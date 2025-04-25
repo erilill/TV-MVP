@@ -1,7 +1,7 @@
 Package: TVMVP
 Type: Package
-Title: Time-Varying Minimum Variance Portfolio
-Version: 0.1.0
+Title: Time-Varying Minimum Variance Portfolio (Beta Release)
+Version: 0.9.0-1
 Author: Erik Lillrank and Yukai Yang
 Maintainer: Erik Lillrank <erik.lillrank.9607@student.uu.se>
 Description: Provides the estimation of time-dependent covariance matrix of
