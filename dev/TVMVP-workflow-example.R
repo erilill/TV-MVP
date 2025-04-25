@@ -30,12 +30,14 @@ returns <- simulate_time_varying_data(100, 30, 0.7, 0.01)
 
 # Number of factors
 m <- determine_factors(returns, 10, silverman(returns))$optimal_m # Needs optimization
+m
 
 # Test if covariance is time invariant
 test <- hyptest1(returns = returns,
          m,
          B = 199,
          kernel_func = epanechnikov_kernel)
+test
 # E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
 
 # Evaluate historical performance of model:
@@ -48,6 +50,8 @@ mvp_result <- rolling_time_varying_mvp(
   kernel_func    = epanechnikov_kernel,
   rf             = 1e-04
 )
+mvp_result
+plot(mvp_result)
 prediction <- predict_portfolio(returns, 
                                 horizon = 21, 
                                 max_factors = 10,
@@ -55,3 +59,4 @@ prediction <- predict_portfolio(returns,
                                 min_return=0.5,
                                 max_SR = TRUE,
                                 rf = 1e-04)
+prediction

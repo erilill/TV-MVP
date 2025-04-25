@@ -41,7 +41,11 @@
 #' }
 #' 
 #' @section References: 
-#' Lillank, E. (2025). Time-Varying Minimum Variance Portfolio.
+#'@section References: 
+#' Lillrank, E. (2025). \ifelse{html}{
+#'     \out{<a href='../doc/thesis.pdf'>Time-Varying Minimum Variance Portfolio.</a>}
+#'   }{Master’s thesis (PDF in inst/doc)}
+#' 
 #' 
 #' @keywords package
 "_PACKAGE"

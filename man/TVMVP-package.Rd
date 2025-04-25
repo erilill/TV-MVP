@@ -2,6 +2,7 @@
 % Please edit documentation in R/TVMVP.R
 \docType{package}
 \name{TVMVP-package}
+\alias{TVMVP}
 \alias{TVMVP-package}
 \title{TVMVP: Time-Varying Minimum Variance Portfolio Optimization}
 \description{
@@ -46,8 +47,12 @@ Department of Statistics, Uppsala University \cr
 }
 
 \section{References}{
+
+
  
-Lillank, E. (2025). Time-Varying Minimum Variance Portfolio.
+Lillrank, E. (2025). \ifelse{html}{
+    \out{<a href='../doc/thesis.pdf'>Time-Varying Minimum Variance Portfolio.</a>}
+  }{Master’s thesis (PDF in inst/doc)}
 }
 
 \keyword{package}
