@@ -6,7 +6,7 @@ library(TVMVP)
 # - rolling_time_varying_mvp, predict_portfolio: I think it works
 # - local_pca: Worked a lot in order to get this to work properly, still not sure.
 
-set.seed(123)
+set.seed(12345)
 simulate_time_varying_data <- function(T, p, phi, sigma_f){
   F       <- numeric(T)
   F[1] <- rnorm(1, mean = 0, sd = sigma_f / sqrt(1 - phi^2))
@@ -35,7 +35,7 @@ m
 # Test if covariance is time invariant
 test <- hyptest1(returns = returns,
          m,
-         B = 199,
+         B = 10,
          kernel_func = epanechnikov_kernel)
 test
 # E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
