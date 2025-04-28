@@ -21,8 +21,7 @@ You can install the development version of TVMVP from
 [GitHub](https://github.com/) with:
 
 ``` r
-devtools::install_github("erilill/TV-MVP", ref = "beta")      # by branch
-devtools::install_github("erilill/TV-MVP", ref = "v0.9.0-beta")  # by tag
+devtools::install_github("erilill/TV-MVP", ref = "beta")
 ```
 
 provided that the package “devtools” (or “remotes”) has been installed
