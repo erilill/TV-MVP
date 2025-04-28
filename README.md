@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# TVMVP
+# TVMVP (beta-version)
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -12,16 +12,21 @@ analysis on kernel weighted data. The package also includes a hypothesis
 test of time-invariant covariance, and methods for implementing the
 time-dependent covariance matrix in a portfolio optimization setting.
 
+This package is currently in development, and this version is a stable
+beta-version.
+
 ## Installation
 
 You can install the development version of TVMVP from
 [GitHub](https://github.com/) with:
 
 ``` r
-devtools::install_gitbub("erilill/TV-MVP")
+devtools::install_github("erilill/TV-MVP", ref = "beta")      # by branch
+devtools::install_github("erilill/TV-MVP", ref = "v0.9.0-beta")  # by tag
 ```
 
-provided that the package “devtools” has been installed beforehand.
+provided that the package “devtools” (or “remotes”) has been installed
+beforehand.
 
 ## Example
 
@@ -105,19 +110,19 @@ mvp_result
 #> 
 #> ── Summary Metrics ──
 #> 
-#>            Method Cumulative_Excess_Return Mean_Excess_Return
-#>  Time-Varying MVP               0.07378433        0.001844608
-#>      Equal Weight               0.07346762        0.001836690
-#>  Standard_Deviation Sharpe_Ratio Mean_Annualized SD_Annualized
-#>         0.006331619    0.2913328       0.4648413     0.1005113
-#>         0.004647621    0.3951894       0.4628460     0.0737787
+#>        Method     CER      MER       SD     SR MER_ann  SD_ann
+#>         TVMVP 0.07378 0.001845 0.006332 0.2913  0.4648 0.10051
+#>  Equal Weight 0.07347 0.001837 0.004648 0.3952  0.4628 0.07378
 #> ────────────────────────────────────────────────────────────────────────────────
 #> ── Detailed Components ──
 #> 
 #> The detailed portfolio outputs are stored in the following elements:
 #> - Time-Varying MVP: Access via `$TVMVP`
 #> - Equal Weight: Access via `$Equal`
+plot(mvp_result)
 ```
+
+<img src="man/figures/README-rolpred-1.png" width="100%" />
 
 The `rolling_time_varying_mvp` function takes the input: `returns` a
 $T\times p$ data matrix, `initial_window` which is the initial holding
@@ -146,10 +151,10 @@ prediction
 #> 
 #> ── Summary Metrics ──
 #> 
-#>                        Method expected_return       risk    sharpe
-#>    Minimum Variance Portfolio      0.03145982 0.01843029 0.3724899
-#>          Maximum SR Portfolio      0.06677812 0.02685166 0.5426920
-#>  Return-Constrained Portfolio      0.50000000 0.25971512 0.4201101
+#>                        Method expected_return    risk sharpe
+#>    Minimum Variance Portfolio         0.03146 0.01843 0.3725
+#>          Maximum SR Portfolio         0.06678 0.02685 0.5427
+#>  Return-Constrained Portfolio         0.50000 0.25972 0.4201
 #> ────────────────────────────────────────────────────────────────────────────────
 #> ── Detailed Components ──
 #> 
