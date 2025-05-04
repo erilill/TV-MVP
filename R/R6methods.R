@@ -56,7 +56,6 @@ TVMVP$set("public", "set_data", function(data) {
   invisible(self)  # Enables chaining
 })
 
-
 TVMVP$set("public", "get_data", function() {
   if(is.null(private$data)){
     cli::cli_alert_warning("The data is empty.")
@@ -65,6 +64,33 @@ TVMVP$set("public", "get_data", function() {
   return(private$data)
   # make a copy of the data and return it
 })
+
+
+TVMVP$set("public", "set_max_m", function(max_m) {
+  # for set_data function, the argument data should not be missing
+  if(missing(max_m)){
+    cli::cli_alert_warning("input is empty.")
+  } else{
+    # set the data
+    self$set(max_m=max_m)
+  }
+
+  invisible(self)  # Enables chaining
+})
+
+TVMVP$set("public", "set_bandwidth", function(bandwidth) {
+  # for set_data function, the argument data should not be missing
+  if(missing(bandwidth)){
+    cli::cli_alert_warning("input is empty.")
+  } else{
+    # set the data
+    self$set(bandwidth=bandwidth)
+  }
+
+  invisible(self)  # Enables chaining
+})
+
+
 
 
 TVMVP$set("public", "print", function(...) {
@@ -104,24 +130,23 @@ TVMVP$set("public", "print", function(...) {
   invisible(self)
 })
 
-
-p_determine_factors <- function(self, private, max_R, bandwidth) {
-  T <- private$iT
-  N <- private$iN
+determine_factors2 <- function(returns, max_m, bandwidth) {
+  iT <- nrow(returns)
+  ip <- ncol(returns)
 
   # Initialize storage
-  V <- numeric(max_R)
-  penalty <- numeric(max_R)
-  IC_values <- numeric(max_R)
+  V <- numeric(max_m)
+  penalty <- numeric(max_m)
+  IC_values <- numeric(max_m)
 
   # Loop over possible number of factors (R)
-  for (R in 1:max_R) {
-    residuals <- matrix(NA, nrow = T, ncol = N)
+  for (mi in 1:max_m) {
+    residuals <- matrix(NA, nrow = iT, ncol = ip)
     prev_F = NULL
-    for (r in 1:T){
+    for (r in 1:iT){
       # Step 1: Perform PCA with R factors
       pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth,
-                                  m = R, kernel_func = epanechnikov_kernel,
+                                  m = mi, kernel_func = epanechnikov_kernel,
                                   prev_F))
       if("try-error" %in% class(pca_result))
       {
@@ -129,10 +154,10 @@ p_determine_factors <- function(self, private, max_R, bandwidth) {
       }
 
 
-      X_r <- matrix(0, nrow = T, ncol = N)
+      X_r <- matrix(0, nrow = iT, ncol = ip)
       X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
-      scaled_loadings <- sqrt(N) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
-      Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%scaled_loadings)
+      scaled_loadings <- sqrt(ip) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
+      Lambda_breve_R <- t((1/(iT*ip))*t(X_r)%*%X_r%*%scaled_loadings)
       F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
 
       # Step 2: Compute SSR (Sum of Squared Residuals)
@@ -140,12 +165,12 @@ p_determine_factors <- function(self, private, max_R, bandwidth) {
 
       prev_F <- pca_result$F_hat_r
     }
-    V[R] <- sum(residuals^2) / (N * T)
-    penalty[R] <- R * ((N+T*bandwidth)/(N*T*bandwidth))*log((N*T*bandwidth)/(N+T*bandwidth))
-    IC_values[R] <- log(V[R]) + penalty[R]
+    V[mi] <- sum(residuals^2) / (ip * iT)
+    penalty[mi] <- mi * ((ip+iT*bandwidth)/(ip*iT*bandwidth))*log((ip*iT*bandwidth)/(ip+iT*bandwidth))
+    IC_values[mi] <- log(V[mi]) + penalty[mi]
   }
   # Step 4: Determine optimal number of factors
-  optimal_R <- which.min(IC_values)
+  optimal_m <- which.min(IC_values)
   #message(sprintf("Optimal number of factors is %s.", optimal_R))
-  return(list(optimal_R = optimal_R, IC_values = IC_values))
+  return(list(optimal_m = optimal_m, IC_values = IC_values))
 }

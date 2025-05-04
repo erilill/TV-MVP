@@ -49,7 +49,10 @@ TVMVP <- R6::R6Class(
 
     data = NULL, # data tibble
     iT = NULL, # integer of the sample size (time)
-    ip = NULL # integer of the number of stocks
+    ip = NULL, # integer of the number of stocks
 
+    # user can set this part
+    max_m = NULL, # maximum number of factors to consider.
+    bandwidth = NULL # bandwidth used in the kernel weighting for the local PCA
   )
 )
