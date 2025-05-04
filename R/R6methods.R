@@ -3,9 +3,28 @@
 TVMVP$set("public", "set", function(...) {
   # for generic set function, the argument data can be general
   # you can set any variable for the object here and we don't do type checking
-  # but it will pop error message if the data type is incorrect
-  # when the variable is being used.
+  # except the data
+  # but it will pop error message if when the variables are being used.
   args <- list(...); arg_names <- names(args)
+
+  # Special handling for 'data'
+  if ("data" %in% arg_names) {
+    if(is.matrix(args$data) && is.numeric(args$data)) {
+      # set the data if it is numeric matrix
+      private$data <- args$data
+      private$iT <- nrow(args$data)
+      private$ip <- ncol(args$data)
+
+      tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
+      cli::cli_alert_info("data set {.val {tmp_size}} with {.val {private$iT}} rows and {.val {private$ip}} columns")
+    } else {
+      # data must be a numeric matrix!
+      cli::cli_alert_warning("data must be a numeric matrix")
+    }
+
+    # remove 'data' from args so it’s not double-assigned below
+    arg_names <- setdiff(arg_names, c("data","iT","ip"))
+  }
 
   for(name in arg_names){
     if (is.null(private[[name]])){
@@ -31,7 +50,6 @@ TVMVP$set("public", "set_data", function(data) {
     private$iT <- nrow(data)
     private$ip <- ncol(data)
 
-    #tmp_size <- get_object_size(private$data)
     tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
     cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
   }
@@ -52,21 +70,22 @@ TVMVP$set("public", "get_data", function() {
 
 TVMVP$set("public", "print", function(...) {
   # print function
-  cli::cli_alert_info("Object: {.strong TVMVP}")
+  cli::cli_alert_info("Object of {.strong TVMVP}")
 
   # Important fields
   important_fields <- c("data")
 
   # print data first
   if(!is.null(private$data)){
-    if(!is.matrix(private$data) || !is.numeric(private$data)){
-      # data must be a numeric matrix!
-      cli::cli_alert_warning("data is empty; use {.code set(data = )} or {.code set_data()}")
-    } else {
-      #tmp_size <- get_object_size(private$data)
+    if(is.matrix(private$data) && is.numeric(private$data)){
       tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
       cli::cli_text("data set {.val {tmp_size}} with {.val {private$iT}} rows and {.val {private$ip}} columns")
+    } else {
+      # data must be a numeric matrix!
+      cli::cli_alert_warning("data must be a numeric matrix")
     }
+  } else {
+    cli::cli_alert_warning("data is empty; use {.code set(data = )} or {.code set_data()}")
   }
 
   # Other fields
