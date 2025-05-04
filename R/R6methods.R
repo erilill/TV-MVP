@@ -26,7 +26,7 @@ TVMVP$set("public", "set", function(...) {
 
   # remove 'data' from args so it’s not double-assigned below
   # iT and ip are the variables that are not allowed to be changed manually
-  arg_names <- setdiff(arg_names, c("data","iT","ip"))
+  arg_names <- setdiff(arg_names, private$important_fields)
 
   # nothing will happen if arg_names is empty
   for(name in arg_names){
@@ -101,7 +101,8 @@ TVMVP$set("public", "print", function(...) {
   cli::cli_alert_info("Object of {.strong TVMVP}")
 
   # Important fields
-  important_fields <- c("data","iT","ip")
+  important_fields = c("data","iT","ip",
+                        "optimal_m","IC_values")
 
   # print data first
   if(!is.null(private$data)){
@@ -117,22 +118,45 @@ TVMVP$set("public", "print", function(...) {
   }
 
   # Other fields
-  other_fields <- setdiff(names(private), important_fields)
+  other_fields <- setdiff(names(private), private$important_fields)
   if (length(other_fields) > 0) {
-    cat("Other private fields:\n")
     for (name in other_fields) {
-      cat(" -", name, "=", private[[name]], "\n")
+      if(!is.null(private[[name]]))
+        cli::cli_text(" - {.field {name}} = {.val {private[[name]]}}")
     }
   }
 
-  ###
+  ### print results
+  if(!is.null(private$optimal_m))
+    cli::cli_text(" - {.field optimal_m} = {.val {private$optimal_m}}")
+  if(!is.null(private$IC_values))
+    cli::cli_text(" - {.field IC_values} = {.val {private$IC_values}}")
 
   invisible(self)
 })
 
-determine_factors2 <- function(returns, max_m, bandwidth) {
-  iT <- nrow(returns)
-  ip <- ncol(returns)
+
+TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
+  if(!is.null(max_m)) private$max_m = max_m
+  if(!is.null(bandwidth)) private$bandwidth = bandwidth
+  max_m = private$max_m; bandwidth = private$bandwidth
+
+  flag = TRUE
+  if(is.null(private$data)) {
+    cli::cli_alert_warning("data is empty")
+    flag = FALSE
+  }
+  if(is.null(max_m)) {
+    cli::cli_alert_warning("max_m is empty")
+    flag = FALSE
+  }
+  if(is.null(bandwidth)) {
+    cli::cli_alert_warning("bandwidth is empty")
+    flag = FALSE
+  }
+  if(!flag) return(invisible(self)) # return
+
+  iT = private$iT; ip = private$ip
 
   # Initialize storage
   V <- numeric(max_m)
@@ -145,7 +169,7 @@ determine_factors2 <- function(returns, max_m, bandwidth) {
     prev_F = NULL
     for (r in 1:iT){
       # Step 1: Perform PCA with R factors
-      pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth,
+      pca_result <- try(local_pca(private$data, r = r, bandwidth = bandwidth,
                                   m = mi, kernel_func = epanechnikov_kernel,
                                   prev_F))
       if("try-error" %in% class(pca_result))
@@ -153,15 +177,14 @@ determine_factors2 <- function(returns, max_m, bandwidth) {
         next
       }
 
-
       X_r <- matrix(0, nrow = iT, ncol = ip)
-      X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
+      X_r <- sweep(private$data, 1, sqrt(pca_result$w_r), `*`)
       scaled_loadings <- sqrt(ip) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
       Lambda_breve_R <- t((1/(iT*ip))*t(X_r)%*%X_r%*%scaled_loadings)
-      F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
+      F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%private$data[r,]
 
       # Step 2: Compute SSR (Sum of Squared Residuals)
-      residuals[r,] <- returns[r,] - t(F_breve_R) %*% (Lambda_breve_R)
+      residuals[r,] <- private$data[r,] - t(F_breve_R) %*% (Lambda_breve_R)
 
       prev_F <- pca_result$F_hat_r
     }
@@ -171,6 +194,10 @@ determine_factors2 <- function(returns, max_m, bandwidth) {
   }
   # Step 4: Determine optimal number of factors
   optimal_m <- which.min(IC_values)
-  #message(sprintf("Optimal number of factors is %s.", optimal_R))
-  return(list(optimal_m = optimal_m, IC_values = IC_values))
-}
+
+  # results and return
+  #message(sprintf("Optimal number of factors is %s.", optimal_m))
+  private$optimal_m = optimal_m
+  private$IC_values = IC_values
+  invisible(self)
+})

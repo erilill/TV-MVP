@@ -36,20 +36,26 @@ TVMVP <- R6::R6Class(
 
     initialize = function(data = NULL) {
       if(!is.null(data)) self$set(data=data)
-    },
-
-    determine_factors = function(max_R, bandwidth) {
-      p_determine_factors(self, private, max_R, bandwidth)
     }
+
   ),
 
   private = list(
     # put all the variables here for encapsulation
     # and offer public functions for users to get access them
 
+    # fields that are preserved
+    # user cannot set them manually by using set function except data
+    important_fields = c("data","iT","ip","important_fields",
+                         "optimal_m","IC_values"),
+
     data = NULL, # data tibble
     iT = NULL, # integer of the sample size (time)
     ip = NULL, # integer of the number of stocks
+
+    # results
+    optimal_m = NULL,
+    IC_values = NULL,
 
     # user can set this part
     max_m = NULL, # maximum number of factors to consider.

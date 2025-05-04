@@ -29,8 +29,14 @@ tmp$set(x=1, y=2)$set(a=3)$set(b=4)
 # but this will work
 tmp$set(iT=10)$set(ip=2)
 
+# warning
+tmp$determine_factors()
+# works
+tmp$determine_factors(10, silverman(returns))
+tmp
+
 # Number of factors
-m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization
+m <- determine_factors(returns, 10, silverman(returns))$optimal_m # Needs optimization
 
 # Test if covariance is time invariant
 hyptest1(returns = returns,
