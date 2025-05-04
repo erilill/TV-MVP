@@ -17,6 +17,10 @@ returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 
 tmp <- TVMVP$new()
 tmp$set_data()
+
+tmp$set(data = returns)
+tmp
+
 tmp$set_data(tibble::as_tibble(returns))
 tmp$get_data()
 

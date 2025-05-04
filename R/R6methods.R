@@ -1,5 +1,24 @@
 ## In this file, we define the methods of the R6 class
 
+TVMVP$set("public", "set", function(...) {
+  # for generic set function, the argument data can be general
+  # you can set any variable for the object here and we don't do type checking
+  # but it will pop error message if the data type is incorrect
+  # when the variable is being used.
+  args <- list(...); arg_names <- names(args)
+
+  for(name in arg_names){
+    if (is.null(private[[name]])){
+      cli::cli_alert_info("New variable set: {name}")
+    } else {
+      cli::cli_alert_info("Variable updated: {name}")
+    }
+    private[[name]] = args[[name]]
+  }
+
+  invisible(self)  # Enables chaining
+})
+
 
 TVMVP$set("public", "set_data", function(data) {
   # for set_data function, the argument data should not be missing
@@ -11,12 +30,12 @@ TVMVP$set("public", "set_data", function(data) {
     private$data <- data
     private$iT <- nrow(data)
     private$ip <- ncol(data)
-    
+
     #tmp_size <- get_object_size(private$data)
     tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
     cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
   }
-  
+
   invisible(self)  # Enables chaining
 })
 
@@ -31,39 +50,71 @@ TVMVP$set("public", "get_data", function() {
 })
 
 
+TVMVP$set("public", "print", function(...) {
+  # print function
+  cli::cli_alert_info("Object: {.strong TVMVP}")
+
+  # Important fields
+  important_fields <- c("data")
+
+  # print data first
+  if(!is.null(private$data)){
+    if(!is.matrix(private$data) || !is.numeric(private$data)){
+      # data must be a numeric matrix!
+      cli::cli_alert_warning("data is empty; use {.code set(data = )} or {.code set_data()}")
+    } else {
+      #tmp_size <- get_object_size(private$data)
+      tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
+      cli::cli_text("data set {.val {tmp_size}} with {.val {private$iT}} rows and {.val {private$ip}} columns")
+    }
+  }
+
+  # Other fields
+  other_fields <- setdiff(names(private), important_fields)
+  if (length(other_fields) > 0) {
+    cat("Other private fields:\n")
+    for (name in other_fields) {
+      cat(" -", name, "=", private[[name]], "\n")
+    }
+  }
+
+  invisible(self)
+})
+
+
 p_determine_factors <- function(self, private, max_R, bandwidth) {
   T <- private$iT
   N <- private$iN
-  
+
   # Initialize storage
   V <- numeric(max_R)
   penalty <- numeric(max_R)
   IC_values <- numeric(max_R)
-  
+
   # Loop over possible number of factors (R)
   for (R in 1:max_R) {
     residuals <- matrix(NA, nrow = T, ncol = N)
     prev_F = NULL
     for (r in 1:T){
       # Step 1: Perform PCA with R factors
-      pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth, 
-                                  m = R, kernel_func = epanechnikov_kernel, 
+      pca_result <- try(local_pca(returns, r = r, bandwidth = bandwidth,
+                                  m = R, kernel_func = epanechnikov_kernel,
                                   prev_F))
       if("try-error" %in% class(pca_result))
       {
         next
       }
-      
-      
+
+
       X_r <- matrix(0, nrow = T, ncol = N)
       X_r <- sweep(returns, 1, sqrt(pca_result$w_r), `*`)
       scaled_loadings <- sqrt(N) * sweep(pca_result$loadings, 2, sqrt(colSums(pca_result$loadings^2)), "/")
       Lambda_breve_R <- t((1/(T*N))*t(X_r)%*%X_r%*%scaled_loadings)
       F_breve_R <- solve((Lambda_breve_R)%*%t(Lambda_breve_R))%*%(Lambda_breve_R)%*%returns[r,]
-      
+
       # Step 2: Compute SSR (Sum of Squared Residuals)
       residuals[r,] <- returns[r,] - t(F_breve_R) %*% (Lambda_breve_R)
-      
+
       prev_F <- pca_result$F_hat_r
     }
     V[R] <- sum(residuals^2) / (N * T)
