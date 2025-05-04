@@ -31,8 +31,8 @@ tmp$set(iT=10)$set(ip=2)
 
 # warning
 tmp$determine_factors()
-# works
-tmp$determine_factors(10, silverman(returns))
+# works, use the default Silverman
+tmp$determine_factors(10)
 tmp
 
 # Number of factors

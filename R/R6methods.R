@@ -135,6 +135,20 @@ TVMVP$set("public", "print", function(...) {
   invisible(self)
 })
 
+TVMVP$set("public", "silverman", function() {
+  # update the private bandwidth by Silverman
+  # this can be run automatically in other functions
+  if(is.null(private$data)) {
+    cli::cli_alert_warning("data is empty")
+    return(invisible(self)) # return
+  }
+  iT = private$iT; ip = private$ip
+
+  private$bandwidth <- (2.35/sqrt(12)) * iT^(-0.2) * ip^(-0.1)
+
+  invisible(self)
+})
+
 
 TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
   if(!is.null(max_m)) private$max_m = max_m
@@ -151,8 +165,12 @@ TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
     flag = FALSE
   }
   if(is.null(bandwidth)) {
-    cli::cli_alert_warning("bandwidth is empty")
-    flag = FALSE
+    if(flag){
+      # we can use the default Silverman bandwidth
+      self$silverman()
+      bandwidth = private$bandwidth
+      cli::cli_alert_warning("use default Silverman bandwidth")
+    }
   }
   if(!flag) return(invisible(self)) # return
 
