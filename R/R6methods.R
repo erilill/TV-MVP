@@ -131,6 +131,8 @@ TVMVP$set("public", "print", function(...) {
     cli::cli_text(" - {.field optimal_m} = {.val {private$optimal_m}}")
   if(!is.null(private$IC_values))
     cli::cli_text(" - {.field IC_values} = {.val {private$IC_values}}")
+  if(!is.null(private$J_test))
+    cli::cli_text(" - {.field J_test} = {.val {private$J_test}}")
 
   invisible(self)
 })

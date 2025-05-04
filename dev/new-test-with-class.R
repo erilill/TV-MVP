@@ -41,10 +41,13 @@ m <- determine_factors(returns, 10, silverman(returns))$optimal_m # Needs optimi
 # Test if covariance is time invariant
 hyptest1(returns = returns,
          m,
-         B = 199,
+         B = 10,
          kernel_func = epanechnikov_kernel
 )
 # E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
+
+tmp$hyptest(iB = 10, kernel_func = epanechnikov_kernel)
+tmp
 
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(

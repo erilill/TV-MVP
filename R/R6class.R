@@ -47,7 +47,7 @@ TVMVP <- R6::R6Class(
     # fields that are preserved
     # user cannot set them manually by using set function except data
     important_fields = c("data","iT","ip","important_fields",
-                         "optimal_m","IC_values"),
+                         "optimal_m","IC_values","J_test"),
 
     data = NULL, # data tibble
     iT = NULL, # integer of the sample size (time)
@@ -56,6 +56,7 @@ TVMVP <- R6::R6Class(
     # results
     optimal_m = NULL,
     IC_values = NULL,
+    J_test = NULL,
 
     # user can set this part
     max_m = NULL, # maximum number of factors to consider.
