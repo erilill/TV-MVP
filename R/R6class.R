@@ -1,7 +1,7 @@
 ## In this file, we define the R6 type class of the package
 
 #' Time Varying Minimum Variance Portfolio (TVMVP) Class
-#' 
+#'
 #' @description
 #' This class implements a time-varying mean-variance portfolio model.
 #'
@@ -10,13 +10,13 @@
 #' ```
 #' @section Arguments:
 #' * `data`: A tibble matrix for the data matrix.
-#' 
+#'
 #'
 #' @section Methods:
 #' - `$new(data = NULL)`: Initialize the class.
-#' 
+#'
 #' - `$set_data(data)`: Set the data.
-#' 
+#'
 #' - `$get_data()`: Get the data.
 #'
 #' @name TVMVP
@@ -27,14 +27,13 @@ NULL
 #' @import R6
 #' @import cli
 #' @import prettyunits
-#' @import tibble
 #' @export
 TVMVP <- R6::R6Class(
   "TVMVP",
   cloneable = FALSE,
   public = list(
 
-    
+
     initialize = function(data = NULL) {
       if(!is.null(data)){
         if(tibble::is_tibble(data)){
@@ -50,7 +49,7 @@ TVMVP <- R6::R6Class(
         }
       }
     },
-    
+
     determine_factors = function(max_R, bandwidth) {
       p_determine_factors(self, private, max_R, bandwidth)
     }
