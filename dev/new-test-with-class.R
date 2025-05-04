@@ -24,6 +24,11 @@ tmp
 tmp$set_data(tibble::as_tibble(returns))
 tmp$get_data()
 
+# this does not work because x y a b are not defined in the class
+tmp$set(x=1, y=2)$set(a=3)$set(b=4)
+# but this will work
+tmp$set(iT=10)$set(ip=2)
+
 # Number of factors
 m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization
 

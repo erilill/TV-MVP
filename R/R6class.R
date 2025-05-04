@@ -9,7 +9,7 @@
 #' ```
 #' ```
 #' @section Arguments:
-#' * `data`: A tibble matrix for the data matrix.
+#' * `data`: A numeric matrix for the data matrix.
 #'
 #'
 #' @section Methods:

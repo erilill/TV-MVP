@@ -1,11 +1,11 @@
 ## In this file, we define the methods of the R6 class
 
 TVMVP$set("public", "set", function(...) {
-  # for generic set function, the arguments can be general but must be private
+  # for generic set function, the arguments cannot be general because they are private
   # by doing so, it makes no sense if the user input something really nonsense
-  # you can set any variable for the object here and we don't do type checking
-  # except the data
-  # but it will pop error message if when the variables are being used.
+  # the user can set the variables that have been defined in the class
+  # we don't do type checking except for the data
+  # but it may pop error message when the variables are misspecified and are being used.
   args <- list(...); arg_names <- names(args)
 
   # Special handling for 'data'
@@ -22,10 +22,11 @@ TVMVP$set("public", "set", function(...) {
       # data must be a numeric matrix!
       cli::cli_alert_warning("data must be a numeric matrix")
     }
-
-    # remove 'data' from args so it’s not double-assigned below
-    arg_names <- setdiff(arg_names, c("data","iT","ip"))
   }
+
+  # remove 'data' from args so it’s not double-assigned below
+  # iT and ip are the variables that are not allowed to be changed manually
+  arg_names <- setdiff(arg_names, c("data","iT","ip"))
 
   # nothing will happen if arg_names is empty
   for(name in arg_names){
