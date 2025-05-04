@@ -35,19 +35,7 @@ TVMVP <- R6::R6Class(
 
 
     initialize = function(data = NULL) {
-      if(!is.null(data)){
-        if(tibble::is_tibble(data)){
-          private$data <- data
-          private$iT <- nrow(data)
-          private$ip <- ncol(data)
-
-          #tmp_size <- get_object_size(private$data)
-          tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
-          cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
-        } else{
-          cli_alert_info("The data set is not tibble! The data is empty now.")
-        }
-      }
+      if(!is.null(data)) self$set(data=data)
     },
 
     determine_factors = function(max_R, bandwidth) {

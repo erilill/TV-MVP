@@ -68,10 +68,13 @@ TVMVP$set("public", "get_data", function() {
 
 TVMVP$set("public", "print", function(...) {
   # print function
+
+  ### default priting
+
   cli::cli_alert_info("Object of {.strong TVMVP}")
 
   # Important fields
-  important_fields <- c("data")
+  important_fields <- c("data","iT","ip")
 
   # print data first
   if(!is.null(private$data)){
@@ -94,6 +97,8 @@ TVMVP$set("public", "print", function(...) {
       cat(" -", name, "=", private[[name]], "\n")
     }
   }
+
+  ###
 
   invisible(self)
 })
