@@ -1,7 +1,8 @@
 ## In this file, we define the methods of the R6 class
 
 TVMVP$set("public", "set", function(...) {
-  # for generic set function, the argument data can be general
+  # for generic set function, the arguments can be general but must be private
+  # by doing so, it makes no sense if the user input something really nonsense
   # you can set any variable for the object here and we don't do type checking
   # except the data
   # but it will pop error message if when the variables are being used.
@@ -26,6 +27,7 @@ TVMVP$set("public", "set", function(...) {
     arg_names <- setdiff(arg_names, c("data","iT","ip"))
   }
 
+  # nothing will happen if arg_names is empty
   for(name in arg_names){
     if (is.null(private[[name]])){
       cli::cli_alert_info("New variable set: {name}")
@@ -44,14 +46,10 @@ TVMVP$set("public", "set_data", function(data) {
   # this is why I use missing(data) for checking without setting any default value of it
   # note that this is different from initialize function where data can be missing with default value NULL
   if(missing(data)){
-    cli::cli_alert_warning("The data is empty.")
+    cli::cli_alert_warning("input is empty.")
   } else{
-    private$data <- data
-    private$iT <- nrow(data)
-    private$ip <- ncol(data)
-
-    tmp_size <- prettyunits::pretty_bytes(object.size(private$data))
-    cli::cli_alert_info("Tibble data set {tmp_size} with {private$iT} rows and {private$ip} columns successfully assigned.")
+    # set the data
+    self$set(data=data)
   }
 
   invisible(self)  # Enables chaining
