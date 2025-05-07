@@ -28,8 +28,8 @@
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
 #' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is 
 #' rebalanced periodically according to the specified `rebal_period`. The number of factors is
-#' determined by a BIC-type information criterion using the function `determine_factors`, and the
-#' bandwidth is determined by Silverman's rule of thumb.
+#' determined by a BIC-type information criterion using the function `determine_factors`, updated 
+#' yearly. The bandwidth is determined by Silverman's rule of thumb, updated each rebalancing period.
 #'
 #' If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 #'
@@ -88,14 +88,27 @@ rolling_time_varying_mvp <- function(
   daily_port_ret_equal <- numeric(0)
   
   # Determine number of factors using the initial window
-  m <- determine_factors(returns[1:initial_window, ], max_factors, 
-                         silverman(returns[1:initial_window, ]))$optimal_m
+  # Determine when to update m_local based on 252-day intervals
+  m_update_flags <- rep(FALSE, RT)
+  days_since_last <- 0
+  for (i in seq_len(RT)) {
+    if (i == 1 || days_since_last >= 252) {
+      m_update_flags[i] <- TRUE
+      days_since_last <- 0
+    } else {
+      days_since_last <- days_since_last + rebal_period
+    }
+  }
   
   for (l in seq_len(RT)) {
+    if (m_update_flags[l]){
+
     reb_t <- rebalance_dates[l]
     est_data <- returns[1:(reb_t - 1), , drop = FALSE]
     # Use the estimation window to compute the bandwidth
     bandwidth <- silverman(est_data)
+    m <- determine_factors(est_data, max_factors, bandwidth)$optimal_m
+    }
     
     ## TVMVP Portfolio: Local PCA and Covariance Estimation
     local_res <- localPCA(est_data, bandwidth, m, kernel_func)
