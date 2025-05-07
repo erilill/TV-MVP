@@ -28,8 +28,8 @@
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
 #' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is 
 #' rebalanced periodically according to the specified `rebal_period`. The number of factors is
-#' determined by a BIC-type information criterion using the function `determine_factors`, and the
-#' bandwidth is determined by Silverman's rule of thumb.
+#' determined by a BIC-type information criterion using the function `determine_factors`, updated 
+#' yearly. The bandwidth is determined by Silverman's rule of thumb, updated each rebalancing period.
 #'
 #' If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 #'
