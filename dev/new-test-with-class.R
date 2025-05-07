@@ -79,3 +79,20 @@ mvp_result <- rolling_time_varying_mvp(
 # I think rolling_time_varying_mvp is the most interesting to plot, as this will
 # show the portfolio performance over time.
 
+
+# I also think time_varying_cov() should be included in the class:
+cov_mat <- time_varying_cov(returns,
+                                m,
+                                bandwidth = silverman(returns),
+                                kernel_func = epanechnikov_kernel,
+                                M0 = 10,
+                                rho_grid = seq (0.005 , 2,
+                                                  length.out = 30),
+                                floor_value = 1e-12,
+                                epsilon2 = 1e-6,
+                                full_output = FALSE)
+cov_mat
+# full_output = TRUE prints some additional information, this could be of interest
+# to some users who wants more information. However, the most important output is
+# the covariance matrix, "total_cov". The user could then construct their portfolio
+# using this.
