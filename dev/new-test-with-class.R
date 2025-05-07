@@ -37,20 +37,25 @@ tmp$determine_factors()
 # works, use the default Silverman
 tmp$determine_factors(10)
 tmp
-
-# Number of factors
-m <- determine_factors(returns, 10, silverman(returns))$optimal_m # Needs optimization
-
-# Test if covariance is time invariant
-hyptest1(returns = returns,
-         m,
-         B = 10,
-         kernel_func = epanechnikov_kernel
-)
-# E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
+# I think the output should be simply optimal_m, then perhaps the user could use:
+# tmp$IC in order to get the IC-values in case they want to see them or plot them.
 
 tmp$hyptest(iB = 10, kernel_func = epanechnikov_kernel)
 tmp
+# Here, the output should be the test statistic (first value in the list),
+# and the bootstrap p-value (second value in the list).
+# The vector contains all of the bootstrap test statistics which might be of
+# interest to the user if they want to plot it, but it is likely not necessary
+# to show at first glance. Similarly, we could include something like:
+# tmp$J_star which prints these.
+
+prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
+# This function could probably quite easily be included in the class if we remove
+# the computation of max_m within the function or set a condition so that it does
+# not run determine_factors() if the class already has max_m computed. 
+# I think this would be nice to include in the class, perhaps with default settings:
+# bandwidth = silverman, min_return = NULL, max_SR = TRUE. The user then runs
+# tmp$predict(horizon = 21) or tmp$predict(horizon = 21, min_return = 0.5).
 
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(
@@ -62,9 +67,15 @@ mvp_result <- rolling_time_varying_mvp(
   kernel_func    = epanechnikov_kernel,
   bandwidth_func = silverman
 )
-## K: some problem with non-conformable arguments
-## K: Error in factors_t %*% t(loadings_t) : non-conformable arguments
-## E: When initial_window is small, and m is large, the effective rank in the cv_bandwidth becomes < m which causes problems
-## E: Tried to fix it. I am not sure if this is a valid solution to the problem.
+# I like this function and would like to include it in the package, however I
+# am not certain of how it fits in the class. There are quite a lot of parameters
+# to be set which cant really have a default: initial_window depends on size of
+# dataset, rebal_period depends on the aggregation level of the data and intended
+# investment horizon, and the return_type also depends on the aggregation level.
 
-prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
+# Further, this function cannot use the already computed optimal_m as it computes 
+# optimal_m based on the initial window.
+
+# I think rolling_time_varying_mvp is the most interesting to plot, as this will
+# show the portfolio performance over time.
+
