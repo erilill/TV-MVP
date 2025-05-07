@@ -16,20 +16,41 @@ p <- 20   # Number of assets
 returns <- matrix(rnorm(T * p, mean = 0.001, sd = 0.02), ncol = p)
 
 tmp <- TVMVP$new()
+
 tmp$set_data()
+
+tmp$set(data = returns)
+tmp$set_data(returns)
+tmp
+# show head like tibble does
+
 tmp$set_data(tibble::as_tibble(returns))
 tmp$get_data()
 
+# this does not work because x y a b are not defined in the class
+tmp$set(x=1, y=2)$set(a=3)$set(b=4)
+# but this will work
+tmp$set(iT=10)$set(ip=2)
+
+# warning
+tmp$determine_factors()
+# works, use the default Silverman
+tmp$determine_factors(10)
+tmp
+
 # Number of factors
-m <- determine_factors(returns, 10, silverman(returns))$optimal_R # Needs optimization
+m <- determine_factors(returns, 10, silverman(returns))$optimal_m # Needs optimization
 
 # Test if covariance is time invariant
 hyptest1(returns = returns,
          m,
-         B = 199,
+         B = 10,
          kernel_func = epanechnikov_kernel
 )
 # E: Slow, but I think it works. The test statistics are sometimes much larger than expected. But p-vals seems correct.
+
+tmp$hyptest(iB = 10, kernel_func = epanechnikov_kernel)
+tmp
 
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(
