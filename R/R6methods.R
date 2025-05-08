@@ -98,6 +98,13 @@ TVMVP$set("public", "get_optimal_m", function() {
 })
 
 
+TVMVP$set("public", "get_IC_values", function() {
+  if(is.null(private$IC_values))
+    cli::cli_alert_warning("run {.code determine_factors(max_m = , bandwidth = )}")
+  return(private$IC_values)
+})
+
+
 TVMVP$set("public", "get_bootstrap", function() {
   if(is.null(private$J_test)) {
     cli::cli_alert_warning("run {.code hyptest(iB = , kernel_func = )}")
@@ -143,8 +150,8 @@ TVMVP$set("public", "print", function(...) {
   ### print results
   if(!is.null(private$optimal_m))
     cli::cli_text(" - {.field optimal_m} = {.val {private$optimal_m}}")
-  if(!is.null(private$IC_values))
-    cli::cli_text(" - {.field IC_values} = {.val {private$IC_values}}")
+  #if(!is.null(private$IC_values))
+  #  cli::cli_text(" - {.field IC_values} = {.val {private$IC_values}}")
 
   # the test
   if(!is.null(private$J_test)) {

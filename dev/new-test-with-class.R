@@ -38,6 +38,7 @@ tmp$determine_factors()
 tmp$determine_factors(10)
 tmp
 tmp$get_optimal_m()
+tmp$get_IC_values()
 # I think the output should be simply optimal_m, then perhaps the user could use:
 # tmp$IC in order to get the IC-values in case they want to see them or plot them.
 ## done! the function returns optimal_m,
