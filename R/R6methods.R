@@ -98,6 +98,15 @@ TVMVP$set("public", "get_optimal_m", function() {
 })
 
 
+TVMVP$set("public", "get_bootstrap", function() {
+  if(is.null(private$J_test)) {
+    cli::cli_alert_warning("run {.code hyptest(iB = , kernel_func = )}")
+    return(NULL)
+  }
+  return(private$J_test[[3]])
+})
+
+
 TVMVP$set("public", "print", function(...) {
   # print function
 
@@ -136,8 +145,12 @@ TVMVP$set("public", "print", function(...) {
     cli::cli_text(" - {.field optimal_m} = {.val {private$optimal_m}}")
   if(!is.null(private$IC_values))
     cli::cli_text(" - {.field IC_values} = {.val {private$IC_values}}")
-  if(!is.null(private$J_test))
-    cli::cli_text(" - {.field J_test} = {.val {private$J_test}}")
+
+  # the test
+  if(!is.null(private$J_test)) {
+    cli::cli_text(" - {.field test statistic} = {.val {private$J_test[[1]]}} with {.field bootstrap p-value} = {.val {private$J_test[[2]]}}")
+    cli::cli_text("\u00A0\u00A0run {.code get_optimal_m()}")
+  }
 
   invisible(self)
 })

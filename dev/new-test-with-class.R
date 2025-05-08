@@ -46,6 +46,7 @@ tmp$get_optimal_m()
 
 tmp$hyptest(iB = 10, kernel_func = epanechnikov_kernel)
 tmp
+tmp$get_bootstrap()
 # Here, the output should be the test statistic (first value in the list),
 # and the bootstrap p-value (second value in the list).
 # The vector contains all of the bootstrap test statistics which might be of
