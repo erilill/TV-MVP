@@ -151,7 +151,8 @@ TVMVP$set("public", "silverman", function() {
   invisible(self)
 })
 
-
+# if the object has already these arguments, then user need not specify them
+# user can change them by inputting a new pair
 TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
   if(!is.null(max_m)) private$max_m = max_m
   if(!is.null(bandwidth)) private$bandwidth = bandwidth
@@ -175,6 +176,9 @@ TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
     }
   }
   if(!flag) return(invisible(self)) # return
+
+  # inform the user of what to use
+  cli::cli_alert_info("using max_m = {max_m} and bandwidth = {bandwidth}")
 
   iT = private$iT; ip = private$ip
 
@@ -219,5 +223,6 @@ TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
   #message(sprintf("Optimal number of factors is %s.", optimal_m))
   private$optimal_m = optimal_m
   private$IC_values = IC_values
+
   invisible(self)
 })

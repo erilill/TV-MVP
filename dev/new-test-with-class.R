@@ -25,14 +25,14 @@ tmp
 # show head like tibble does
 
 tmp$set_data(tibble::as_tibble(returns))
-tmp$get_data()
+#tmp$get_data()
 
 # this does not work because x y a b are not defined in the class
-tmp$set(x=1, y=2)$set(a=3)$set(b=4)
+#tmp$set(x=1, y=2)$set(a=3)$set(b=4)
 # but this will work
-tmp$set(iT=10)$set(ip=2)
+#tmp$set(iT=10)$set(ip=2)
 
-# warning
+# warning when first run
 tmp$determine_factors()
 # works, use the default Silverman
 tmp$determine_factors(10)
@@ -52,7 +52,7 @@ tmp
 prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
 # This function could probably quite easily be included in the class if we remove
 # the computation of max_m within the function or set a condition so that it does
-# not run determine_factors() if the class already has max_m computed. 
+# not run determine_factors() if the class already has max_m computed.
 # I think this would be nice to include in the class, perhaps with default settings:
 # bandwidth = silverman, min_return = NULL, max_SR = TRUE. The user then runs
 # tmp$predict(horizon = 21) or tmp$predict(horizon = 21, min_return = 0.5).
@@ -72,7 +72,7 @@ mvp_result <- rolling_time_varying_mvp(
 # dataset, rebal_period depends on the aggregation level of the data and intended
 # investment horizon, and the return_type also depends on the aggregation level.
 
-# Further, this function cannot use the already computed optimal_m as it computes 
+# Further, this function cannot use the already computed optimal_m as it computes
 # optimal_m based on the initial window.
 
 # I think rolling_time_varying_mvp is the most interesting to plot, as this will
