@@ -47,7 +47,7 @@ TVMVP$set("public", "set_data", function(data) {
   # this is why I use missing(data) for checking without setting any default value of it
   # note that this is different from initialize function where data can be missing with default value NULL
   if(missing(data)){
-    cli::cli_alert_warning("input is empty.")
+    cli::cli_alert_warning("input is empty")
   } else{
     # set the data
     self$set(data=data)
@@ -58,7 +58,7 @@ TVMVP$set("public", "set_data", function(data) {
 
 TVMVP$set("public", "get_data", function() {
   if(is.null(private$data)){
-    cli::cli_alert_warning("The data is empty.")
+    cli::cli_alert_warning("The data is empty")
     return(invisible(NULL))
   }
   return(private$data)
@@ -69,7 +69,7 @@ TVMVP$set("public", "get_data", function() {
 TVMVP$set("public", "set_max_m", function(max_m) {
   # for set_data function, the argument data should not be missing
   if(missing(max_m)){
-    cli::cli_alert_warning("input is empty.")
+    cli::cli_alert_warning("input is empty")
   } else{
     # set the data
     self$set(max_m=max_m)
@@ -81,7 +81,7 @@ TVMVP$set("public", "set_max_m", function(max_m) {
 TVMVP$set("public", "set_bandwidth", function(bandwidth) {
   # for set_data function, the argument data should not be missing
   if(missing(bandwidth)){
-    cli::cli_alert_warning("input is empty.")
+    cli::cli_alert_warning("input is empty")
   } else{
     # set the data
     self$set(bandwidth=bandwidth)
@@ -91,6 +91,11 @@ TVMVP$set("public", "set_bandwidth", function(bandwidth) {
 })
 
 
+TVMVP$set("public", "get_optimal_m", function() {
+  if(is.null(private$optimal_m))
+    cli::cli_alert_warning("run {.code determine_factors(max_m = , bandwidth = )}")
+  return(private$optimal_m)
+})
 
 
 TVMVP$set("public", "print", function(...) {
@@ -223,6 +228,6 @@ TVMVP$set("public", "determine_factors", function(max_m=NULL, bandwidth=NULL) {
   #message(sprintf("Optimal number of factors is %s.", optimal_m))
   private$optimal_m = optimal_m
   private$IC_values = IC_values
-
-  invisible(self)
+  # we return the optimal m and also save it in the object
+  return(optimal_m)
 })

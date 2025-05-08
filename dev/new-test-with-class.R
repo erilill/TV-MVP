@@ -37,8 +37,12 @@ tmp$determine_factors()
 # works, use the default Silverman
 tmp$determine_factors(10)
 tmp
+tmp$get_optimal_m()
 # I think the output should be simply optimal_m, then perhaps the user could use:
 # tmp$IC in order to get the IC-values in case they want to see them or plot them.
+## done! the function returns optimal_m,
+## user can get the optimal_m by using get_optimal_m
+## we don't do active binding...
 
 tmp$hyptest(iB = 10, kernel_func = epanechnikov_kernel)
 tmp
