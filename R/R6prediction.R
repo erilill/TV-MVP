@@ -1,10 +1,12 @@
 # prediction
 
-TVMVP$set("public", "predict_portfolio", function(horizon = 1, max_factors = 3,
-                                                  kernel_func = epanechnikov_kernel,
-                                                  min_return = NULL,
-                                                  max_SR = NULL,  # flag: if TRUE, compute maximum Sharpe portfolio
-                                                  rf = NULL) {
+TVMVP$set("public", "predict_portfolio", function(
+    horizon = 1, max_factors = 3,
+    kernel_func = epanechnikov_kernel,
+    min_return = NULL,
+    max_SR = NULL,  # flag: if TRUE, compute maximum Sharpe portfolio
+    rf = NULL
+    ) {
   flag = TRUE
   if(is.null(private$data)) {
     cli::cli_alert_warning("data is empty")
@@ -13,7 +15,7 @@ TVMVP$set("public", "predict_portfolio", function(horizon = 1, max_factors = 3,
   if(!flag) return(NULL) # return
   iT = private$iT; ip = private$ip
 
-  # by default use the bandwidth stored in the object, otherwise
+  # by default use the optimal m stored in the object, otherwise
   # determine optimal number of factors using Silverman’s bandwidth
   if(is.null(private$optimal_m)){
     m <- self$determine_factors(max_m=max_factors)

@@ -115,6 +115,15 @@ cov_mat <- time_varying_cov(returns,
                                 epsilon2 = 1e-6,
                                 full_output = FALSE)
 cov_mat
+
+cov_mat <- tmp$time_varying_cov(kernel_func = epanechnikov_kernel,
+                                M0 = 10,
+                                rho_grid = seq (0.005 , 2,
+                                                length.out = 30),
+                                floor_value = 1e-12,
+                                epsilon2 = 1e-6,
+                                full_output = FALSE)
+cov_mat
 # full_output = TRUE prints some additional information, this could be of interest
 # to some users who wants more information. However, the most important output is
 # the covariance matrix, "total_cov". The user could then construct their portfolio

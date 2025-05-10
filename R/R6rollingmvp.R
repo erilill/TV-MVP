@@ -1,30 +1,17 @@
 # rolling_time_varying_mvp
 
-#rolling_time_varying_mvp <- function(
-#    returns,            # Log returns matrix
-#    initial_window,     # Number of periods in the initial estimation window
-#    rebal_period,       # Holding window length (HT in the paper)
-#    max_factors,
-#    return_type    = "daily",
-#    kernel_func    = epanechnikov_kernel,
-#    rf             = NULL,
-#    M0             = 10,                      # For covariance function
-#    rho_grid       = seq(0.005, 2, length.out = 30),  # For covariance function
-#    floor_value    = 1e-12,                   # For covariance function
-#    epsilon2       = 1e-6                     # For covariance function
-#) {
-
-TVMVP$set("public", "rolling_time_varying_mvp", function(initial_window,     # Number of periods in the initial estimation window
-                                                  rebal_period,       # Holding window length (HT in the paper)
-                                                  max_factors,
-                                                  return_type    = "daily",
-                                                  kernel_func    = epanechnikov_kernel,
-                                                  rf             = NULL,
-                                                  M0             = 10,                      # For covariance function
-                                                  rho_grid       = seq(0.005, 2, length.out = 30),  # For covariance function
-                                                  floor_value    = 1e-12,                   # For covariance function
-                                                  epsilon2       = 1e-6                     # For covariance function
-                                                  ) {
+TVMVP$set("public", "rolling_time_varying_mvp", function(
+    initial_window,     # Number of periods in the initial estimation window
+    rebal_period,       # Holding window length (HT in the paper)
+    max_factors,
+    return_type    = "daily",
+    kernel_func    = epanechnikov_kernel,
+    rf             = NULL,
+    M0             = 10,                      # For covariance function
+    rho_grid       = seq(0.005, 2, length.out = 30),  # For covariance function
+    floor_value    = 1e-12,                   # For covariance function
+    epsilon2       = 1e-6                     # For covariance function
+    ) {
   flag = TRUE
   if(is.null(private$data)) {
     cli::cli_alert_warning("data is empty")
