@@ -80,6 +80,16 @@ mvp_result <- rolling_time_varying_mvp(
   return_type    = "daily",
   kernel_func    = epanechnikov_kernel
 )
+mvp_result
+
+mvp_result <- tmp$rolling_time_varying_mvp(
+  initial_window = 60,
+  rebal_period   = 5,
+  max_factors    = 10,
+  return_type    = "daily",
+  kernel_func    = epanechnikov_kernel
+)
+mvp_result
 # I like this function and would like to include it in the package, however I
 # am not certain of how it fits in the class. There are quite a lot of parameters
 # to be set which cant really have a default: initial_window depends on size of

@@ -10,7 +10,7 @@ TVMVP$set("public", "predict_portfolio", function(horizon = 1, max_factors = 3,
     cli::cli_alert_warning("data is empty")
     flag = FALSE
   }
-  if(!flag) return(invisible(self)) # return
+  if(!flag) return(NULL) # return
   iT = private$iT; ip = private$ip
 
   # by default use the bandwidth stored in the object, otherwise
