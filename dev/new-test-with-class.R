@@ -55,7 +55,15 @@ tmp$get_bootstrap()
 # to show at first glance. Similarly, we could include something like:
 # tmp$J_star which prints these.
 
+# some bug here... does not work
 prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
+# it works here, weird...
+prediction <- tmp$predict_portfolio(horizon = 1,
+                                    max_factors = 3,
+                                    kernel_func = epanechnikov_kernel,
+                                    min_return = NULL,
+                                    max_SR = NULL,
+                                    rf = NULL)
 # This function could probably quite easily be included in the class if we remove
 # the computation of max_m within the function or set a condition so that it does
 # not run determine_factors() if the class already has max_m computed.
