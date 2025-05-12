@@ -1,7 +1,7 @@
 #' #' Rolling Window Time-Varying Minimum Variance Portfolio Optimization
 #'
-#' This function performs time-varying minimum variance portfolio (TV-MVP) optimization using 
-#' time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The 
+#' This function performs time-varying minimum variance portfolio (TV-MVP) optimization using
+#' time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The
 #' optimization is performed over a rolling window, with periodic rebalancing.
 #'
 #' @param returns A matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.
@@ -24,11 +24,11 @@
 #' }
 #'
 #' @details
-#' The function implements a rolling time-varying PCA approach to estimate latent factor structures 
+#' The function implements a rolling time-varying PCA approach to estimate latent factor structures
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
-#' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is 
+#' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is
 #' rebalanced periodically according to the specified `rebal_period`. The number of factors is
-#' determined by a BIC-type information criterion using the function `determine_factors`, updated 
+#' determined by a BIC-type information criterion using the function `determine_factors`, updated
 #' yearly. The bandwidth is determined by Silverman's rule of thumb, updated each rebalancing period.
 #'
 #' If `rf` is `NULL`, the risk-free rate is assumed to be zero.
@@ -48,7 +48,7 @@
 #'   kernel_func = epanechnikov_kernel,
 #'   rf = NULL
 #' )
-#' 
+#'
 #' # Print summary
 #' print(results)
 #'
@@ -74,19 +74,19 @@ rolling_time_varying_mvp <- function(
   ip <- ncol(returns)
   rebalance_dates <- seq(initial_window + 1, iT, by = rebal_period)
   RT <- length(rebalance_dates)
-  
+
   # Set risk-free rate vector: length should match the number of return observations after initial_window.
   if (is.null(rf)) {
     rf_vec <- rep(0, (iT - initial_window))
   } else {
     rf_vec <- if (length(rf) == 1) rep(rf, (iT - initial_window)) else rf
   }
-  
+
   # Initialize storage for portfolio returns and weights
   tvmvp_weights <- list()
   daily_port_ret_tvmvp <- numeric(0)
   daily_port_ret_equal <- numeric(0)
-  
+
   # Determine number of factors using the initial window
   # Determine when to update m_local based on 252-day intervals
   m_update_flags <- rep(FALSE, RT)
@@ -99,7 +99,7 @@ rolling_time_varying_mvp <- function(
       days_since_last <- days_since_last + rebal_period
     }
   }
-  
+
   for (l in seq_len(RT)) {
     if (m_update_flags[l]){
 
@@ -109,55 +109,55 @@ rolling_time_varying_mvp <- function(
     bandwidth <- silverman(est_data)
     m <- determine_factors(est_data, max_factors, bandwidth)$optimal_m
     }
-    
+
     ## TVMVP Portfolio: Local PCA and Covariance Estimation
     local_res <- localPCA(est_data, bandwidth, m, kernel_func)
     Sigma_hat <- estimate_residual_cov_poet_local(
       localPCA_results = local_res,
       returns = est_data,
-      M0 = M0, 
+      M0 = M0,
       rho_grid = rho_grid,
       floor_value = floor_value,
       epsilon2 = epsilon2
     )$total_cov
-    
+
     # Compute weights for the minimum variance portfolio (TVMVP)
     inv_cov <- chol2inv(chol(Sigma_hat))
     ones <- rep(1, ip)
     w_gmv_unnorm <- inv_cov %*% ones
     w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
     tvmvp_weights[[l]] <- w_hat
-    
+
     # Determine the holding period
     hold_end <- min(reb_t + rebal_period - 1, iT)
-    
+
     # Portfolio returns over the holding period:
     # TVMVP Portfolio returns
     port_ret_window_tvmvp <- as.numeric(returns[reb_t:hold_end, , drop = FALSE] %*% w_hat)
     daily_port_ret_tvmvp <- c(daily_port_ret_tvmvp, port_ret_window_tvmvp)
-    
+
     # Equal Weights Portfolio returns (baseline)
     w_equal <- rep(1/ip, ip)
     port_ret_window_equal <- as.numeric(returns[reb_t:hold_end, , drop = FALSE] %*% w_equal)
     daily_port_ret_equal <- c(daily_port_ret_equal, port_ret_window_equal)
   }
-  
+
   ## Compute performance metrics for both portfolios
-  
+
   # TVMVP Portfolio
   excess_ret_tvmvp <- daily_port_ret_tvmvp - rf_vec
   CER_tvmvp <- sum(excess_ret_tvmvp)
   sd_tvmvp <- sqrt(var(excess_ret_tvmvp))
   mean_ret_tvmvp <- mean(excess_ret_tvmvp)
   SR_tvmvp <- mean_ret_tvmvp / sd_tvmvp
-  
+
   # Equal Weights Portfolio
   excess_ret_equal <- daily_port_ret_equal - rf_vec
   CER_equal <- sum(excess_ret_equal)
   sd_equal <- sqrt(var(excess_ret_equal))
   mean_ret_equal <- mean(excess_ret_equal)
   SR_equal <- mean_ret_equal / sd_equal
-  
+
   # Set annualization factor based on return_type
   annualization_factor <- switch(return_type,
                                  "daily" = sqrt(252),
@@ -165,13 +165,13 @@ rolling_time_varying_mvp <- function(
                                  "weekly" = sqrt(52),
                                  stop("Invalid return type! Choose 'daily', 'monthly', or 'weekly'.")
   )
-  
+
   mean_annualized_tvmvp <- mean_ret_tvmvp * (annualization_factor^2)
   sd_annualized_tvmvp   <- sd_tvmvp * annualization_factor
-  
+
   mean_annualized_equal <- mean_ret_equal * (annualization_factor^2)
   sd_annualized_equal   <- sd_equal * annualization_factor
-  
+
   # Compile a summary table of results
   summary_df <- data.frame(
     Method = c("Time-Varying MVP", "Equal Weight"),
@@ -182,20 +182,20 @@ rolling_time_varying_mvp <- function(
     Mean_Annualized          = c(mean_annualized_tvmvp, mean_annualized_equal),
     SD_Annualized            = c(sd_annualized_tvmvp, sd_annualized_equal)
   )
-  
+
   # -- Construct named lists for the TVMVP and Equal strategies:
   TVMVP <- list(
     rebal_dates = rebalance_dates,
     weights     = tvmvp_weights,
     returns     = excess_ret_tvmvp
   )
-  
+
   Equal <- list(
     rebal_dates = rebalance_dates,
     weights     = rep(1 / ip, ip),  # or you can store them by rebalancing period if needed
     returns     = excess_ret_equal
   )
-  
+
   # Create and return an R6 object:
   out <- RollingWindow$new(
     summary = summary_df,
@@ -205,6 +205,7 @@ rolling_time_varying_mvp <- function(
   class(out) <- c("RollingWindow", class(out))
   return(out)
 }
+
 #' Predict Optimal Portfolio Weights Using Time-Varying Covariance Estimation
 #'
 #' This function estimates optimal portfolio weights using a time-varying covariance matrix
@@ -242,7 +243,7 @@ rolling_time_varying_mvp <- function(
 #' The function estimates a time-varying covariance matrix using Local PCA:
 #' \deqn{\hat{\Sigma}_{r,t}=\hat{\Lambda}_t \hat{\Sigma}_F \hat{\Lambda}_t' + \tilde{\Sigma}_e}
 #' Where \eqn{\hat{\Lambda}_t} is the factor loadings at time t, \eqn{\hat{\Sigma}_F} is the factor covariance matrix, and \eqn{\tilde{\Sigma}_e} is regularized covariance matrix of the idiosyncratic errors.
-#' 
+#'
 #' It forecasts asset-level expected returns using a simple ARIMA model selection procedure and uses these in portfolio optimization.
 #' Optimization strategies include:
 #' \itemize{
@@ -284,24 +285,24 @@ predict_portfolio <- function(
 ) {
   iT <- nrow(returns)
   ip <- ncol(returns)
-  
+
   # Determine optimal number of factors using Silverman’s bandwidth
   m <- determine_factors(returns, max_factors, silverman(returns))$optimal_m
-  
+
   # Select bandwidth
   bandwidth <- silverman(returns)
-  
+
   # Local PCA
   local_res <- localPCA(returns, bandwidth, m, kernel_func)
-  
+
   # Compute covariance matrix from local PCA results using POET
   Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results = local_res,
                                                 returns = returns,
-                                                M0 = 10, 
+                                                M0 = 10,
                                                 rho_grid = seq(0.005, 2, length.out = 30),
                                                 floor_value = 1e-12,
                                                 epsilon2 = 1e-6)$total_cov
-  
+
 
   # Expected returns
   if (is.null(rf)) {
@@ -309,23 +310,23 @@ predict_portfolio <- function(
   } else {
     mean_returns <- comp_expected_returns(returns, horizon) - rf
   }
-  
+
   ## Compute GMVP
   inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, ip)
   w_gmv_unnorm <- inv_cov %*% ones
   w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
-  
+
   expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
   risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
-  
+
   GMV <- list(
     weights = w_gmv,
     expected_return = expected_return_gmv,
     risk = risk_gmv,
     sharpe = (expected_return_gmv/horizon) / (risk_gmv/sqrt(horizon))
   )
-  
+
   # Compute Maximum Sharpe Ratio portfolio if requested
   max_sr_portfolio <- NULL
   if (!is.null(max_SR) && max_SR == TRUE) {
@@ -333,7 +334,7 @@ predict_portfolio <- function(
     w_max_sr <- as.numeric(w_unnorm / sum(w_unnorm))
     expected_return_max_sr <- sum(w_max_sr * mean_returns) * horizon
     risk_max_sr <- sqrt(as.numeric(t(w_max_sr) %*% Sigma_hat %*% w_max_sr)) * sqrt(horizon)
-    
+
     max_sr_portfolio <- list(
       weights = w_max_sr,
       expected_return = expected_return_max_sr,
@@ -341,7 +342,7 @@ predict_portfolio <- function(
       sharpe = (expected_return_max_sr/horizon) / (risk_max_sr/sqrt(horizon))
     )
   }
-  
+
   # Compute Minimum Variance Portfolio with Return Constraint (if applicable)
   constrained_portfolio <- NULL
   if (!is.null(min_return)) {
@@ -351,7 +352,7 @@ predict_portfolio <- function(
     w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
     expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
     risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
-    
+
     constrained_portfolio <- list(
       weights = w_constrained,
       expected_return = expected_return_constrained,
@@ -359,13 +360,13 @@ predict_portfolio <- function(
       sharpe = (expected_return_constrained/horizon) / (risk_constrained/sqrt(horizon))
     )
   }
-  
+
   # Build summary data frame
   method_names <- c("GMV")
   expected_returns_vec <- c(expected_return_gmv)
   risk_vec <- c(risk_gmv)
   sharpe_vec <- c(GMV$sharpe)
-  
+
   if (!is.null(max_sr_portfolio)) {
     method_names <- c(method_names, "max_SR")
     expected_returns_vec <- c(expected_returns_vec, expected_return_max_sr)
@@ -378,14 +379,14 @@ predict_portfolio <- function(
     risk_vec <- c(risk_vec, risk_constrained)
     sharpe_vec <- c(sharpe_vec, constrained_portfolio$sharpe)
   }
-  
+
   summary_df <- data.frame(
     Method = method_names,
     expected_return = expected_returns_vec,
     risk = risk_vec,
     sharpe = sharpe_vec
   )
-  
+
   # Create and return an object of PortfolioPredictions (an R6 object)
   out <- PortfolioPredictions$new(
     summary = summary_df,
@@ -393,21 +394,21 @@ predict_portfolio <- function(
     max_SR = if (!is.null(max_sr_portfolio)) max_sr_portfolio else NULL,
     MinVarWithReturnConstraint = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
   )
-  
+
   return(out)
 }
 
 #' Function to compute expected returns using a simple model selection approach
 #' @param returns T times p matrix of returns
 #' @param horizon Length of forecasting horizon
-#' @importFrom stats arima AIC predict 
+#' @importFrom stats arima AIC predict
 comp_expected_returns <- function(returns, horizon) {
   exp_ret <- numeric(ncol(returns))
-  
+
   for (i in seq_len(ncol(returns))) {
     candidate_models <- list()
     aics <- numeric()
-    
+
     for (order in list(c(0,0,0), c(1,0,0), c(0,0,1), c(1,0,1))) {
       model <- tryCatch(
         arima(returns[, i], order = order),
@@ -416,7 +417,7 @@ comp_expected_returns <- function(returns, horizon) {
       candidate_models <- c(candidate_models, list(model))
       aics <- c(aics, if (!is.null(model)) AIC(model) else Inf)
     }
-    
+
     # If all models failed, fallback to mean return
     if (all(is.infinite(aics))) {
       exp_ret[i] <- mean(returns[, i])
@@ -426,7 +427,7 @@ comp_expected_returns <- function(returns, horizon) {
       exp_ret[i] <- mean(fc)
     }
   }
-  
+
   return(exp_ret)
 }
 
@@ -439,24 +440,24 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                   GMV = NULL,
                                   max_SR = NULL,
                                   MinVarWithReturnConstraint = NULL,
-                                  
+
                                   initialize = function(summary, GMV, max_SR = NULL, MinVarWithReturnConstraint = NULL) {
                                     self$summary <- summary
                                     self$GMV <- GMV
                                     self$max_SR <- max_SR
                                     self$MinVarWithReturnConstraint <- MinVarWithReturnConstraint
                                   },
-                                  
+
                                   print = function(...) {
                                     cli::cli_h1("Portfolio Optimization Predictions")
                                     cli::cli_rule()
                                     cli::cli_h2("Summary Metrics")
                                     df <- self$summary
-                                    df$Method <- with(df, ifelse(Method == "GMV", 
-                                                                 "Minimum Variance Portfolio", 
-                                                                 ifelse(Method == "max_SR", 
-                                                                        "Maximum SR Portfolio", 
-                                                                        ifelse(Method == "MinVarWithReturnConstraint", 
+                                    df$Method <- with(df, ifelse(Method == "GMV",
+                                                                 "Minimum Variance Portfolio",
+                                                                 ifelse(Method == "max_SR",
+                                                                        "Maximum SR Portfolio",
+                                                                        ifelse(Method == "MinVarWithReturnConstraint",
                                                                                "Return-Constrained Portfolio", Method))))
                                     print(df, row.names = FALSE)
                                     cli::cli_rule()
@@ -471,7 +472,7 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                     }
                                     invisible(self)
                                   },
-                                  
+
                                   getWeights = function(method = "GMV") {
                                     switch(method,
                                            GMV = self$GMV$weights,
@@ -504,41 +505,41 @@ RollingWindow <- R6::R6Class(
     summary = NULL,
     TVMVP   = NULL,
     Equal  = NULL,
-    
+
     initialize = function(summary, TVMVP, Equal) {
       self$summary <- summary
       self$TVMVP   <- TVMVP
       self$Equal   <- Equal
     },
-    
+
     print = function(...) {
       # Header
       cli::cli_h1("Rolling Window Portfolio Analysis")
       cli::cli_rule()
-      
+
       # Print summary
       cli::cli_h2("Summary Metrics")
       df <- self$summary
-      
+
       # Here, if you want, you can rename the 'Method' column so it prints
       # nicely, or leave it as is. For example:
-      # df$Method <- with(df, ifelse(Method == "Time-Varying MVP", 
+      # df$Method <- with(df, ifelse(Method == "Time-Varying MVP",
       #                              "Time-Varying MVP Portfolio",
-      #                       ifelse(Method == "Equal Weight", 
-      #                              "Equal-Weighted Portfolio", 
+      #                       ifelse(Method == "Equal Weight",
+      #                              "Equal-Weighted Portfolio",
       #                              Method)))
-      
+
       print(df, row.names = FALSE)
-      
+
       cli::cli_rule()
       cli::cli_h2("Detailed Components")
       cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
       cli::cli_text("  - Time-Varying MVP: Access via `$TVMVP`")
       cli::cli_text("  - Equal Weight: Access via `$Equal`")
-      
+
       invisible(self)
     },
-    
+
     getWeights = function(method = c("TVMVP", "Equal")) {
       method <- match.arg(method)
       if (method == "TVMVP") {
@@ -554,17 +555,17 @@ RollingWindow <- R6::R6Class(
 #' @method plot RollingWindow
 plot.RollingWindow <- function(x, ...) {
   stopifnot(inherits(x, "RollingWindow"))
-  
+
   # Calculate cumulative returns
   tvmvp_cum <- cumsum(x$TVMVP$returns)
   equal_cum <- cumsum(x$Equal$returns)
   T_len <- length(tvmvp_cum)
-  
+
   # Adjust margins to make room for legend
   oldpar <- par(no.readonly = TRUE)
   on.exit(par(oldpar))  # Reset par on exit
   par(mar = c(6, 4, 4, 2) + 0.1)  # Extra space at bottom
-  
+
   # Set up plotting area
   plot(
     1:T_len, tvmvp_cum,
@@ -575,10 +576,10 @@ plot.RollingWindow <- function(x, ...) {
     main = "Cumulative log Excess Returns: TVMVP vs Equal",
     ...
   )
-  
+
   # Add Equal Weight portfolio line
   lines(1:T_len, equal_cum, col = "red", lwd = 2, lty = 2)
-  
+
   # Add legend BELOW the plot
   legend(
     "bottom", inset = -0.45, xpd = TRUE,
