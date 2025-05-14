@@ -23,7 +23,7 @@
 #' Authors: Erik Lillrank and Yukai Yang \cr
 #' Maintainer: Erik Lillrank \cr
 #' Department of Statistics, Uppsala University \cr
-#' \email{erik.lillrank.9607@@student.uu.se}, \email{yukai.yang@@statistik.uu.se}
+#' \email{erik.lillrank@@gmail.com}, \email{yukai.yang@@statistik.uu.se}
 #'
 #' @section Main Functions:
 #' \describe{
