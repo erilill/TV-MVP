@@ -43,7 +43,7 @@
 #' @section References: 
 #'@section References: 
 #' Lillrank, E. (2025). \ifelse{html}{
-#'     \out{<a href='../doc/thesis.pdf'>Time-Varying Minimum Variance Portfolio.</a>}
+#'     \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
 #'   }{Master’s thesis (PDF in inst/doc)}
 #' 
 #' 
