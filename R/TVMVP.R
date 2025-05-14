@@ -23,9 +23,9 @@
 #' Authors: Erik Lillrank and Yukai Yang \cr
 #' Maintainer: Erik Lillrank \cr
 #' Department of Statistics, Uppsala University \cr
-#' \email{erik.lillrank.9607@@student.uu.se}, \email{yukai.yang@@statistik.uu.se}
+#' \email{erik.lillrank@@gmail.com}, \email{yukai.yang@@statistik.uu.se}
 #'
-#' @section Main Functions:
+#' @section Functions:
 #' \describe{
 #'   \item{\code{\link{determine_factors}}}{Selects the optimal number of factors via an information criterion.}
 #'   \item{\code{\link{hyptest1}}}{Hypothesis test for time-invariant covariance matrices. Bootstrap p-values supported.}
@@ -33,15 +33,16 @@
 #'   \item{\code{\link{predict_portfolio}}}{Optimizes portfolio weights out-of-sample.}
 #'   \item{\code{\link{time_varying_cov}}}{Estimates the time-varying covariance matrix.}
 #' }
-#'
-#' @section Other functions: 
+#' 
+#' @section Class:
 #' \describe{
-#' \item{\code{\link{silverman}}}{Silverman's rule of thumb bandwidth formula.}
-#' \item{\code{\link{epanechnikov_kernel}}}{Epanechnikov kernel used for kernel-weighting the data in the local PCA.}
-#' }
+#'  \item{\code{\link{TVMVP}}}{Time Varying Minimum Variance Portfolio (TVMVP) Class.}
+#' } 
+#' 
+#'
 #' 
 #' @section References: 
-#' Lillank, E. (2025). Time-Varying Minimum Variance Portfolio.
+#' Lillank, E. (2025). A Time-Varying Factor Approach to Covariance Estimation.
 #' 
 #' @keywords package
 "_PACKAGE"
