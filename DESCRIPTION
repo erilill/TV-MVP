@@ -3,7 +3,7 @@ Type: Package
 Title: Time-Varying Minimum Variance Portfolio
 Version: 0.1.0
 Author: Erik Lillrank and Yukai Yang
-Maintainer: Erik Lillrank <erik.lillrank.9607@student.uu.se>
+Maintainer: Erik Lillrank <erik.lillrank@gmail.com>
 Description: Provides the estimation of time-dependent covariance matrix of
    returns with the intended use for portfolio optimization. The package also offers
    methods for determining the optimal number of factors to be used in the covariance
