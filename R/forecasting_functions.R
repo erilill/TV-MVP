@@ -20,7 +20,7 @@
 #'
 #' @return An R6 object of class \code{RollingWindow} with the following accessible elements:
 #' \describe{
-#'   \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return, Sharpe ratio, and standard deviation (raw and annualized).}
+#'   \item{\code{summary}}\item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
 #'   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
 #'   \item{\code{Equal}}{A list with similar structure for the equal-weight portfolio.}
 #' }
@@ -212,12 +212,12 @@ rolling_time_varying_mvp <- function(
   # Compile a summary table of results
   summary_df <- data.frame(
     Method = c("Time-Varying MVP", "Equal Weight"),
-    Cumulative_Excess_Return = c(CER_tvmvp, CER_equal),
-    Mean_Excess_Return       = c(mean_ret_tvmvp, mean_ret_equal),
-    Standard_Deviation       = c(sd_tvmvp, sd_equal),
-    Sharpe_Ratio             = c(SR_tvmvp, SR_equal),
-    Mean_Annualized          = c(mean_annualized_tvmvp, mean_annualized_equal),
-    SD_Annualized            = c(sd_annualized_tvmvp, sd_annualized_equal)
+    CER = c(CER_tvmvp, CER_equal),
+    MER       = c(mean_ret_tvmvp, mean_ret_equal),
+    SD       = c(sd_tvmvp, sd_equal),
+    SR             = c(SR_tvmvp, SR_equal),
+    MER_ann          = c(mean_annualized_tvmvp, mean_annualized_equal),
+    SD_ann            = c(sd_annualized_tvmvp, sd_annualized_equal)
   )
 
   # -- Construct named lists for the TVMVP and Equal strategies:
