@@ -1,7 +1,8 @@
 #' Compute Bandwidth Parameter Using Silverman's Rule of Thumb
 #'
 #' This function calculates the bandwidth parameter for kernel functions using Silverman's rule of thumb,
-#' which is commonly used in kernel density estimation to determine an appropriate bandwidth.
+#' which is commonly used in kernel density estimation to determine an appropriate bandwidth. The procedure is available either as a 
+#' stand-alone function or as a method in the `TVMVP` R6 class.
 #'
 #' @param returns A numeric matrix of asset returns with \eqn{T} rows (time periods) and \eqn{p} columns (assets).
 #'
@@ -12,8 +13,17 @@
 #' \deqn{bandwidth = \frac{2.35}{\sqrt{12}} \times T^{-0.2} \times p^{-0.1}}
 #' where \eqn{T} is the number of time periods and \eqn{p} is the number of assets.
 #'
-#' If the number of time periods \code{T} and the number of assets \code{p} are not provided,
-#' the function extracts these values from the \code{returns} matrix.
+#' Two usage styles:
+#' 
+#' \preformatted{
+#' # Function interface
+#' bw <- silverman(returns)
+#'
+#' # R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' tv$silverman()
+#' }
 #'
 #' @examples
 #' # Simulate data for 50 assets over 200 time periods
@@ -25,6 +35,10 @@
 #' # Compute bandwidth using Silverman's rule of thumb
 #' bw <- silverman(returns)
 #' print(bw)
+#' 
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' tv$silverman()
 #'
 #' @export
 silverman <- function(returns){
