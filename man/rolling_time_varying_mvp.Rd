@@ -44,23 +44,49 @@ rolling_time_varying_mvp(
 \value{
 An R6 object of class \code{RollingWindow} with the following accessible elements:
 \describe{
-  \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return, Sharpe ratio, and standard deviation (raw and annualized).}
+  \item{\code{summary}}\item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
   \item{\code{Equal}}{A list with similar structure for the equal-weight portfolio.}
 }
 }
 \description{
-This function performs time-varying minimum variance portfolio (TV-MVP) optimization using 
-time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The 
-optimization is performed over a rolling window, with periodic rebalancing.
+This function performs time-varying minimum variance portfolio (TV-MVP) optimization using
+time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The
+optimization is performed over a rolling window, with periodic rebalancing. 
+The procedure is available either as a stand-alone function or as a method in 
+the `TVMVP` R6 class.
 }
 \details{
-The function implements a rolling time-varying PCA approach to estimate latent factor structures 
+Two usage styles:
+#' \preformatted{
+# Function interface
+results <- rolling_time_varying_mvp(
+  returns = returns,
+  initial_window = 50,
+  rebal_period = 20,
+  max_factors = 3,
+  return_type = "daily",
+  rf = NULL
+)
+
+# R6 method interface
+tv <- TVMVP$new()
+tv$set_data(returns)
+results <- tv$rolling_time_varying_mvp(
+  returns = returns,
+  initial_window = 50,
+  rebal_period = 20,
+  max_factors = 3,
+  return_type = "daily",
+  rf = NULL)
+}
+
+The function implements a rolling time-varying PCA approach to estimate latent factor structures
 and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
-The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is 
+The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is
 rebalanced periodically according to the specified `rebal_period`. The number of factors is
-determined by a BIC-type information criterion using the function `determine_factors`, and the
-bandwidth is determined by Silverman's rule of thumb.
+determined by a BIC-type information criterion using the function `determine_factors`, updated
+yearly. The bandwidth is determined by Silverman's rule of thumb, updated each rebalancing period.
 
 If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 }
@@ -79,6 +105,17 @@ results <- rolling_time_varying_mvp(
   kernel_func = epanechnikov_kernel,
   rf = NULL
 )
+
+# R6 method interface
+tv <- TVMVP$new()
+tv$set_data(returns)
+results <- tv$rolling_time_varying_mvp(
+  returns = returns,
+  initial_window = 50,
+  rebal_period = 20,
+  max_factors = 3,
+  return_type = "daily",
+  rf = NULL)
 
 # Print summary
 print(results)
