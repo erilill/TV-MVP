@@ -44,20 +44,20 @@ TVMVP$set("public", "predict_portfolio", function(
     mean_returns <- comp_expected_returns(private$data, horizon) - rf
   }
 
-  ## Compute GMVP
+  ## Compute MVP
   inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, ip)
-  w_gmv_unnorm <- inv_cov %*% ones
-  w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
+  w_MVP_unnorm <- inv_cov %*% ones
+  w_MVP <- as.numeric(w_MVP_unnorm / sum(w_MVP_unnorm))
 
-  expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
-  risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
+  expected_return_MVP <- sum(w_MVP * mean_returns) * horizon
+  risk_MVP <- sqrt(as.numeric(t(w_MVP) %*% Sigma_hat %*% w_MVP)) * sqrt(horizon)
 
-  GMV <- list(
-    weights = w_gmv,
-    expected_return = expected_return_gmv,
-    risk = risk_gmv,
-    sharpe = (expected_return_gmv/horizon) / (risk_gmv/sqrt(horizon))
+  MVP <- list(
+    weights = w_MVP,
+    expected_return = expected_return_MVP,
+    risk = risk_MVP,
+    sharpe = (expected_return_MVP/horizon) / (risk_MVP/sqrt(horizon))
   )
 
   # Compute Maximum Sharpe Ratio portfolio if requested
@@ -95,10 +95,10 @@ TVMVP$set("public", "predict_portfolio", function(
   }
 
   # Build summary data frame
-  method_names <- c("GMV")
-  expected_returns_vec <- c(expected_return_gmv)
-  risk_vec <- c(risk_gmv)
-  sharpe_vec <- c(GMV$sharpe)
+  method_names <- c("MVP")
+  expected_returns_vec <- c(expected_return_MVP)
+  risk_vec <- c(risk_MVP)
+  sharpe_vec <- c(MVP$sharpe)
 
   if (!is.null(max_sr_portfolio)) {
     method_names <- c(method_names, "max_SR")
@@ -107,7 +107,7 @@ TVMVP$set("public", "predict_portfolio", function(
     sharpe_vec <- c(sharpe_vec, max_sr_portfolio$sharpe)
   }
   if (!is.null(constrained_portfolio)) {
-    method_names <- c(method_names, "MinVarWithReturnConstraint")
+    method_names <- c(method_names, "MVPConstrained")
     expected_returns_vec <- c(expected_returns_vec, expected_return_constrained)
     risk_vec <- c(risk_vec, risk_constrained)
     sharpe_vec <- c(sharpe_vec, constrained_portfolio$sharpe)
@@ -123,9 +123,9 @@ TVMVP$set("public", "predict_portfolio", function(
   # Create and return an object of PortfolioPredictions (an R6 object)
   out <- PortfolioPredictions$new(
     summary = summary_df,
-    GMV = GMV,
+    MVP = MVP,
     max_SR = if (!is.null(max_sr_portfolio)) max_sr_portfolio else NULL,
-    MinVarWithReturnConstraint = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
+    MVPConstrained = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
   )
 
   return(out)

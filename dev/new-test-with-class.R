@@ -56,14 +56,17 @@ tmp$get_bootstrap()
 # tmp$J_star which prints these.
 
 # some bug here... does not work
-prediction <- predict_portfolio(returns, horizon = 21, silverman, max_factors = 10, min_return=0.5)
+prediction <- predict_portfolio(returns, horizon = 21, epanechnikov_kernel, m = 10, min_return=0.5)
 # it works here, weird...
 prediction <- tmp$predict_portfolio(horizon = 1,
-                                    max_factors = 3,
                                     kernel_func = epanechnikov_kernel,
-                                    min_return = NULL,
-                                    max_SR = NULL,
-                                    rf = NULL)
+                                    min_return = 0.01,
+                                    max_SR = TRUE,
+                                    rf = 0.001)
+prediction
+prediction$getWeights(method = "MVP")
+prediction$getWeights(method = "max_SR")
+prediction$getWeights(method = "MVPConstrained")
 # This function could probably quite easily be included in the class if we remove
 # the computation of max_m within the function or set a condition so that it does
 # not run determine_factors() if the class already has max_m computed.
@@ -105,7 +108,7 @@ mvp_result
 
 # I also think time_varying_cov() should be included in the class:
 cov_mat <- time_varying_cov(returns,
-                                m,
+                                m=1,
                                 bandwidth = silverman(returns),
                                 kernel_func = epanechnikov_kernel,
                                 M0 = 10,

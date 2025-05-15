@@ -4,21 +4,20 @@
 \alias{determine_factors}
 \title{Determine the Optimal Number of Factors via an Information Criterion}
 \usage{
-determine_factors(returns, max_m, bandwidth)
+determine_factors(returns, max_m, bandwidth = silverman(returns))
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p}, where \eqn{T} is the number of observations and \eqn{p} is the number of assets.}
+\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T \times p}.}
 
 \item{max_m}{Integer. The maximum number of factors to consider.}
 
-\item{bandwidth}{Numeric. The bandwidth used in the kernel weighting for the local PCA. See \code{link{silverman}}.}
+\item{bandwidth}{Numeric. Kernel bandwidth for local PCA. Default is Silverman's rule of thumb.}
 }
 \value{
-A list with two components:
+A list with:
 \itemize{
-  \item \code{optimal_R}: The optimal number of factors (an integer) that minimizes the information criterion.
-  \item \code{IC_values}: A numeric vector of length \code{max_m} containing the information criterion values
-        for each candidate number of factors.
+  \item \code{optimal_m}: Integer. The optimal number of factors.
+  \item \code{IC_values}: Numeric vector of IC values for each candidate \eqn{m}.
 }
 }
 \description{
@@ -26,9 +25,28 @@ This function selects the optimal number of factors for a local principal compon
 analysis (PCA) model of asset returns. It computes an BIC-type information criterion (IC) for each candidate
 number of factors, based on the sum of squared residuals (SSR) from the PCA reconstruction and a
 penalty term that increases with the number of factors. The optimal number of factors is chosen as the
-one that minimizes the IC.
+one that minimizes the IC. The procedure is available either as a stand-alone
+function or as a method in the `TVMVP` R6 class.
 }
 \details{
+Two usage styles:
+
+\preformatted{
+# Function interface
+determine_factors(returns, max_m = 5)
+
+# R6 method interface
+tv <- TVMVP$new()
+tv$set_data(returns)
+tv$determine_factors(max_m = 5)
+tv$get_optimal_m()
+tv$get_IC_values()
+}
+   
+When using the method form, if `max_m` or `bandwidth` are omitted,
+they default to values stored in the object. Results are cached and
+retrievable via class methods.
+   
 For each candidate number of factors \eqn{m} (from 1 to \code{max_m}), the function:
 
 \enumerate{
@@ -47,13 +65,19 @@ For each candidate number of factors \eqn{m} (from 1 to \code{max_m}), the funct
 The optimal number of factors is then chosen as the value of \eqn{m} that minimizes \eqn{\text{IC}(m)}.
 }
 \examples{
-# Simulate a returns matrix with 100 observations and 30 assets
 set.seed(123)
 returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
 
-# Determine the optimal number of factors (up to max_m) using a specified bandwidth.
-result <- determine_factors(returns, max_m = 5, bandwidth = silverman(returns))
+# Function usage
+result <- determine_factors(returns, max_m = 5)
 print(result$optimal_m)
 print(result$IC_values)
+
+# R6 usage
+tv <- TVMVP$new()
+tv$set_data(returns)
+tv$determine_factors(max_m = 5)
+tv$get_optimal_m()
+tv$get_IC_values()
 
 }

@@ -49,16 +49,37 @@ By default, a covariance matrix. If \code{full_output = TRUE}, a list containing
 This function estimates a time-varying covariance matrix using local principal component
 analysis and the soft thresholding for residual shrinkage. By default, only the total
 covariance matrix is returned. Optionally, the user can retrieve all intermediate
-components of the estimation process.
+components of the estimation process. The procedure is available either as a 
+stand-alone function or as a method in the `TVMVP` R6 class.
 }
 \details{
 The function estimates a time-varying covariance matrix using Local PCA:
 \deqn{\hat{\Sigma}_{r,t}=\hat{\Lambda}_t \hat{\Sigma}_F \hat{\Lambda}_t' + \tilde{\Sigma}_e}
 Where \eqn{\hat{\Lambda}_t} is the factor loadings at time t, \eqn{\hat{\Sigma}_F} is the factor covariance matrix, and \eqn{\tilde{\Sigma}_e} is regularized covariance matrix of the idiosyncratic errors.
+
+Two usage styles:
+
+\preformatted{
+# Function interface
+cov <- time_varying_cov(returns, m = 5)
+
+# R6 method interface
+tv <- TVMVP$new()
+tv$set_data(returns)
+tv$determine_factors(max_m = 5)
+cov <- tv$time_varying_cov()
+}
 }
 \examples{
-\dontrun{
-estimate_tvmvp_covariance(returns = my_returns, m = 3)
-}
+\dontrun
+set.seed(123)
+returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
+
+time_varying_cov(returns = returns, m = 3)
+
+# Or using R6 method
+tv <- TVMVP$new()
+tv$set_data(returns)
+tv$time_varying_cov(m=3)
 
 }

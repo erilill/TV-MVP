@@ -159,7 +159,8 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' This function performs a hypothesis test for time-varying covariance in asset returns based on Su and Wang (2017).
 #' It first standardizes the input returns and then computes a time-varying covariance estimator
 #' using a local principal component analysis (Local PCA) approach. The test statistic \eqn{J_{pT}}
-#' is computed and its significance is assessed using a bootstrap procedure.
+#' is computed and its significance is assessed using a bootstrap procedure. The procedure is available either as a stand-alone
+#' function or as a method in the `TVMVP` R6 class.
 #'
 #' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p} (time periods by assets).
 #' @param m Integer. The number of factors to extract in the local PCA. See \code{\link{determine_factors}}.
@@ -172,6 +173,25 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' \item{J_pT_bootstrap}{A numeric vector of bootstrap test statistics from each replication.}
 #'
 #' @details
+#' Two usage styles:
+#' 
+#' \preformatted{
+#' # Function interface
+#' hyptest1(returns, m=2)
+#'
+#' # R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' tv$determine_factors(max_m=5)
+#' tv$hyptest()
+#' tv
+#' tv$get_bootstrap()         # prints bootstrap test statistics
+#' }
+#'    
+#' When using the method form, if `m` are omitted,
+#' they default to values stored in the object. Results are cached and
+#' retrievable via class methods.
+#' 
 #' The function follows the steps below:
 #' 
 #' \enumerate{
@@ -214,6 +234,14 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' # Print test statistic and p-value
 #' print(test_result$J_NT)
 #' print(test_result$p_value)
+#' 
+#' # Or use R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' tv$determine_factors(max_m=5)
+#' tv$hyptest(B = 200, kernel_func = epanechnikov_kernel)
+#' tv
+#' tv$get_bootstrap()         # prints bootstrap test statistics
 #' }
 #'
 #' @importFrom stats rnorm

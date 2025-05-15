@@ -2,7 +2,9 @@
 #'
 #' This function performs time-varying minimum variance portfolio (TV-MVP) optimization using
 #' time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The
-#' optimization is performed over a rolling window, with periodic rebalancing.
+#' optimization is performed over a rolling window, with periodic rebalancing. 
+#' The procedure is available either as a stand-alone function or as a method in 
+#' the `TVMVP` R6 class.
 #'
 #' @param returns A matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.
 #' @param initial_window An integer specifying the number of periods used in the initial estimation window.
@@ -18,12 +20,36 @@
 #'
 #' @return An R6 object of class \code{RollingWindow} with the following accessible elements:
 #' \describe{
-#'   \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return, Sharpe ratio, and standard deviation (raw and annualized).}
+#'   \item{\code{summary}}\item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
 #'   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
 #'   \item{\code{Equal}}{A list with similar structure for the equal-weight portfolio.}
 #' }
 #'
 #' @details
+#' Two usage styles:
+#' #' \preformatted{
+#' # Function interface
+#' results <- rolling_time_varying_mvp(
+#'   returns = returns,
+#'   initial_window = 50,
+#'   rebal_period = 20,
+#'   max_factors = 3,
+#'   return_type = "daily",
+#'   rf = NULL
+#' )
+#'
+#' # R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' results <- tv$rolling_time_varying_mvp(
+#'   returns = returns,
+#'   initial_window = 50,
+#'   rebal_period = 20,
+#'   max_factors = 3,
+#'   return_type = "daily",
+#'   rf = NULL)
+#' }
+#' 
 #' The function implements a rolling time-varying PCA approach to estimate latent factor structures
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
 #' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is
@@ -48,6 +74,17 @@
 #'   kernel_func = epanechnikov_kernel,
 #'   rf = NULL
 #' )
+#' 
+#' # R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' results <- tv$rolling_time_varying_mvp(
+#'   returns = returns,
+#'   initial_window = 50,
+#'   rebal_period = 20,
+#'   max_factors = 3,
+#'   return_type = "daily",
+#'   rf = NULL)
 #'
 #' # Print summary
 #' print(results)
@@ -124,8 +161,8 @@ rolling_time_varying_mvp <- function(
     # Compute weights for the minimum variance portfolio (TVMVP)
     inv_cov <- chol2inv(chol(Sigma_hat))
     ones <- rep(1, ip)
-    w_gmv_unnorm <- inv_cov %*% ones
-    w_hat <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
+    w_MVP_unnorm <- inv_cov %*% ones
+    w_hat <- as.numeric(w_MVP_unnorm / sum(w_MVP_unnorm))
     tvmvp_weights[[l]] <- w_hat
 
     # Determine the holding period
@@ -175,12 +212,12 @@ rolling_time_varying_mvp <- function(
   # Compile a summary table of results
   summary_df <- data.frame(
     Method = c("Time-Varying MVP", "Equal Weight"),
-    Cumulative_Excess_Return = c(CER_tvmvp, CER_equal),
-    Mean_Excess_Return       = c(mean_ret_tvmvp, mean_ret_equal),
-    Standard_Deviation       = c(sd_tvmvp, sd_equal),
-    Sharpe_Ratio             = c(SR_tvmvp, SR_equal),
-    Mean_Annualized          = c(mean_annualized_tvmvp, mean_annualized_equal),
-    SD_Annualized            = c(sd_annualized_tvmvp, sd_annualized_equal)
+    CER = c(CER_tvmvp, CER_equal),
+    MER       = c(mean_ret_tvmvp, mean_ret_equal),
+    SD       = c(sd_tvmvp, sd_equal),
+    SR             = c(SR_tvmvp, SR_equal),
+    MER_ann          = c(mean_annualized_tvmvp, mean_annualized_equal),
+    SD_ann            = c(sd_annualized_tvmvp, sd_annualized_equal)
   )
 
   # -- Construct named lists for the TVMVP and Equal strategies:
@@ -209,17 +246,19 @@ rolling_time_varying_mvp <- function(
 #' Predict Optimal Portfolio Weights Using Time-Varying Covariance Estimation
 #'
 #' This function estimates optimal portfolio weights using a time-varying covariance matrix
-#' derived from Local Principal Component Analysis (Local PCA). It computes the following portfolios:
+#' derived from Local Principal Component Analysis (Local PCA). The procedure is available either as a stand-alone
+#' function or as a method in the `TVMVP` R6 class. It computes the following portfolios:
 #' \enumerate{
-#'   \item Global Minimum Variance Portfolio (GMV)
+#'   \item Global Minimum Variance Portfolio (MVP)
 #'   \item Maximum Sharpe Ratio Portfolio (if \code{max_SR = TRUE})
 #'   \item Return-Constrained Minimum Variance Portfolio (if \code{min_return} is provided)
 #' }
 #'
 #' @param returns A numeric matrix of log returns (T × p), where T is the number of time periods and p is the number of assets.
 #' @param horizon Integer. Investment horizon over which expected return and risk are computed. Default is 1.
-#' @param max_factors Integer. Maximum number of latent factors to consider in the Local PCA model. Default is 3.
+#' @param m Integer. The number of latent factors to consider in the Local PCA model. Default is 3.
 #' @param kernel_func Function. Kernel used for weighting observations in Local PCA. Default is \code{\link{epanechnikov_kernel}}.
+#' @param bandwidth Numeric. Kernel bandwidth for local PCA. Default is Silverman's rule of thumb.
 #' @param min_return Optional numeric. If provided, the function computes a Return-Constrained Portfolio that targets this minimum return.
 #' @param max_SR Logical. If TRUE, the Maximum Sharpe Ratio Portfolio is also computed. Default is \code{NULL}.
 #' @param rf Numeric. Log risk-free rate. If \code{NULL}, defaults to 0.
@@ -227,19 +266,33 @@ rolling_time_varying_mvp <- function(
 #' @return An object of class \code{PortfolioPredictions} (an R6 object) with:
 #' \describe{
 #'   \item{\code{summary}}{A data frame of evaluation metrics (expected return, risk, Sharpe ratio) for all computed portfolios.}
-#'   \item{\code{GMV}}{A list containing the weights, expected return, risk, and Sharpe ratio for the Global Minimum Variance Portfolio.}
+#'   \item{\code{MVP}}{A list containing the weights, expected return, risk, and Sharpe ratio for the Global Minimum Variance Portfolio.}
 #'   \item{\code{max_SR}}{(Optional) A list with metrics for the Maximum Sharpe Ratio Portfolio.}
-#'   \item{\code{MinVarWithReturnConstraint}}{(Optional) A list with metrics for the Return-Constrained Portfolio.}
+#'   \item{\code{MVPConstrained}}{(Optional) A list with metrics for the Return-Constrained Portfolio.}
 #' }
 #'
 #' @section Methods:
 #' The returned object includes:
 #' \itemize{
 #'   \item \code{$print()}: Nicely prints summary and portfolio access information.
-#'   \item \code{$getWeights(method = c("GMV", "max_SR", "MinVarWithReturnConstraint"))}: Retrieves the weights for the selected portfolio.
+#'   \item \code{$getWeights(method = c("MVP", "max_SR", "MVPConstrained"))}: Retrieves the weights for the selected portfolio.
 #' }
 #'
 #' @details
+#' Two usage styles:
+#' 
+#' #' \preformatted{
+#' # Function interface
+#' prediction <- predict_portfolio(returns, horizon = 5, m = 2, min_return = 0.01, max_SR=TRUE)
+#'
+#' # R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' tv$determine_factors(max_m=5)
+#' prediction <- tv$predict_portfolio(horizon = 1, min_return = 0.01, max_SR = TRUE)
+#' }
+#' The methods can then be used on \code{prediction} to retrieve the weights.
+#' 
 #' The function estimates a time-varying covariance matrix using Local PCA:
 #' \deqn{\hat{\Sigma}_{r,t}=\hat{\Lambda}_t \hat{\Sigma}_F \hat{\Lambda}_t' + \tilde{\Sigma}_e}
 #' Where \eqn{\hat{\Lambda}_t} is the factor loadings at time t, \eqn{\hat{\Sigma}_F} is the factor covariance matrix, and \eqn{\tilde{\Sigma}_e} is regularized covariance matrix of the idiosyncratic errors.
@@ -259,7 +312,7 @@ rolling_time_varying_mvp <- function(
 #' result <- predict_portfolio(
 #'   returns,
 #'   horizon = 5,
-#'   max_factors = 3,
+#'   m = 3,
 #'   min_return = 0.02,
 #'   max_SR = TRUE
 #' )
@@ -267,30 +320,33 @@ rolling_time_varying_mvp <- function(
 #' # Print the portfolio performance summary
 #' print(result)
 #'
-#' # Access GMV weights
-#' result$getWeights("GMV")
+#' # Access MVP weights
+#' result$getWeights("MVP")
 #'
 #' # Access Max Sharpe weights (if computed)
 #' result$getWeights("max_SR")
-#'
+#' 
+#' # Or use R6 method interface
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' tv$determine_factors(max_m=5)
+#' prediction <- tv$predict_portfolio(horizon = 1, min_return)
+#' prediction
+#' prediction$getWeights("MVPConstrained")
+#' 
 #' @export
 predict_portfolio <- function(
     returns,
     horizon = 1,
-    max_factors = 3,
+    m = 3,
     kernel_func = epanechnikov_kernel,
+    bandwidth = silverman(returns),
     min_return = NULL,
     max_SR = NULL,  # flag: if TRUE, compute maximum Sharpe portfolio
     rf = NULL
 ) {
   iT <- nrow(returns)
   ip <- ncol(returns)
-
-  # Determine optimal number of factors using Silverman’s bandwidth
-  m <- determine_factors(returns, max_factors, silverman(returns))$optimal_m
-
-  # Select bandwidth
-  bandwidth <- silverman(returns)
 
   # Local PCA
   local_res <- localPCA(returns, bandwidth, m, kernel_func)
@@ -311,20 +367,20 @@ predict_portfolio <- function(
     mean_returns <- comp_expected_returns(returns, horizon) - rf
   }
 
-  ## Compute GMVP
+  ## Compute MVPP
   inv_cov <- chol2inv(chol(Sigma_hat))
   ones <- rep(1, ip)
-  w_gmv_unnorm <- inv_cov %*% ones
-  w_gmv <- as.numeric(w_gmv_unnorm / sum(w_gmv_unnorm))
+  w_MVP_unnorm <- inv_cov %*% ones
+  w_MVP <- as.numeric(w_MVP_unnorm / sum(w_MVP_unnorm))
 
-  expected_return_gmv <- sum(w_gmv * mean_returns) * horizon
-  risk_gmv <- sqrt(as.numeric(t(w_gmv) %*% Sigma_hat %*% w_gmv)) * sqrt(horizon)
+  expected_return_MVP <- sum(w_MVP * mean_returns) * horizon
+  risk_MVP <- sqrt(as.numeric(t(w_MVP) %*% Sigma_hat %*% w_MVP)) * sqrt(horizon)
 
-  GMV <- list(
-    weights = w_gmv,
-    expected_return = expected_return_gmv,
-    risk = risk_gmv,
-    sharpe = (expected_return_gmv/horizon) / (risk_gmv/sqrt(horizon))
+  MVP <- list(
+    weights = w_MVP,
+    expected_return = expected_return_MVP,
+    risk = risk_MVP,
+    sharpe = (expected_return_MVP/horizon) / (risk_MVP/sqrt(horizon))
   )
 
   # Compute Maximum Sharpe Ratio portfolio if requested
@@ -362,10 +418,10 @@ predict_portfolio <- function(
   }
 
   # Build summary data frame
-  method_names <- c("GMV")
-  expected_returns_vec <- c(expected_return_gmv)
-  risk_vec <- c(risk_gmv)
-  sharpe_vec <- c(GMV$sharpe)
+  method_names <- c("MVP")
+  expected_returns_vec <- c(expected_return_MVP)
+  risk_vec <- c(risk_MVP)
+  sharpe_vec <- c(MVP$sharpe)
 
   if (!is.null(max_sr_portfolio)) {
     method_names <- c(method_names, "max_SR")
@@ -374,7 +430,7 @@ predict_portfolio <- function(
     sharpe_vec <- c(sharpe_vec, max_sr_portfolio$sharpe)
   }
   if (!is.null(constrained_portfolio)) {
-    method_names <- c(method_names, "MinVarWithReturnConstraint")
+    method_names <- c(method_names, "MVPConstrained")
     expected_returns_vec <- c(expected_returns_vec, expected_return_constrained)
     risk_vec <- c(risk_vec, risk_constrained)
     sharpe_vec <- c(sharpe_vec, constrained_portfolio$sharpe)
@@ -390,9 +446,9 @@ predict_portfolio <- function(
   # Create and return an object of PortfolioPredictions (an R6 object)
   out <- PortfolioPredictions$new(
     summary = summary_df,
-    GMV = GMV,
+    MVP = MVP,
     max_SR = if (!is.null(max_sr_portfolio)) max_sr_portfolio else NULL,
-    MinVarWithReturnConstraint = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
+    MVPConstrained = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
   )
 
   return(out)
@@ -437,15 +493,15 @@ comp_expected_returns <- function(returns, horizon) {
 PortfolioPredictions <- R6Class("PortfolioPredictions",
                                 public = list(
                                   summary = NULL,
-                                  GMV = NULL,
+                                  MVP = NULL,
                                   max_SR = NULL,
-                                  MinVarWithReturnConstraint = NULL,
+                                  MVPConstrained = NULL,
 
-                                  initialize = function(summary, GMV, max_SR = NULL, MinVarWithReturnConstraint = NULL) {
+                                  initialize = function(summary, MVP, max_SR = NULL, MVPConstrained = NULL) {
                                     self$summary <- summary
-                                    self$GMV <- GMV
+                                    self$MVP <- MVP
                                     self$max_SR <- max_SR
-                                    self$MinVarWithReturnConstraint <- MinVarWithReturnConstraint
+                                    self$MVPConstrained <- MVPConstrained
                                   },
 
                                   print = function(...) {
@@ -453,29 +509,29 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                     cli::cli_rule()
                                     cli::cli_h2("Summary Metrics")
                                     df <- self$summary
-                                    df$Method <- with(df, ifelse(Method == "GMV",
+                                    df$Method <- with(df, ifelse(Method == "MVP",
                                                                  "Minimum Variance Portfolio",
                                                                  ifelse(Method == "max_SR",
                                                                         "Maximum SR Portfolio",
-                                                                        ifelse(Method == "MinVarWithReturnConstraint",
+                                                                        ifelse(Method == "MVPConstrained",
                                                                                "Return-Constrained Portfolio", Method))))
                                     print(df, row.names = FALSE)
                                     cli::cli_rule()
                                     cli::cli_h2("Detailed Components")
                                     cli::cli_text("The detailed portfolio outputs are stored in the following elements:")
-                                    cli::cli_text("  - GMV: Use object$GMV")
+                                    cli::cli_text("  - MVP: Use object$MVP")
                                     if (!is.null(self$max_SR)) {
                                       cli::cli_text("  - Maximum Sharpe Ratio Portfolio: Use object$max_SR")
                                     }
-                                    if (!is.null(self$MinVarWithReturnConstraint)) {
-                                      cli::cli_text("  - Minimum Variance Portfolio with Return Constraint: Use object$MinVarWithReturnConstraint")
+                                    if (!is.null(self$MVPConstrained)) {
+                                      cli::cli_text("  - Minimum Variance Portfolio with Return Constraint: Use object$MVPConstrained")
                                     }
                                     invisible(self)
                                   },
 
-                                  getWeights = function(method = "GMV") {
+                                  getWeights = function(method = "MVP") {
                                     switch(method,
-                                           GMV = self$GMV$weights,
+                                           MVP = self$MVP$weights,
                                            max_SR = {
                                              if (!is.null(self$max_SR)) {
                                                self$max_SR$weights
@@ -484,11 +540,11 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
                                                NULL
                                              }
                                            },
-                                           MinVarWithReturnConstraint = {
-                                             if (!is.null(self$MinVarWithReturnConstraint)) {
-                                               self$MinVarWithReturnConstraint$weights
+                                           MVPConstrained = {
+                                             if (!is.null(self$MVPConstrained)) {
+                                               self$MVPConstrained$weights
                                              } else {
-                                               cli::cli_alert_danger("MinVarWithReturnConstraint portfolio not available!")
+                                               cli::cli_alert_danger("MVPConstrained portfolio not available!")
                                                NULL
                                              }
                                            },
