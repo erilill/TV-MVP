@@ -1,0 +1,21 @@
+---
+title: "Master’s thesis"
+output: pdf_document
+header-includes:
+  - \usepackage{pdfpages}
+  - \makeatletter
+  - \renewcommand{\maketitle}{}   % no title page
+  - \makeatother
+vignette: >
+  %\VignetteIndexEntry{Master’s thesis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!---
+This file exists only so R CMD build will carry thesis.pdf
+into inst/doc.  It does **not** re-compile the thesis.
+-->
+
+```{r echo=FALSE, results='asis'}
+cat("\\includepdf[pages=-]{thesis_body.pdf}")

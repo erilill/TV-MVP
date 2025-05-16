@@ -59,7 +59,11 @@ Department of Statistics, Uppsala University \cr
 
 \section{References}{
  
-Lillank, E. (2025). A Time-Varying Factor Approach to Covariance Estimation.
+Lillrank, E. (2025). \ifelse{html}{
+    \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+  }{Master’s thesis (PDF in inst/doc)}
+  
+Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101.
 }
 
 \keyword{package}
