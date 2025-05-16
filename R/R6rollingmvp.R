@@ -123,12 +123,12 @@ TVMVP$set("public", "rolling_time_varying_mvp", function(
   # Compile a summary table of results
   summary_df <- data.frame(
     Method = c("Time-Varying MVP", "Equal Weight"),
-    Cumulative_Excess_Return = c(CER_tvmvp, CER_equal),
-    Mean_Excess_Return       = c(mean_ret_tvmvp, mean_ret_equal),
-    Standard_Deviation       = c(sd_tvmvp, sd_equal),
-    Sharpe_Ratio             = c(SR_tvmvp, SR_equal),
-    Mean_Annualized          = c(mean_annualized_tvmvp, mean_annualized_equal),
-    SD_Annualized            = c(sd_annualized_tvmvp, sd_annualized_equal)
+    CER     = c(CER_tvmvp, CER_equal),
+    MER     = c(mean_ret_tvmvp, mean_ret_equal),
+    SD      = c(sd_tvmvp, sd_equal),
+    SR      = c(SR_tvmvp, SR_equal),
+    MER_ann = c(mean_annualized_tvmvp, mean_annualized_equal),
+    SD_ann  = c(sd_annualized_tvmvp, sd_annualized_equal)
   )
 
   # -- Construct named lists for the TVMVP and Equal strategies:
