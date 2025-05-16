@@ -153,5 +153,5 @@ methods is neater as the necessary parameters are cached in the object.
 
 \begin{itemize}
 \item Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101.
-\item The full methodology is described in the [Master'sthesis](../doc/thesis.pdf).
+\item Lillrank, E. (2025). A Time-Varying Factor Approach to Covariance Estimation.
 \end{itemize}
