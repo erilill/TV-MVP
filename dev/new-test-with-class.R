@@ -24,7 +24,7 @@ tmp$set_data(returns)
 tmp
 # show head like tibble does
 
-tmp$set_data(tibble::as_tibble(returns))
+#tmp$set_data(tibble::as_tibble(returns))
 #tmp$get_data()
 
 # this does not work because x y a b are not defined in the class

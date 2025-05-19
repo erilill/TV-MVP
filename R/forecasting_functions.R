@@ -2,8 +2,8 @@
 #'
 #' This function performs time-varying minimum variance portfolio (TV-MVP) optimization using
 #' time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The
-#' optimization is performed over a rolling window, with periodic rebalancing. 
-#' The procedure is available either as a stand-alone function or as a method in 
+#' optimization is performed over a rolling window, with periodic rebalancing.
+#' The procedure is available either as a stand-alone function or as a method in
 #' the `TVMVP` R6 class.
 #'
 #' @param returns A matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.
@@ -20,7 +20,7 @@
 #'
 #' @return An R6 object of class \code{RollingWindow} with the following accessible elements:
 #' \describe{
-#'   \item{\code{summary}}\item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
+#'   \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
 #'   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
 #'   \item{\code{Equal}}{A list with similar structure for the equal-weight portfolio.}
 #' }
@@ -49,7 +49,7 @@
 #'   return_type = "daily",
 #'   rf = NULL)
 #' }
-#' 
+#'
 #' The function implements a rolling time-varying PCA approach to estimate latent factor structures
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
 #' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is
@@ -74,7 +74,7 @@
 #'   kernel_func = epanechnikov_kernel,
 #'   rf = NULL
 #' )
-#' 
+#'
 #' # R6 method interface
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
@@ -280,7 +280,7 @@ rolling_time_varying_mvp <- function(
 #'
 #' @details
 #' Two usage styles:
-#' 
+#'
 #' #' \preformatted{
 #' # Function interface
 #' prediction <- predict_portfolio(returns, horizon = 5, m = 2, min_return = 0.01, max_SR=TRUE)
@@ -292,7 +292,7 @@ rolling_time_varying_mvp <- function(
 #' prediction <- tv$predict_portfolio(horizon = 1, min_return = 0.01, max_SR = TRUE)
 #' }
 #' The methods can then be used on \code{prediction} to retrieve the weights.
-#' 
+#'
 #' The function estimates a time-varying covariance matrix using Local PCA:
 #' \deqn{\hat{\Sigma}_{r,t}=\hat{\Lambda}_t \hat{\Sigma}_F \hat{\Lambda}_t' + \tilde{\Sigma}_e}
 #' Where \eqn{\hat{\Lambda}_t} is the factor loadings at time t, \eqn{\hat{\Sigma}_F} is the factor covariance matrix, and \eqn{\tilde{\Sigma}_e} is regularized covariance matrix of the idiosyncratic errors.
@@ -325,7 +325,7 @@ rolling_time_varying_mvp <- function(
 #'
 #' # Access Max Sharpe weights (if computed)
 #' result$getWeights("max_SR")
-#' 
+#'
 #' # Or use R6 method interface
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
@@ -333,7 +333,7 @@ rolling_time_varying_mvp <- function(
 #' prediction <- tv$predict_portfolio(horizon = 1, min_return)
 #' prediction
 #' prediction$getWeights("MVPConstrained")
-#' 
+#'
 #' @export
 predict_portfolio <- function(
     returns,

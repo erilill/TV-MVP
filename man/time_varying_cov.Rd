@@ -49,7 +49,7 @@ By default, a covariance matrix. If \code{full_output = TRUE}, a list containing
 This function estimates a time-varying covariance matrix using local principal component
 analysis and the soft thresholding for residual shrinkage. By default, only the total
 covariance matrix is returned. Optionally, the user can retrieve all intermediate
-components of the estimation process. The procedure is available either as a 
+components of the estimation process. The procedure is available either as a
 stand-alone function or as a method in the `TVMVP` R6 class.
 }
 \details{
@@ -71,7 +71,7 @@ cov <- tv$time_varying_cov()
 }
 }
 \examples{
-\dontrun
+\dontrun{
 set.seed(123)
 returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
 
@@ -81,5 +81,6 @@ time_varying_cov(returns = returns, m = 3)
 tv <- TVMVP$new()
 tv$set_data(returns)
 tv$time_varying_cov(m=3)
+}
 
 }

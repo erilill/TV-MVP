@@ -12,32 +12,32 @@ adaptive_poet_rho(
 )
 }
 \arguments{
-\item{R}{A numeric matrix of data (e.g., residuals) with dimensions \eqn{T × p}, where \eqn{T} 
+\item{R}{A numeric matrix of data (e.g., residuals) with dimensions \eqn{T × p}, where \eqn{T}
 is the number of observations and \eqn{p} is the number of variables.}
 
-\item{M0}{Integer. The number of observations to leave out between two subsamples when forming groups. 
+\item{M0}{Integer. The number of observations to leave out between two subsamples when forming groups.
 Default is 10.}
 
-\item{rho_grid}{A numeric vector of candidate shrinkage parameters \eqn{\rho}. Default is 
+\item{rho_grid}{A numeric vector of candidate shrinkage parameters \eqn{\rho}. Default is
 \code{seq(0.001, 2, length.out = 20)}.}
 
-\item{epsilon2}{A small positive tuning parameter used as an adjustment in the selection of \eqn{\rho}. 
+\item{epsilon2}{A small positive tuning parameter used as an adjustment in the selection of \eqn{\rho}.
 Default is \code{1e-6}.}
 }
 \value{
 A list containing:
 \itemize{
-  \item \code{best_rho}: The selected optimal shrinkage parameter \eqn{\hat{\rho}} that minimizes the total 
+  \item \code{best_rho}: The selected optimal shrinkage parameter \eqn{\hat{\rho}} that minimizes the total
   squared Frobenius norm difference.
   \item \code{rho_1}: The lower bound for \eqn{\rh} derived from the minimum eigenvalue criteria (adjusted by \code{epsilon2}).
   \item \code{min_Fnorm}: The minimum total squared Frobenius norm difference achieved.
 }
 }
 \description{
-This function selects an optimal shrinkage parameter \eqn{\rho} for the residual covariance 
-estimation procedure. It does so by dividing the data into groups and comparing a shrunk covariance 
-matrix (computed on one subsample) to a benchmark covariance (computed on another subsample) using 
-the Frobenius norm. The candidate \eqn{\rho} that minimizes the total squared Frobenius norm difference 
+This function selects an optimal shrinkage parameter \eqn{\rho} for the residual covariance
+estimation procedure. It does so by dividing the data into groups and comparing a shrunk covariance
+matrix (computed on one subsample) to a benchmark covariance (computed on another subsample) using
+the Frobenius norm. The candidate \eqn{\rho} that minimizes the total squared Frobenius norm difference
 is selected.
 }
 \details{
@@ -55,15 +55,15 @@ The function proceeds as follows:
       \item Subsample 2: the last \eqn{T_2} observations of the group, after skipping \eqn{M_0} observations following subsample 1.
     }
 
-  \item For each group and for a given candidate \eqn{\rho} in \code{rho_grid}, the covariance matrix \eqn{S_1} 
+  \item For each group and for a given candidate \eqn{\rho} in \code{rho_grid}, the covariance matrix \eqn{S_1}
         is computed from subsample 1, and then shrunk by applying a soft-thresholding function:
 
         \deqn{S_{1,\text{shrunk}} = \text{soft\_threshold}\left(S_1, \rho × \text{mean}\left(|S_1|_{\text{off-diag}}\right)\right).}
 
-  \item The function computes the total squared Frobenius norm difference between \eqn{S_{1,\text{shrunk}}} 
+  \item The function computes the total squared Frobenius norm difference between \eqn{S_{1,\text{shrunk}}}
         and the covariance matrix \eqn{S_2} (computed from subsample 2) over all groups.
 
-  \item Finally, the function scans across the \code{rho_grid} to select the \eqn{\rho} that minimizes this 
+  \item Finally, the function scans across the \code{rho_grid} to select the \eqn{\rho} that minimizes this
         total error. In addition, \eqn{\rho_1} is computed as \eqn{\epsilon_2} plus the smallest candidate \eqn{\rho}
         for which the smallest eigenvalue of the shrunk covariance is positive.
 }
