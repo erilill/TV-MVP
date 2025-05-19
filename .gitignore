@@ -14,13 +14,18 @@
 # Temporary files
 .Rbuildignore
 
-cran-comments.md
-
 *.Rproj
 *.swp
 
-
-**/tests
 **/.DS_Store
 /Meta/
 /doc/
+
+# KEEP these in version control
+!cran-comments.md
+!tests/
+!tests/testthat/
+
+# Ignore test outputs (not test code!)
+tests/testthat.Rout*
+tests/*.Rout*
