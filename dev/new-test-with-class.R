@@ -55,8 +55,9 @@ tmp$get_bootstrap()
 # to show at first glance. Similarly, we could include something like:
 # tmp$J_star which prints these.
 
-# some bug here... does not work
-prediction <- predict_portfolio(returns, horizon = 21, epanechnikov_kernel, m = 10, min_return=0.5)
+# does not work
+prediction <- predict_portfolio(returns, horizon = 21, kernel_func = epanechnikov_kernel, max_factors = 10, min_return=0.5)
+prediction <- predict_portfolio(tmp, horizon = 21, kernel_func = epanechnikov_kernel, max_factors = 10, min_return=0.5)
 # it works here, weird...
 prediction <- tmp$predict_portfolio(horizon = 1,
                                     kernel_func = epanechnikov_kernel,

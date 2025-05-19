@@ -254,11 +254,10 @@ rolling_time_varying_mvp <- function(
 #'   \item Return-Constrained Minimum Variance Portfolio (if \code{min_return} is provided)
 #' }
 #'
-#' @param returns A numeric matrix of log returns (T × p), where T is the number of time periods and p is the number of assets.
+#' @param obj An object of class TVMVP with the data.
 #' @param horizon Integer. Investment horizon over which expected return and risk are computed. Default is 1.
-#' @param m Integer. The number of latent factors to consider in the Local PCA model. Default is 3.
+#' @param max_factors Integer. The number of latent factors to consider in the Local PCA model. Default is 3.
 #' @param kernel_func Function. Kernel used for weighting observations in Local PCA. Default is \code{\link{epanechnikov_kernel}}.
-#' @param bandwidth Numeric. Kernel bandwidth for local PCA. Default is Silverman's rule of thumb.
 #' @param min_return Optional numeric. If provided, the function computes a Return-Constrained Portfolio that targets this minimum return.
 #' @param max_SR Logical. If TRUE, the Maximum Sharpe Ratio Portfolio is also computed. Default is \code{NULL}.
 #' @param rf Numeric. Log risk-free rate. If \code{NULL}, defaults to 0.
@@ -336,122 +335,21 @@ rolling_time_varying_mvp <- function(
 #'
 #' @export
 predict_portfolio <- function(
-    returns,
+    obj,
     horizon = 1,
-    m = 3,
+    max_factors = 3,
     kernel_func = epanechnikov_kernel,
-    bandwidth = silverman(returns),
     min_return = NULL,
     max_SR = NULL,  # flag: if TRUE, compute maximum Sharpe portfolio
     rf = NULL
 ) {
-  iT <- nrow(returns)
-  ip <- ncol(returns)
-
-  # Local PCA
-  local_res <- localPCA(returns, bandwidth, m, kernel_func)
-
-  # Compute covariance matrix from local PCA results using POET
-  Sigma_hat <- estimate_residual_cov_poet_local(localPCA_results = local_res,
-                                                returns = returns,
-                                                M0 = 10,
-                                                rho_grid = seq(0.005, 2, length.out = 30),
-                                                floor_value = 1e-12,
-                                                epsilon2 = 1e-6)$total_cov
-
-
-  # Expected returns
-  if (is.null(rf)) {
-    mean_returns <- comp_expected_returns(returns, horizon)
+  if(inherits(obj, "TVMVP")){
+    return(obj$predict_portfolio(
+      horizon = horizon, max_factors = max_factors, kernel_func = kernel_func,
+      min_return = min_return, max_SR = max_SR, rf = rf))
   } else {
-    mean_returns <- comp_expected_returns(returns, horizon) - rf
+    cli::cli_alert_danger("{.code obj} is not an object of {.strong TVMVP}")
   }
-
-  ## Compute MVPP
-  inv_cov <- chol2inv(chol(Sigma_hat))
-  ones <- rep(1, ip)
-  w_MVP_unnorm <- inv_cov %*% ones
-  w_MVP <- as.numeric(w_MVP_unnorm / sum(w_MVP_unnorm))
-
-  expected_return_MVP <- sum(w_MVP * mean_returns) * horizon
-  risk_MVP <- sqrt(as.numeric(t(w_MVP) %*% Sigma_hat %*% w_MVP)) * sqrt(horizon)
-
-  MVP <- list(
-    weights = w_MVP,
-    expected_return = expected_return_MVP,
-    risk = risk_MVP,
-    sharpe = (expected_return_MVP/horizon) / (risk_MVP/sqrt(horizon))
-  )
-
-  # Compute Maximum Sharpe Ratio portfolio if requested
-  max_sr_portfolio <- NULL
-  if (!is.null(max_SR) && max_SR == TRUE) {
-    w_unnorm <- inv_cov %*% (mean_returns / horizon)
-    w_max_sr <- as.numeric(w_unnorm / sum(w_unnorm))
-    expected_return_max_sr <- sum(w_max_sr * mean_returns) * horizon
-    risk_max_sr <- sqrt(as.numeric(t(w_max_sr) %*% Sigma_hat %*% w_max_sr)) * sqrt(horizon)
-
-    max_sr_portfolio <- list(
-      weights = w_max_sr,
-      expected_return = expected_return_max_sr,
-      risk = risk_max_sr,
-      sharpe = (expected_return_max_sr/horizon) / (risk_max_sr/sqrt(horizon))
-    )
-  }
-
-  # Compute Minimum Variance Portfolio with Return Constraint (if applicable)
-  constrained_portfolio <- NULL
-  if (!is.null(min_return)) {
-    A  <- cbind(rep(1, ip), mean_returns)  # (p x 2) constraints
-    b  <- c(1, min_return / horizon)
-    A_Sigma_inv_A <- solve(t(A) %*% inv_cov %*% A)
-    w_constrained <- inv_cov %*% A %*% A_Sigma_inv_A %*% b
-    expected_return_constrained <- sum(w_constrained * mean_returns) * horizon
-    risk_constrained <- sqrt(as.numeric(t(w_constrained) %*% Sigma_hat %*% w_constrained)) * sqrt(horizon)
-
-    constrained_portfolio <- list(
-      weights = w_constrained,
-      expected_return = expected_return_constrained,
-      risk = risk_constrained,
-      sharpe = (expected_return_constrained/horizon) / (risk_constrained/sqrt(horizon))
-    )
-  }
-
-  # Build summary data frame
-  method_names <- c("MVP")
-  expected_returns_vec <- c(expected_return_MVP)
-  risk_vec <- c(risk_MVP)
-  sharpe_vec <- c(MVP$sharpe)
-
-  if (!is.null(max_sr_portfolio)) {
-    method_names <- c(method_names, "max_SR")
-    expected_returns_vec <- c(expected_returns_vec, expected_return_max_sr)
-    risk_vec <- c(risk_vec, risk_max_sr)
-    sharpe_vec <- c(sharpe_vec, max_sr_portfolio$sharpe)
-  }
-  if (!is.null(constrained_portfolio)) {
-    method_names <- c(method_names, "MVPConstrained")
-    expected_returns_vec <- c(expected_returns_vec, expected_return_constrained)
-    risk_vec <- c(risk_vec, risk_constrained)
-    sharpe_vec <- c(sharpe_vec, constrained_portfolio$sharpe)
-  }
-
-  summary_df <- data.frame(
-    Method = method_names,
-    expected_return = expected_returns_vec,
-    risk = risk_vec,
-    sharpe = sharpe_vec
-  )
-
-  # Create and return an object of PortfolioPredictions (an R6 object)
-  out <- PortfolioPredictions$new(
-    summary = summary_df,
-    MVP = MVP,
-    max_SR = if (!is.null(max_sr_portfolio)) max_sr_portfolio else NULL,
-    MVPConstrained = if (!is.null(constrained_portfolio)) constrained_portfolio else NULL
-  )
-
-  return(out)
 }
 
 #' Function to compute expected returns using a simple model selection approach
