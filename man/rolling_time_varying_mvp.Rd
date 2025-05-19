@@ -61,7 +61,7 @@ Two usage styles:
 #' \preformatted{
 # Function interface
 results <- rolling_time_varying_mvp(
-  returns = returns,
+  obj = tv,
   initial_window = 50,
   rebal_period = 20,
   max_factors = 3,
@@ -73,7 +73,6 @@ results <- rolling_time_varying_mvp(
 tv <- TVMVP$new()
 tv$set_data(returns)
 results <- tv$rolling_time_varying_mvp(
-  returns = returns,
   initial_window = 50,
   rebal_period = 20,
   max_factors = 3,
@@ -95,9 +94,13 @@ If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 set.seed(123)
 returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)
 
+# Initialize object
+tv <- TVMVP$new()
+tv$set_data(returns)
+
 # Run rolling TV-MVP optimization
 results <- rolling_time_varying_mvp(
-  returns = returns,
+  obj = tv,
   initial_window = 50,
   rebal_period = 20,
   max_factors = 3,
@@ -107,10 +110,7 @@ results <- rolling_time_varying_mvp(
 )
 
 # R6 method interface
-tv <- TVMVP$new()
-tv$set_data(returns)
 results <- tv$rolling_time_varying_mvp(
-  returns = returns,
   initial_window = 50,
   rebal_period = 20,
   max_factors = 3,

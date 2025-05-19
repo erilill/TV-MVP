@@ -119,7 +119,7 @@ hypothesis_test <- hyptest1(returns = returns,
 
 # Rolling window evaluation
 mvp_result <- rolling_time_varying_mvp(
-  returns        = returns,
+  obj            = tvmvp_obj,
   initial_window = 60,
   rebal_period   = 5,
   max_factors    = 10,
@@ -130,7 +130,7 @@ mvp_result <- rolling_time_varying_mvp(
 mvp_result
 
 # Optimize weights and predict performance out-of-sample
-prediction <- predict_portfolio(returns = returns, 
+prediction <- predict_portfolio(obj = tvmvp_obj, 
                                 horizon = 21, 
                                 m = 10,
                                 kernel_func = epanechnikov_kernel,
@@ -141,8 +141,8 @@ prediction
 weights <- prediction$getWeights("MVP")
 
 # For custom portfolio optimization, compute the time dependent covariance:
-cov_mat <- time_varying_cov(returns,
-                            m,
+cov_mat <- time_varying_cov(obj = tvmvp_obj,
+                            max_factors = 5,
                             bandwidth = silverman(returns),
                             kernel_func = epanechnikov_kernel,
                             M0 = 10,

@@ -52,14 +52,15 @@ function or as a method in the `TVMVP` R6 class. It computes the following portf
 Two usage styles:
 
 #' \preformatted{
-# Function interface
-prediction <- predict_portfolio(returns, horizon = 5, m = 2, min_return = 0.01, max_SR=TRUE)
 
 # R6 method interface
 tv <- TVMVP$new()
 tv$set_data(returns)
 tv$determine_factors(max_m=5)
 prediction <- tv$predict_portfolio(horizon = 1, min_return = 0.01, max_SR = TRUE)
+
+#' # Function interface
+prediction <- predict_portfolio(obj, horizon = 5, m = 2, min_return = 0.01, max_SR=TRUE)
 }
 The methods can then be used on \code{prediction} to retrieve the weights.
 
@@ -88,8 +89,13 @@ The returned object includes:
 set.seed(123)
 returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
 
+# Initialize object
+tv <- TVMVP$new()
+tv$set_data(returns)
+
+# Optimize weights and predict returns
 result <- predict_portfolio(
-  returns,
+  tv,
   horizon = 5,
   m = 3,
   min_return = 0.02,
@@ -106,8 +112,6 @@ result$getWeights("MVP")
 result$getWeights("max_SR")
 
 # Or use R6 method interface
-tv <- TVMVP$new()
-tv$set_data(returns)
 tv$determine_factors(max_m=5)
 prediction <- tv$predict_portfolio(horizon = 1, min_return)
 prediction

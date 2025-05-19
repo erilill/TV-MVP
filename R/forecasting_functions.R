@@ -30,7 +30,7 @@
 #' #' \preformatted{
 #' # Function interface
 #' results <- rolling_time_varying_mvp(
-#'   returns = returns,
+#'   obj = tv,
 #'   initial_window = 50,
 #'   rebal_period = 20,
 #'   max_factors = 3,
@@ -42,7 +42,6 @@
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
 #' results <- tv$rolling_time_varying_mvp(
-#'   returns = returns,
 #'   initial_window = 50,
 #'   rebal_period = 20,
 #'   max_factors = 3,
@@ -63,10 +62,14 @@
 #' # Generate random returns for 20 assets over 100 periods
 #' set.seed(123)
 #' returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)
+#' 
+#' # Initialize object
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
 #'
 #' # Run rolling TV-MVP optimization
 #' results <- rolling_time_varying_mvp(
-#'   returns = returns,
+#'   obj = tv,
 #'   initial_window = 50,
 #'   rebal_period = 20,
 #'   max_factors = 3,
@@ -76,10 +79,7 @@
 #' )
 #'
 #' # R6 method interface
-#' tv <- TVMVP$new()
-#' tv$set_data(returns)
 #' results <- tv$rolling_time_varying_mvp(
-#'   returns = returns,
 #'   initial_window = 50,
 #'   rebal_period = 20,
 #'   max_factors = 3,
@@ -160,14 +160,15 @@ rolling_time_varying_mvp <- function(
 #' Two usage styles:
 #'
 #' #' \preformatted{
-#' # Function interface
-#' prediction <- predict_portfolio(returns, horizon = 5, m = 2, min_return = 0.01, max_SR=TRUE)
 #'
 #' # R6 method interface
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
 #' tv$determine_factors(max_m=5)
 #' prediction <- tv$predict_portfolio(horizon = 1, min_return = 0.01, max_SR = TRUE)
+#' 
+#' #' # Function interface
+#' prediction <- predict_portfolio(obj, horizon = 5, m = 2, min_return = 0.01, max_SR=TRUE)
 #' }
 #' The methods can then be used on \code{prediction} to retrieve the weights.
 #'
@@ -186,9 +187,14 @@ rolling_time_varying_mvp <- function(
 #' @examples
 #' set.seed(123)
 #' returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
-#'
+#' 
+#' # Initialize object
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
+#' 
+#' # Optimize weights and predict returns
 #' result <- predict_portfolio(
-#'   returns,
+#'   tv,
 #'   horizon = 5,
 #'   m = 3,
 #'   min_return = 0.02,
@@ -205,8 +211,6 @@ rolling_time_varying_mvp <- function(
 #' result$getWeights("max_SR")
 #'
 #' # Or use R6 method interface
-#' tv <- TVMVP$new()
-#' tv$set_data(returns)
 #' tv$determine_factors(max_m=5)
 #' prediction <- tv$predict_portfolio(horizon = 1, min_return)
 #' prediction
