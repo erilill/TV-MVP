@@ -5,7 +5,7 @@
 \title{#' Rolling Window Time-Varying Minimum Variance Portfolio Optimization}
 \usage{
 rolling_time_varying_mvp(
-  returns,
+  obj,
   initial_window,
   rebal_period,
   max_factors,
@@ -19,7 +19,7 @@ rolling_time_varying_mvp(
 )
 }
 \arguments{
-\item{returns}{A matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.}
+\item{obj}{An object of class TVMVP with the data.}
 
 \item{initial_window}{An integer specifying the number of periods used in the initial estimation window.}
 
@@ -44,7 +44,7 @@ rolling_time_varying_mvp(
 \value{
 An R6 object of class \code{RollingWindow} with the following accessible elements:
 \describe{
-  \item{\code{summary}}\item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
+  \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
   \item{\code{Equal}}{A list with similar structure for the equal-weight portfolio.}
 }
@@ -52,8 +52,8 @@ An R6 object of class \code{RollingWindow} with the following accessible element
 \description{
 This function performs time-varying minimum variance portfolio (TV-MVP) optimization using
 time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The
-optimization is performed over a rolling window, with periodic rebalancing. 
-The procedure is available either as a stand-alone function or as a method in 
+optimization is performed over a rolling window, with periodic rebalancing.
+The procedure is available either as a stand-alone function or as a method in
 the `TVMVP` R6 class.
 }
 \details{

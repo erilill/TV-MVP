@@ -5,26 +5,23 @@
 \title{Predict Optimal Portfolio Weights Using Time-Varying Covariance Estimation}
 \usage{
 predict_portfolio(
-  returns,
+  obj,
   horizon = 1,
-  m = 3,
+  max_factors = 3,
   kernel_func = epanechnikov_kernel,
-  bandwidth = silverman(returns),
   min_return = NULL,
   max_SR = NULL,
   rf = NULL
 )
 }
 \arguments{
-\item{returns}{A numeric matrix of log returns (T × p), where T is the number of time periods and p is the number of assets.}
+\item{obj}{An object of class TVMVP with the data.}
 
 \item{horizon}{Integer. Investment horizon over which expected return and risk are computed. Default is 1.}
 
-\item{m}{Integer. The number of latent factors to consider in the Local PCA model. Default is 3.}
+\item{max_factors}{Integer. The number of latent factors to consider in the Local PCA model. Default is 3.}
 
 \item{kernel_func}{Function. Kernel used for weighting observations in Local PCA. Default is \code{\link{epanechnikov_kernel}}.}
-
-\item{bandwidth}{Numeric. Kernel bandwidth for local PCA. Default is Silverman's rule of thumb.}
 
 \item{min_return}{Optional numeric. If provided, the function computes a Return-Constrained Portfolio that targets this minimum return.}
 

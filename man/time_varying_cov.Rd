@@ -5,9 +5,8 @@
 \title{Estimate Time-Varying Covariance Matrix Using Local PCA}
 \usage{
 time_varying_cov(
-  returns,
-  m,
-  bandwidth = silverman(returns),
+  obj,
+  max_factors = 3,
   kernel_func = epanechnikov_kernel,
   M0 = 10,
   rho_grid = seq(0.005, 2, length.out = 30),
@@ -17,11 +16,9 @@ time_varying_cov(
 )
 }
 \arguments{
-\item{returns}{A numeric matrix of asset returns with dimensions \eqn{T × p}.}
+\item{obj}{An object of class TVMVP with the data.}
 
-\item{m}{The number of factors to use in local PCA.}
-
-\item{bandwidth}{Optional bandwidth for the local PCA. If not provided, Silverman's rule is used.}
+\item{max_factors}{The number of factors to use in local PCA.}
 
 \item{kernel_func}{The kernel function to use (default is \code{\link{epanechnikov_kernel}}).}
 
@@ -49,7 +46,7 @@ By default, a covariance matrix. If \code{full_output = TRUE}, a list containing
 This function estimates a time-varying covariance matrix using local principal component
 analysis and the soft thresholding for residual shrinkage. By default, only the total
 covariance matrix is returned. Optionally, the user can retrieve all intermediate
-components of the estimation process. The procedure is available either as a 
+components of the estimation process. The procedure is available either as a
 stand-alone function or as a method in the `TVMVP` R6 class.
 }
 \details{
@@ -71,7 +68,7 @@ cov <- tv$time_varying_cov()
 }
 }
 \examples{
-\dontrun
+\dontrun{
 set.seed(123)
 returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
 
@@ -81,5 +78,6 @@ time_varying_cov(returns = returns, m = 3)
 tv <- TVMVP$new()
 tv$set_data(returns)
 tv$time_varying_cov(m=3)
+}
 
 }

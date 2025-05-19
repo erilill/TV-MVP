@@ -375,15 +375,18 @@ test:</p>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 1</span></span>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a></span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>tvmvp_obj<span class="sc">$</span><span class="fu">hyptest</span>(<span class="at">iB=</span><span class="dv">10</span>) <span class="co"># Use larger iB in practice</span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>tvmvp_obj</span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; ℹ Object of TVMVP</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; data set &quot;16.22 kB&quot; with 100 rows and 20 columns</span></span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt; - bandwidth = 0.200158593074818</span></span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; - max_m = 5</span></span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; - optimal_m = 1</span></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; - test statistic = 34.7556191258208 with bootstrap p-value = 0</span></span>
-<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt;   run `get_optimal_m()`</span></span></code></pre></div>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; Computing ■■■■■■■                           20% | ETA:  4s</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; Computing ■■■■■■■■■■■■■■■■                  50% | ETA:  3s</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; Computing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■  100% | ETA:  0s</span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>tvmvp_obj</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt; ℹ Object of TVMVP</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt; data set &quot;16.22 kB&quot; with 100 rows and 20 columns</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt; - bandwidth = 0.200158593074818</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt; - max_m = 5</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt; - optimal_m = 1</span></span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a><span class="co">#&gt; - test statistic = 34.7556191258208 with bootstrap p-value = 0</span></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="co">#&gt;   run `get_optimal_m()`</span></span></code></pre></div>
 <p>The function <code>determine_factors</code> uses a BIC-type
 information criterion in order to determine the optimal number of
 factors to be used in the model. More information can be seen in section

@@ -1,9 +1,19 @@
 Package: TVMVP
 Type: Package
 Title: Time-Varying Minimum Variance Portfolio
-Version: 0.1.0
-Author: Erik Lillrank and Yukai Yang
-Maintainer: Erik Lillrank <erik.lillrank@gmail.com>
+Version: 1.0.0
+Authors@R: c(
+  person(given = "Erik", family = "Lillrank",
+         email = "erik.lillrank@gmail.com",
+         role = c("aut", "cre"),
+         comment = c(ORCID = "0009-0001-3345-7694")),
+  person(given = "Yukai", family = "Yang",
+         email = "yukai.yang@statistik.uu.se",
+         role = c("aut"),
+         comment = c(
+           ORCID = "0000-0002-2623-8549",
+           affiliation = "Department of Statistics, Uppsala University"))
+           )
 Description: Provides the estimation of time-dependent covariance matrix of
    returns with the intended use for portfolio optimization. The package also offers
    methods for determining the optimal number of factors to be used in the covariance

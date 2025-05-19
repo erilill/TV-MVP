@@ -51,18 +51,18 @@ procedure (via \code{adaptive_poet_rho()}) to shrink the residual covariance.
 The function follows these steps:
 
 \enumerate{
-  \item **Local Residuals:**  
-        Extract the local loadings \eqn{\Lambda_t} from the last element of \code{localPCA_results\$loadings} and 
+  \item **Local Residuals:**
+        Extract the local loadings \eqn{\Lambda_t} from the last element of \code{localPCA_results\$loadings} and
         factors \eqn{\hat{F}} from \code{localPCA_results\$f_hat}. Let \eqn{w_t} denote the corresponding kernel weights.
         The local residuals are computed as:
         \deqn{U_{\text{local}} = R - F \Lambda_t,}
         where \eqn{R} is the returns matrix.
 
-  \item **Adaptive Thresholding:**  
-        The function calls \code{adaptive_poet_rho()} on \eqn{U_{\text{local}} }to select an optimal shrinkage parameter 
-        \eqn{\hat{\rho}_t}. 
+  \item **Adaptive Thresholding:**
+        The function calls \code{adaptive_poet_rho()} on \eqn{U_{\text{local}} }to select an optimal shrinkage parameter
+        \eqn{\hat{\rho}_t}.
 
-  \item **Residual Covariance Estimation:**  
+  \item **Residual Covariance Estimation:**
         The raw residual covariance is computed as:
         \deqn{S_{u,\text{raw}} = \frac{1}{T} U_{\text{local}}^\top U_{\text{local}},}
         and a threshold is set as:
@@ -70,11 +70,11 @@ The function follows these steps:
         where the mean is taken over the off-diagonal elements.
         Soft-thresholding is then applied to obtain the shrunk residual covariance matrix \eqn{\hat{S}_u}.
 
-  \item **Total Covariance Estimation:**  
+  \item **Total Covariance Estimation:**
         The final covariance matrix is constructed by combining the factor component with the shrunk residual covariance:
         \deqn{\Sigma_R(t) = \Lambda_t \left(\frac{F^\top F}{T}\right) \Lambda_t^\top + \hat{S}_u.}
 
-  \item **PSD Repair:**  
+  \item **PSD Repair:**
         A final positive semidefinite repair is performed by flooring eigenvalues at \code{floor_value} and symmetrizing the matrix.
 }
 }

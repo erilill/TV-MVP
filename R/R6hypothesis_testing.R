@@ -52,6 +52,9 @@ TVMVP$set("public", "hyptest", function(iB = 200, kernel_func = epanechnikov_ker
   V_pT <- compute_V_pT(local_factors, res, h, iT, ip, kernel_func)
   J_pT <- (iT * sqrt(ip) * sqrt(h) * M_hat - B_pT) / sqrt(V_pT)
 
+  env <- environment()
+  cli::cli_progress_bar("Computing", total = iB, .envir = env)
+
   # Step 2-4: Bootstrap procedure using sapply()
   J_pT_bootstrap <- sapply(1:iB, function(b) {
     # Step 2: Generate bootstrap error e*_it
@@ -78,10 +81,15 @@ TVMVP$set("public", "hyptest", function(iB = 200, kernel_func = epanechnikov_ker
     M_hat_star <- compute_M_hat(local_factors_star, F_global_star, local_loadings_star, B_global_star, iT, ip, m)
     B_pT_star <- compute_B_pT(local_factors_star, F_global_star, res_star, h, iT, ip, kernel_func)
     V_pT_star <- compute_V_pT(local_factors_star, res_star, h, iT, ip, kernel_func)
+
+    cli::cli_progress_update(.envir = env)
+
     return((iT * sqrt(ip) * sqrt(h) * M_hat_star - B_pT_star) / sqrt(V_pT_star))
   })
   J_pT_bootstrap <- as.numeric(unlist(J_pT_bootstrap))
   J_pT <- as.numeric(J_pT)
+
+  cli::cli_progress_done(.envir = env)
 
   # Step 4: Compute bootstrap p-value
   p_value <- mean(J_pT_bootstrap >= J_pT)

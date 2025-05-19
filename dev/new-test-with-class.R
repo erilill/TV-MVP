@@ -24,7 +24,7 @@ tmp$set_data(returns)
 tmp
 # show head like tibble does
 
-tmp$set_data(tibble::as_tibble(returns))
+#tmp$set_data(tibble::as_tibble(returns))
 #tmp$get_data()
 
 # this does not work because x y a b are not defined in the class
@@ -55,8 +55,9 @@ tmp$get_bootstrap()
 # to show at first glance. Similarly, we could include something like:
 # tmp$J_star which prints these.
 
-# some bug here... does not work
-prediction <- predict_portfolio(returns, horizon = 21, epanechnikov_kernel, m = 10, min_return=0.5)
+# does not work
+prediction <- predict_portfolio(returns, horizon = 21, kernel_func = epanechnikov_kernel, max_factors = 10, min_return=0.5)
+prediction <- predict_portfolio(tmp, horizon = 21, kernel_func = epanechnikov_kernel, max_factors = 10, min_return=0.5)
 # it works here, weird...
 prediction <- tmp$predict_portfolio(horizon = 1,
                                     kernel_func = epanechnikov_kernel,
@@ -76,7 +77,15 @@ prediction$getWeights(method = "MVPConstrained")
 
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(
-  returns        = returns,
+  returns,
+  initial_window = 60,
+  rebal_period   = 5,
+  max_factors    = 10,
+  return_type    = "daily",
+  kernel_func    = epanechnikov_kernel
+)
+mvp_result <- rolling_time_varying_mvp(
+  tmp,
   initial_window = 60,
   rebal_period   = 5,
   max_factors    = 10,
@@ -109,7 +118,6 @@ mvp_result
 # I also think time_varying_cov() should be included in the class:
 cov_mat <- time_varying_cov(returns,
                                 m=1,
-                                bandwidth = silverman(returns),
                                 kernel_func = epanechnikov_kernel,
                                 M0 = 10,
                                 rho_grid = seq (0.005 , 2,
@@ -117,6 +125,15 @@ cov_mat <- time_varying_cov(returns,
                                 floor_value = 1e-12,
                                 epsilon2 = 1e-6,
                                 full_output = FALSE)
+cov_mat <- time_varying_cov(tmp,
+                            m=1,
+                            kernel_func = epanechnikov_kernel,
+                            M0 = 10,
+                            rho_grid = seq (0.005 , 2,
+                                            length.out = 30),
+                            floor_value = 1e-12,
+                            epsilon2 = 1e-6,
+                            full_output = FALSE)
 cov_mat
 
 cov_mat <- tmp$time_varying_cov(kernel_func = epanechnikov_kernel,
