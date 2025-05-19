@@ -5,7 +5,7 @@
 \title{#' Rolling Window Time-Varying Minimum Variance Portfolio Optimization}
 \usage{
 rolling_time_varying_mvp(
-  returns,
+  obj,
   initial_window,
   rebal_period,
   max_factors,
@@ -19,7 +19,7 @@ rolling_time_varying_mvp(
 )
 }
 \arguments{
-\item{returns}{A matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.}
+\item{obj}{An object of class TVMVP with the data.}
 
 \item{initial_window}{An integer specifying the number of periods used in the initial estimation window.}
 

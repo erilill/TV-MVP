@@ -66,4 +66,13 @@ Lillrank, E. (2025). \ifelse{html}{
 Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101.
 }
 
+\author{
+\strong{Maintainer}: Erik Lillrank \email{erik.lillrank@gmail.com} (\href{https://orcid.org/0009-0001-3345-7694}{ORCID})
+
+Authors:
+\itemize{
+  \item Yukai Yang \email{yukai.yang@statistik.uu.se} (\href{https://orcid.org/0000-0002-2623-8549}{ORCID}) (Department of Statistics, Uppsala University)
+}
+
+}
 \keyword{package}
