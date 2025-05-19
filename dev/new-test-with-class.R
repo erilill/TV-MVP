@@ -118,7 +118,6 @@ mvp_result
 # I also think time_varying_cov() should be included in the class:
 cov_mat <- time_varying_cov(returns,
                                 m=1,
-                                bandwidth = silverman(returns),
                                 kernel_func = epanechnikov_kernel,
                                 M0 = 10,
                                 rho_grid = seq (0.005 , 2,
@@ -126,6 +125,15 @@ cov_mat <- time_varying_cov(returns,
                                 floor_value = 1e-12,
                                 epsilon2 = 1e-6,
                                 full_output = FALSE)
+cov_mat <- time_varying_cov(tmp,
+                            m=1,
+                            kernel_func = epanechnikov_kernel,
+                            M0 = 10,
+                            rho_grid = seq (0.005 , 2,
+                                            length.out = 30),
+                            floor_value = 1e-12,
+                            epsilon2 = 1e-6,
+                            full_output = FALSE)
 cov_mat
 
 cov_mat <- tmp$time_varying_cov(kernel_func = epanechnikov_kernel,

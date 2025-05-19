@@ -327,9 +327,8 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #' components of the estimation process. The procedure is available either as a
 #' stand-alone function or as a method in the `TVMVP` R6 class.
 #'
-#' @param returns A numeric matrix of asset returns with dimensions \eqn{T × p}.
-#' @param m The number of factors to use in local PCA.
-#' @param bandwidth Optional bandwidth for the local PCA. If not provided, Silverman's rule is used.
+#' @param obj An object of class TVMVP with the data.
+#' @param max_factors The number of factors to use in local PCA.
 #' @param kernel_func The kernel function to use (default is \code{\link{epanechnikov_kernel}}).
 #' @param M0 Integer. The number of observations to leave out between the two sub-samples in the adaptive thresholding procedure. Default is 10.
 #' @param rho_grid A numeric vector of candidate shrinkage parameters \eqn{\rho} used in \code{\link{adaptive_poet_rho}}. Default is \code{seq(0.005, 2, length.out = 30)}.
@@ -378,36 +377,24 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #' }
 #'
 #' @export
-time_varying_cov <- function(returns,
-                             m,
-                             bandwidth = silverman(returns),
+time_varying_cov <- function(obj,
+                             max_factors = 3,
                              kernel_func = epanechnikov_kernel,
                              M0 = 10,
                              rho_grid = seq(0.005, 2, length.out = 30),
                              floor_value = 1e-12,
                              epsilon2 = 1e-6,
                              full_output = FALSE) {
-  # Step 1: Local PCA
-  local_res <- localPCA(
-    returns     = returns,
-    bandwidth   = bandwidth,
-    m           = m,
-    kernel_func = kernel_func
-  )
-
-  # Step 2: Residual covariance estimation with POET
-  res <- estimate_residual_cov_poet_local(
-    localPCA_results = local_res,
-    returns           = returns,
-    M0                = M0,
-    rho_grid          = rho_grid,
-    floor_value       = floor_value,
-    epsilon2          = epsilon2
-  )
-
-  if (full_output) {
-    return(res)
+  if(inherits(obj, "TVMVP")){
+    return(obj$time_varying_cov(
+      max_factors = max_factors,
+      kernel_func = kernel_func,
+      M0 = M0,
+      rho_grid = rho_grid,
+      floor_value = floor_value,
+      epsilon2 = epsilon2,
+      full_output = full_output))
   } else {
-    return(res$total_cov)
+    cli::cli_alert_danger("{.code obj} is not an object of {.strong TVMVP}")
   }
 }
