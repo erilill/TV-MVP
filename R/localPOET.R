@@ -354,11 +354,11 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #'
 #' \preformatted{
 #' # Function interface
-#' cov <- time_varying_cov(returns, m = 5)
-#'
-#' # R6 method interface
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
+#' cov <- time_varying_cov(tv, m = 5)
+#'
+#' # R6 method interface
 #' tv$determine_factors(max_m = 5)
 #' cov <- tv$time_varying_cov()
 #' }
@@ -367,12 +367,15 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #' \dontrun{
 #' set.seed(123)
 #' returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
+#' 
+#' # Initialize object
+#' tv <- TVMVP$new()
+#' tv$set_data(returns)
 #'
+#' # Using function interface
 #' time_varying_cov(returns = returns, m = 3)
 #'
 #' # Or using R6 method
-#' tv <- TVMVP$new()
-#' tv$set_data(returns)
 #' tv$time_varying_cov(m=3)
 #' }
 #'
