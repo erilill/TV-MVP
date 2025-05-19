@@ -2,16 +2,9 @@
 * local: macOS Sequoia 15.5, R 4.5.0
 
 ## R CMD check results
-There were no ERRORs or WARNINGs.
+There were no ERRORs, WARNINGs, or NOTEs.
 
-There was one NOTE:
-
-* checking for future file timestamps ... NOTE
-  unable to verify current time
-
-This NOTE is caused by limitations in the system clock resolution and is not related to the package itself. It does not affect reproducibility or functionality.
-
-## Additional information
+## Comments
 * This is the initial submission of the `TVMVP` package to CRAN.
 * The package implements a time-varying minimum variance portfolio (TVMVP) model and estimation procedure as introduced in [Your Reference or Paper if applicable].
 * The package includes documentation and examples.
