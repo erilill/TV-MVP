@@ -77,7 +77,15 @@ prediction$getWeights(method = "MVPConstrained")
 
 # Evaluate historical performance of model:
 mvp_result <- rolling_time_varying_mvp(
-  returns        = returns,
+  returns,
+  initial_window = 60,
+  rebal_period   = 5,
+  max_factors    = 10,
+  return_type    = "daily",
+  kernel_func    = epanechnikov_kernel
+)
+mvp_result <- rolling_time_varying_mvp(
+  tmp,
   initial_window = 60,
   rebal_period   = 5,
   max_factors    = 10,
