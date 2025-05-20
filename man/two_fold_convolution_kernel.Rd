@@ -42,3 +42,4 @@ conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanec
 }
 
 }
+\keyword{internal}

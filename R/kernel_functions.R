@@ -71,7 +71,7 @@ epanechnikov_kernel <- function(u) {
 #' }
 #' 
 #' @importFrom stats integrate
-#' @export
+#' @keywords internal
 boundary_kernel <- function(t, r, iT, h, kernel_func) {
   scaled_diff <- (t - r) / (iT * h)
   k_val <- kernel_func(scaled_diff) / h
@@ -126,7 +126,7 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #'}
 #' 
 #' @importFrom stats integrate
-#' @export
+#' @keywords internal
 two_fold_convolution_kernel <- function(u, kernel_func) {
   result <- ifelse(
     abs(u) <= 2,
