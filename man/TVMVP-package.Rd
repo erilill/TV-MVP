@@ -66,6 +66,14 @@ Lillrank, E. (2025). \ifelse{html}{
 Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/erilill/TV-MVP}
+  \item Report bugs at \url{https://github.com/erilill/TV-MVP/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Erik Lillrank \email{erik.lillrank@gmail.com} (\href{https://orcid.org/0009-0001-3345-7694}{ORCID})
 
