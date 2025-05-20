@@ -14,11 +14,7 @@ Authors@R: c(
          comment = c(
            ORCID = "0000-0002-2623-8549",
            affiliation = "Department of Statistics, Uppsala University")))
-Description: Provides the estimation of time-dependent covariance matrix of
-   returns with the intended use for portfolio optimization. The package also offers
-   methods for determining the optimal number of factors to be used in the covariance
-   estimation, a hypothesis test of time-varying covariance, and user-friendly
-   functions for portfolio optimization and rolling window evaluation.
+Description: Provides the estimation of time-dependent covariance matrix of returns with the intended use for portfolio optimization. The package also offers methods for determining the optimal number of factors to be used in the covariance estimation, a hypothesis test of time-varying covariance, and user-friendly functions for portfolio optimization and rolling window evaluation.
 License: MIT + file LICENSE
 URL: https://github.com/erilill/TV-MVP
 BugReports: https://github.com/erilill/TV-MVP/issues
