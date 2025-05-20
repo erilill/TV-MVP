@@ -11,7 +11,7 @@
 #' \itemize{
 #'    \item Set return data (\code{$set_data()})
 #'    \item Determine optimal number of factors ({\code{$\link{determine_factors}()}})
-#'    \item Conduct test of constant factor loadings (\code{$\link[=hyptest1]{hyptest}()})
+#'    \item Conduct test of constant factor loadings (\code{$\link{hyptest}()})
 #'    \item Time-dependent covariance estimation (\code{$\link{time_varying_cov}()})
 #'    \item Portfolio optimization (\code{$\link{predict_portfolio}()})
 #'    \item Rolling window evaluation (\code{$\link{rolling_time_varying_mvp}()})
