@@ -86,6 +86,7 @@ The returned object includes:
 }
 
 \examples{
+\dontrun{
 set.seed(123)
 returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
 
@@ -116,5 +117,6 @@ tv$determine_factors(max_m=5)
 prediction <- tv$predict_portfolio(horizon = 1, min_return)
 prediction
 prediction$getWeights("MVPConstrained")
+}
 
 }
