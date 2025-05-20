@@ -90,6 +90,7 @@ yearly. The bandwidth is determined by Silverman's rule of thumb, updated each r
 If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 }
 \examples{
+\dontrun{
 # Generate random returns for 20 assets over 100 periods
 set.seed(123)
 returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)
@@ -122,5 +123,5 @@ print(results)
 
 # Plot cumulative log excess returns
 plot(results)
-
+}
 }

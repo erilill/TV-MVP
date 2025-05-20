@@ -29,7 +29,7 @@ A list containing:
 \itemize{
   \item \code{best_rho}: The selected optimal shrinkage parameter \eqn{\hat{\rho}} that minimizes the total
   squared Frobenius norm difference.
-  \item \code{rho_1}: The lower bound for \eqn{\rh} derived from the minimum eigenvalue criteria (adjusted by \code{epsilon2}).
+  \item \code{rho_1}: The lower bound for \eqn{\rho} derived from the minimum eigenvalue criteria (adjusted by \code{epsilon2}).
   \item \code{min_Fnorm}: The minimum total squared Frobenius norm difference achieved.
 }
 }
@@ -44,10 +44,11 @@ is selected.
 The function proceeds as follows:
 
 \enumerate{
-  \item The total number of observations \eqn{T} is halved (floored) to define \eqn{T_1} and \eqn{T_2}:
-        \deqn{T_1 = \left\lfloor \frac{T/2 × \left(1 - 1/\log(T)\right)} \right\rfloor,\quad T_2 = \lfloor T/2 \rfloor - T_1.}
+  \item The total number of observations \eqn{T} is halved to define \eqn{T_1} and \eqn{T_2}. Specifically:
+    \deqn{T_1 = \left\lfloor \frac{T}{2} \times \left(1 - \frac{1}{\log(T)}\right) \right\rfloor}
+    \deqn{T_2 = \left\lfloor \frac{T}{2} \right\rfloor - T_1}
 
-  \item The sample is divided into \eqn{\lfloor T/(2M_0) \rfloor} groups (with \eqn{M_0} observations left out in between).
+  \item The sample is divided into \eqn{\left\lfloor T/(2M_0) \right\rfloor} groups (with \eqn{M_0} observations left out in between).
 
   \item For each group, two subsamples are defined:
     \itemize{
@@ -55,17 +56,16 @@ The function proceeds as follows:
       \item Subsample 2: the last \eqn{T_2} observations of the group, after skipping \eqn{M_0} observations following subsample 1.
     }
 
-  \item For each group and for a given candidate \eqn{\rho} in \code{rho_grid}, the covariance matrix \eqn{S_1}
-        is computed from subsample 1, and then shrunk by applying a soft-thresholding function:
+  \item For each group and a given candidate \eqn{\rho} in \code{rho_grid}, the covariance matrix \eqn{S_1}
+        is computed from subsample 1, and then shrunk using soft-thresholding:
 
-        \deqn{S_{1,\text{shrunk}} = \text{soft\_threshold}\left(S_1, \rho × \text{mean}\left(|S_1|_{\text{off-diag}}\right)\right).}
+        \deqn{S_{1,\text{shrunk}} = \text{soft\_threshold}\left(S_1, \rho \times \text{mean}\left(|S_1|_{\text{off-diag}}\right)\right)}
 
-  \item The function computes the total squared Frobenius norm difference between \eqn{S_{1,\text{shrunk}}}
-        and the covariance matrix \eqn{S_2} (computed from subsample 2) over all groups.
+  \item The total squared Frobenius norm between \eqn{S_{1,\text{shrunk}}}
+        and the covariance matrix \eqn{S_2} (from subsample 2) is computed across all groups.
 
-  \item Finally, the function scans across the \code{rho_grid} to select the \eqn{\rho} that minimizes this
-        total error. In addition, \eqn{\rho_1} is computed as \eqn{\epsilon_2} plus the smallest candidate \eqn{\rho}
-        for which the smallest eigenvalue of the shrunk covariance is positive.
+  \item The function scans \code{rho_grid} to find the \eqn{\rho} minimizing total error. Additionally, it computes \eqn{\rho_1}
+        as \eqn{\epsilon_2} plus the smallest \eqn{\rho} for which the smallest eigenvalue of the shrunk covariance is positive.
 }
 }
 \examples{
