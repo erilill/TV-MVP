@@ -2,6 +2,7 @@ Package: TVMVP
 Type: Package
 Title: Time-Varying Minimum Variance Portfolio
 Version: 1.0.0
+Date: 2025-05-20
 Authors@R: c(
   person(given = "Erik", family = "Lillrank",
          email = "erik.lillrank@gmail.com",
@@ -12,22 +13,26 @@ Authors@R: c(
          role = c("aut"),
          comment = c(
            ORCID = "0000-0002-2623-8549",
-           affiliation = "Department of Statistics, Uppsala University"))
-           )
+           affiliation = "Department of Statistics, Uppsala University")))
 Description: Provides the estimation of time-dependent covariance matrix of
    returns with the intended use for portfolio optimization. The package also offers
    methods for determining the optimal number of factors to be used in the covariance
    estimation, a hypothesis test of time-varying covariance, and user-friendly
    functions for portfolio optimization and rolling window evaluation.
 License: MIT + file LICENSE
+URL: https://github.com/erilill/TV-MVP
+BugReports: https://github.com/erilill/TV-MVP/issues
 Encoding: UTF-8
 LazyData: true
+Depends: R (>= 3.6.0)
 Imports:
     R6,
     cli,
     prettyunits
 Suggests: 
-    knitr, 
-    rmarkdown
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+Config/testthat/edition: 3
