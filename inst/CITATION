@@ -1,11 +1,20 @@
-citEntry(
-  entry  = "Manual",
-  title  = "TVMVP: An R Package for Time-Varying Minimum Variance Portfolio Optimization",
+citHeader("To cite the TVMVP package in publications use:")
+
+bibentry(
+  bibtype = "Manual",
+  title = "TVMVP: An R Package for Time-Varying Minimum Variance Portfolio Optimization",
   author = c(
-    person("Erik", "Lillrank"),
-    person("Yukai", "Yang")
+    person(given = "Erik", family = "Lillrank", 
+           email = "erik.lillrank@gmail.com", 
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0001-3345-7694")),
+    person(given = "Yukai", family = "Yang",
+           email = "yukai.yang@statistik.uu.se",
+           role = "aut",
+           comment = c(ORCID = "0000-0002-2623-8549",
+                       affiliation = "Department of Statistics, Uppsala University"))
   ),
-  year   = "2025",
-  note   = "R package version 1.0.0",
-  url    = "https://CRAN.R-project.org/package=TVMVP"
+  year = "2025",
+  note = "R package version 1.0.0",
+  url = "https://CRAN.R-project.org/package=TVMVP"
 )
