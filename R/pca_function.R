@@ -143,8 +143,8 @@ determine_factors <- function(returns, max_m, bandwidth=silverman(returns)) {
 #'   \item **Kernel Weight Computation:**  
 #'         For each time point \eqn{t = 1, \dots, T}, the kernel weight is computed using 
 #'         \code{boundary_kernel(r, t, T, bandwidth, kernel_func)}. The weighted returns are given by
-#'         \deqn{X_r = \text{returns} ∘ \sqrt{k_h},}
-#'         where ∘ denotes element-wise multiplication and \eqn{k_h} is the vector of kernel weights.
+#'         \deqn{X_r = \text{returns} \circ \sqrt{k_h},}
+#'         where \eqn{\circ} denotes element-wise multiplication and \eqn{k_h} is the vector of kernel weights.
 #'
 #'   \item **Eigen Decomposition:**  
 #'         The function computes the eigen decomposition of the matrix \eqn{X_r X_r^\top} and orders the eigenvalues in
