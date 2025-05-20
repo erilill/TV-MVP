@@ -78,7 +78,7 @@ predictions$getWeights("MVP")
    \item{\code{$\link{determine_factors}()}}{Determines optimal number of factors based on BIC-type information criterion.}
    \item{\code{$get_optimal_m{}}}{Prints optimal number of factors, \code{optimal_m.}}
    \item{\code{$get_IC_values()}}{Prints IC-values for the different number of factors tested using \code{\link{determine_factors}}.}
-   \item{\code{$\link{hyptest()}}}{Hypothesis test of constant loadings.}
+   \item{\code{$\link{hyptest}()}}{Hypothesis test of constant loadings.}
    \item{\code{$get_bootstrap()}}{Prints bootstrap test statistics from the hypothesis test.}
    \item{\code{$\link{predict_portfolio}()}}{Optimizes portfolio weights for out-of-sample prediction of portfolio performance.}
    \item{\code{$\link{rolling_time_varying_mvp}()}}{Evaluates MVP performance in a rolling window framework.}
