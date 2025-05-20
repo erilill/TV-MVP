@@ -112,7 +112,7 @@ m <- determine_factors(returns = returns, max_m = 10, bandwidth = silverman(retu
 m
 
 # Run test of constant loadings
-hypothesis_test <- hyptest1(returns = returns,
+hypothesis_test <- hyptest(returns = returns,
                             m = m,
                             B = 10, # Use larger B in practice
                             )

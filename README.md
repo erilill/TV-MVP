@@ -66,7 +66,8 @@ tvmvp_obj$get_optimal_m()
 #> [1] 1
 
 tvmvp_obj$hyptest(iB=10) # Use larger iB in practice
-#> J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
+#> Computing ■■■■ 10% | ETA: 10s
+#> Computing ■■■■■■■                           20% | ETA: 10sComputing ■■■■■■■■■■                        30% | ETA:  9sComputing ■■■■■■■■■■■■■                     40% | ETA:  8sComputing ■■■■■■■■■■■■■■■■                  50% | ETA:  6sComputing ■■■■■■■■■■■■■■■■■■■               60% | ETA:  5sComputing ■■■■■■■■■■■■■■■■■■■■■■            70% | ETA:  4sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■         80% | ETA:  2sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% | ETA:  1s                                                           J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
 tvmvp_obj
 #> ℹ Object of TVMVP
 #> data set "16.22 kB" with 100 rows and 20 columns
@@ -203,7 +204,7 @@ m <- determine_factors(returns = returns, max_m = 10, bandwidth = silverman(retu
 m
 
 # Run test of constant loadings
-hypothesis_test <- hyptest1(returns = returns,
+hypothesis_test <- hyptest(returns = returns,
                             m = m,
                             B = 10, # Use larger B in practice
                             )
