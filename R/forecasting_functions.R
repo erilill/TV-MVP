@@ -186,6 +186,7 @@ rolling_time_varying_mvp <- function(
 #' }
 #'
 #' @examples
+#' \dontrun{
 #' set.seed(123)
 #' returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
 #' 
@@ -216,7 +217,8 @@ rolling_time_varying_mvp <- function(
 #' prediction <- tv$predict_portfolio(horizon = 1, min_return)
 #' prediction
 #' prediction$getWeights("MVPConstrained")
-#'
+#' }
+#' 
 #' @export
 predict_portfolio <- function(
     obj,
