@@ -63,7 +63,9 @@ Lillrank, E. (2025). \ifelse{html}{
     \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
   }{Master’s thesis (PDF in inst/doc)}
   
-Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101.
+Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101. 
+
+Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. \emph{Journal of Econometrics}, 239(2), 105339.
 }
 
 \seealso{
