@@ -66,8 +66,8 @@ tvmvp_obj$get_optimal_m()
 #> [1] 1
 
 tvmvp_obj$hyptest(iB=10) # Use larger iB in practice
-#> Computing ■■■■ 10% | ETA: 10s
-#> Computing ■■■■■■■                           20% | ETA: 10sComputing ■■■■■■■■■■                        30% | ETA:  9sComputing ■■■■■■■■■■■■■                     40% | ETA:  8sComputing ■■■■■■■■■■■■■■■■                  50% | ETA:  6sComputing ■■■■■■■■■■■■■■■■■■■               60% | ETA:  5sComputing ■■■■■■■■■■■■■■■■■■■■■■            70% | ETA:  4sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■         80% | ETA:  2sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% | ETA:  1s                                                           J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
+#> Computing ■■■■ 10% | ETA: 15s
+#> Computing ■■■■■■■                           20% | ETA: 14sComputing ■■■■■■■■■■                        30% | ETA: 13sComputing ■■■■■■■■■■■■■                     40% | ETA: 11sComputing ■■■■■■■■■■■■■■■■                  50% | ETA:  9sComputing ■■■■■■■■■■■■■■■■■■■               60% | ETA:  7sComputing ■■■■■■■■■■■■■■■■■■■■■■            70% | ETA:  5sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■         80% | ETA:  4sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% | ETA:  2s                                                           J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
 tvmvp_obj
 #> ℹ Object of TVMVP
 #> data set "16.22 kB" with 100 rows and 20 columns
@@ -247,3 +247,14 @@ cov_mat <- time_varying_cov(obj = tvmvp_obj,
 These have the same functionality as the methods, however using the
 class methods is neater as the necessary parameters are cached in the
 object.
+
+## References
+
+Lillrank, E. (2025). A Time-Varying Factor Approach to Covariance
+Estimation.
+
+Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and
+testing. Journal of Econometrics, 198(1), 84–101.
+
+Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum
+variance portfolio. Journal of Econometrics, 239(2), 105339.
