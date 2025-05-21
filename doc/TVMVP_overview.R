@@ -32,6 +32,7 @@ mvp_result <- rolling_time_varying_mvp(
   rf             = 1e-04
 )
 mvp_result
+plot(mvp_result)
 
 ## -----------------------------------------------------------------------------
 prediction <- predict_portfolio(returns = returns, 
