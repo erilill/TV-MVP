@@ -19,6 +19,14 @@
 #' An optional step includes a hypothesis test to check whether the covariance 
 #' matrix is time-invariant.
 #' 
+#' The local PCA method, method for determining the number of factors, and 
+#' associated hypothesis test are based on Su and Wang (2017). The approach to 
+#' time-varying portfolio optimization follows Fan et al. (2024). The 
+#' regularisation applied to the residual covariance matrix adopts the technique 
+#' introduced by Chen et al. (2019).
+#' 
+#' The methodology implemented in this package closely follows Fan et al. (2024).
+#' The original authors provide a Matlab implementation at https://github.com/RuikeWu/TV-MVP.
 #'
 #' @section Authors and Maintainer:
 #' Authors: Erik Lillrank and Yukai Yang \cr
@@ -60,8 +68,10 @@
 #'     \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
 #'   }{Master’s thesis (PDF in inst/doc)}
 #'   
-#' Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. \emph{Journal of Econometrics}, 198(1), 84–101. 
+#' Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101. 
 #' 
-#' Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. \emph{Journal of Econometrics}, 239(2), 105339.
+#' Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+#' 
+#' Chen, J., Li, D., & Linton, O. (2019). A new semiparametric estimation approach for large dynamic covariance matrices with multiple conditioning variables. Journal of Econometrics, 212(1), 155–176.
 #' @keywords package
 "_PACKAGE"
