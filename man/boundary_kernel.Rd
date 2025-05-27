@@ -38,17 +38,4 @@ edge effects commonly encountered in kernel-based methods. The function performs
   sum to one in boundary regions.
 }
 }
-\examples{
-\dontrun{
-# Define the Epanechnikov kernel function
-epanechnikov_kernel <- function(u) {
-  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-}
-
-# Compute boundary kernel weight for time period t = 5, reference r = 5, T = 100, h = 0.1
-weight <- boundary_kernel(t = 5, r = 5, T = 100, h = 0.1, kernel_func = epanechnikov_kernel)
-print(weight)
-}
-
-}
 \keyword{internal}

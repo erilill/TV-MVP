@@ -48,15 +48,8 @@ The function processes the input returns over \eqn{T} time periods by iterativel
   \item A second pass computes a one-step-ahead factor estimate for the current time period.
 }
 }
-\examples{
-\dontrun{
-# Generate simulated returns for 250 periods and 10 assets
-set.seed(123)
-returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
-
-# Perform local PCA with a bandwidth of 0.2 and 4 factors using the default Epanechnikov kernel
-results <- localPCA(returns, bandwidth = 0.2, m = 4)
-str(results$f_hat)
+\section{References}{
+  
+Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101.
 }
 
-}

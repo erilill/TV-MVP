@@ -177,7 +177,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' 
 #' \preformatted{
 #' # Function interface
-#' hyptest1(returns, m=2)
+#' hyptest(returns, m=2)
 #'
 #' # R6 method interface
 #' tv <- TVMVP$new()
@@ -223,13 +223,13 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Simulate some random returns (e.g., 100 periods, 30 assets)
 #' set.seed(123)
 #' returns <- matrix(rnorm(100*30, mean = 0, sd = 0.02), nrow = 100, ncol = 30)
 #'
-#' # Test for time-varying covariance using 3 factors and 200 bootstrap replications
-#' test_result <- hyptest1(returns, m = 3, B = 200, kernel_func = epanechnikov_kernel)
+#' # Test for time-varying covariance using 3 factors and 10 bootstrap replications
+#' test_result <- hyptest(returns, m = 3, B = 10, kernel_func = epanechnikov_kernel)
 #'
 #' # Print test statistic and p-value
 #' print(test_result$J_NT)
@@ -239,7 +239,7 @@ compute_V_pT <- function(local_factors, residuals, h, iT, ip, kernel_func) {
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
 #' tv$determine_factors(max_m=5)
-#' tv$hyptest(B = 200, kernel_func = epanechnikov_kernel)
+#' tv$hyptest(iB = 10, kernel_func = epanechnikov_kernel)
 #' tv
 #' tv$get_bootstrap()         # prints bootstrap test statistics
 #' }

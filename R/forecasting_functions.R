@@ -58,8 +58,15 @@
 #'
 #' If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 #'
+#' @section References: 
+#' Lillrank, E. (2025). \ifelse{html}{
+#'     \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+#'   }{Master’s thesis (PDF in inst/doc)}
+#'   
+#' Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+#' 
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Generate random returns for 20 assets over 100 periods
 #' set.seed(123)
 #' returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)
@@ -185,8 +192,16 @@ rolling_time_varying_mvp <- function(
 #'   \item Minimum variance with expected return constraint (if \code{min_return} is provided)
 #' }
 #'
+#' @section References: 
+#' Lillrank, E. (2025). \ifelse{html}{
+#'     \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+#'   }{Master’s thesis (PDF in inst/doc)}
+#'   
+#' Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+#' 
+#'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
 #' 

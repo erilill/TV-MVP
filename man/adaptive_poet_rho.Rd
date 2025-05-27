@@ -68,16 +68,4 @@ The function proceeds as follows:
         as \eqn{\epsilon_2} plus the smallest \eqn{\rho} for which the smallest eigenvalue of the shrunk covariance is positive.
 }
 }
-\examples{
-\dontrun{
-# Generate a random matrix R (e.g., 100 observations and 10 variables)
-set.seed(123)
-R <- matrix(rnorm(100 * 10), nrow = 100, ncol = 10)
-
-# Select the optimal shrinkage parameter using the adaptive POET procedure
-result <- adaptive_poet_rho(R, M0 = 10, rho_grid = seq(0.001, 2, length.out = 20), epsilon2 = 1e-6)
-print(result)
-}
-
-}
 \keyword{internal}

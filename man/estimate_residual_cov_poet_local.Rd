@@ -78,12 +78,4 @@ The function follows these steps:
         A final positive semidefinite repair is performed by flooring eigenvalues at \code{floor_value} and symmetrizing the matrix.
 }
 }
-\examples{
-\dontrun{
-# Assume localPCA_results is computed via localPCA() and returns is a T x p matrix.
-cov_est <- estimate_residual_cov_poet_local(localPCA_results, returns)
-str(cov_est)
-}
-
-}
 \keyword{internal}

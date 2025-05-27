@@ -89,8 +89,17 @@ yearly. The bandwidth is determined by Silverman's rule of thumb, updated each r
 
 If `rf` is `NULL`, the risk-free rate is assumed to be zero.
 }
+\section{References}{
+ 
+Lillrank, E. (2025). \ifelse{html}{
+    \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+  }{Master’s thesis (PDF in inst/doc)}
+  
+Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+}
+
 \examples{
-\dontrun{
+\donttest{
 # Generate random returns for 20 assets over 100 periods
 set.seed(123)
 returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)

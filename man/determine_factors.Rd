@@ -64,6 +64,11 @@ For each candidate number of factors \eqn{m} (from 1 to \code{max_m}), the funct
 
 The optimal number of factors is then chosen as the value of \eqn{m} that minimizes \eqn{\text{IC}(m)}.
 }
+\section{References}{
+  
+Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101.
+}
+
 \examples{
 set.seed(123)
 returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)

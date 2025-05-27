@@ -53,6 +53,10 @@
 #'
 #' The optimal number of factors is then chosen as the value of \eqn{m} that minimizes \eqn{\text{IC}(m)}.
 #'
+#' @section References:  
+#' Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101. 
+#' 
+#'
 #' @examples
 #' set.seed(123)
 #' returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
@@ -166,16 +170,6 @@ determine_factors <- function(returns, max_m, bandwidth=silverman(returns)) {
 #'         where \eqn{R_r} is the return vector at time \eqn{r}.
 #' }
 #'
-#' @examples
-#' \dontrun{
-#' # Simulate asset returns for 250 periods and 10 assets:
-#' set.seed(123)
-#' returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
-#'
-#' # Perform local PCA at time index 100 using 4 factors and the Epanechnikov kernel:
-#' result <- local_pca(returns, r = 100, bandwidth = 0.2, m = 4, kernel_func = epanechnikov_kernel)
-#' str(result)
-#' }
 #'
 #' @importFrom stats cor
 #'@keywords internal
@@ -259,16 +253,10 @@ local_pca <- function(returns, r, bandwidth, m, kernel_func, prev_F = NULL) {
 #'   \item A second pass computes a one-step-ahead factor estimate for the current time period.
 #' }
 #'
-#' @examples
-#' \dontrun{
-#' # Generate simulated returns for 250 periods and 10 assets
-#' set.seed(123)
-#' returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
-#'
-#' # Perform local PCA with a bandwidth of 0.2 and 4 factors using the default Epanechnikov kernel
-#' results <- localPCA(returns, bandwidth = 0.2, m = 4)
-#' str(results$f_hat)
-#' }
+#' @section References:  
+#' Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing. Journal of Econometrics, 198(1), 84–101. 
+#' 
+#' 
 #'
 localPCA <- function(returns,
                      bandwidth,

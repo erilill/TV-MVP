@@ -57,12 +57,6 @@
 #'         A final positive semidefinite repair is performed by flooring eigenvalues at \code{floor_value} and symmetrizing the matrix.
 #' }
 #'
-#' @examples
-#' \dontrun{
-#' # Assume localPCA_results is computed via localPCA() and returns is a T x p matrix.
-#' cov_est <- estimate_residual_cov_poet_local(localPCA_results, returns)
-#' str(cov_est)
-#' }
 #'
 #' @keywords internal
 estimate_residual_cov_poet_local <- function(localPCA_results,
@@ -192,16 +186,6 @@ estimate_residual_cov_poet_local <- function(localPCA_results,
 #'         as \eqn{\epsilon_2} plus the smallest \eqn{\rho} for which the smallest eigenvalue of the shrunk covariance is positive.
 #' }
 #'
-#' @examples
-#' \dontrun{
-#' # Generate a random matrix R (e.g., 100 observations and 10 variables)
-#' set.seed(123)
-#' R <- matrix(rnorm(100 * 10), nrow = 100, ncol = 10)
-#'
-#' # Select the optimal shrinkage parameter using the adaptive POET procedure
-#' result <- adaptive_poet_rho(R, M0 = 10, rho_grid = seq(0.001, 2, length.out = 20), epsilon2 = 1e-6)
-#' print(result)
-#' }
 #'
 #' @importFrom stats cov
 #' @keywords internal
@@ -362,9 +346,19 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #' tv$determine_factors(max_m = 5)
 #' cov <- tv$time_varying_cov()
 #' }
+#' 
+#' @section References: 
+#' Lillrank, E. (2025). \ifelse{html}{
+#'     \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+#'   }{Master’s thesis (PDF in inst/doc)}
+#'   
+#' Chen, J., Li, D., & Linton, O. (2019). A new semiparametric estimation approach for large dynamic covariance matrices with multiple conditioning variables. Journal of Econometrics, 212(1), 155–176.
+#'
+#' Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+#' 
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
 #' 
@@ -373,11 +367,12 @@ adaptive_poet_rho <- function(R, M0 = 10,
 #' tv$set_data(returns)
 #'
 #' # Using function interface
-#' time_varying_cov(returns = returns, m = 3)
+#' time_varying_cov(obj = tv, m = 3)
 #'
 #' # Or using R6 method
 #' tv$time_varying_cov(m=3)
 #' }
+#' 
 #'
 #' @export
 time_varying_cov <- function(obj,

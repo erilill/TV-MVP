@@ -67,8 +67,19 @@ tv$determine_factors(max_m = 5)
 cov <- tv$time_varying_cov()
 }
 }
+\section{References}{
+ 
+Lillrank, E. (2025). \ifelse{html}{
+    \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+  }{Master’s thesis (PDF in inst/doc)}
+  
+Chen, J., Li, D., & Linton, O. (2019). A new semiparametric estimation approach for large dynamic covariance matrices with multiple conditioning variables. Journal of Econometrics, 212(1), 155–176.
+
+Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+}
+
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 returns <- matrix(rnorm(100 * 30), nrow = 100, ncol = 30)
 
@@ -77,10 +88,11 @@ tv <- TVMVP$new()
 tv$set_data(returns)
 
 # Using function interface
-time_varying_cov(returns = returns, m = 3)
+time_varying_cov(obj = tv, m = 3)
 
 # Or using R6 method
 tv$time_varying_cov(m=3)
 }
+
 
 }

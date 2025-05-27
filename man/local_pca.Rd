@@ -64,16 +64,4 @@ The function operates in the following steps:
         where \eqn{R_r} is the return vector at time \eqn{r}.
 }
 }
-\examples{
-\dontrun{
-# Simulate asset returns for 250 periods and 10 assets:
-set.seed(123)
-returns <- matrix(rnorm(250 * 10), nrow = 250, ncol = 10)
-
-# Perform local PCA at time index 100 using 4 factors and the Epanechnikov kernel:
-result <- local_pca(returns, r = 100, bandwidth = 0.2, m = 4, kernel_func = epanechnikov_kernel)
-str(result)
-}
-
-}
 \keyword{internal}

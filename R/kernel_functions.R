@@ -20,12 +20,11 @@
 #' This function applies the above formula to each element of the input vector \code{u}.
 #'
 #' @examples
-#' \dontrun{
 #' # Define a range of u values
 #' u_values <- seq(-1.5, 1.5, by = 0.1)
 #'
 #' # Compute Epanechnikov kernel values
-#' kernel_values <- epanechnikov_kernel(u_values)}
+#' kernel_values <- epanechnikov_kernel(u_values)
 #' 
 #' @export
 epanechnikov_kernel <- function(u) {
@@ -58,17 +57,6 @@ epanechnikov_kernel <- function(u) {
 #'   sum to one in boundary regions.
 #' }
 #'
-#' @examples
-#' \dontrun{
-#' # Define the Epanechnikov kernel function
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-#' }
-#'
-#' # Compute boundary kernel weight for time period t = 5, reference r = 5, T = 100, h = 0.1
-#' weight <- boundary_kernel(t = 5, r = 5, T = 100, h = 0.1, kernel_func = epanechnikov_kernel)
-#' print(weight)
-#' }
 #' 
 #' @importFrom stats integrate
 #' @keywords internal
@@ -111,19 +99,6 @@ boundary_kernel <- function(t, r, iT, h, kernel_func) {
 #' where \eqn{K} is the original kernel function. The function evaluates this convolution for each
 #' input \code{u} within the interval \([-2, 2]\) and sets it to zero outside this range.
 #'
-#' @examples
-#' \dontrun{
-#' # Define the Epanechnikov kernel function
-#' epanechnikov_kernel <- function(u) {
-#'   ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-#' }
-#'
-#' # Define a range of u values
-#' u_values <- seq(-3, 3, by = 0.1)
-#'
-#' # Compute two-fold convolution kernel values
-#' conv_kernel_values <- two_fold_convolution_kernel(u_values, kernel_func = epanechnikov_kernel)
-#'}
 #' 
 #' @importFrom stats integrate
 #' @keywords internal

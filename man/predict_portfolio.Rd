@@ -85,8 +85,17 @@ The returned object includes:
 }
 }
 
+\section{References}{
+ 
+Lillrank, E. (2025). \ifelse{html}{
+    \out{<a href='../doc/thesis.pdf'>A Time-Varying Factor Approach to Covariance Estimation</a>}
+  }{Master’s thesis (PDF in inst/doc)}
+  
+Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio. Journal of Econometrics, 239(2), 105339.
+}
+
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 returns <- matrix(rnorm(200 * 20, mean = 0, sd = 0.02), ncol = 20)
 
