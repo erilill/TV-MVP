@@ -24,6 +24,14 @@ The TVMVP package implements a method for estimating a time-dependent covariance
 \item Multiple portfolio optimization techniques
 \end{itemize}
 
+This package is an R implementation of the method proposed in Fan et al. (2024). The original authors provide a Matlab implementation at https://github.com/RuikeWu/TV-MVP.
+
+The local PCA method, method for determining the number of factors, and 
+associated hypothesis test are based on Su and Wang (2017). The approach to 
+time-varying portfolio optimization follows Fan et al. (2024). The 
+regularisation applied to the residual covariance matrix adopts the technique 
+introduced by Chen et al. (2019).
+
 ## Example
 
 After installing the package, you attach the package by running the code:
@@ -160,4 +168,6 @@ Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing
 
 Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio.
 Journal of Econometrics, 239(2), 105339.
+
+Chen, J., Li, D., & Linton, O. (2019). A new semiparametric estimation approach for large dynamic covariance matrices with multiple conditioning variables. Journal of Econometrics, 212(1), 155–176.
 
