@@ -18,7 +18,13 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The TVMVP package implements a method of estimating a time dependent covariance matrix based on time series data using principal component analysis on kernel weighted data. The package also includes a hypothesis test of time-invariant covariance, and methods for implementing the time-dependent covariance matrix in a portfolio optimization setting.
+The TVMVP package implements a method of estimating a time dependent covariance matrix based on time series data using principal component analysis on kernel weighted data. The package also includes a hypothesis test of time-invariant covariance, and methods for implementing the time-dependent covariance matrix in a portfolio optimization setting. This package is an R implementation of the method proposed in Fan et al. (2024). The original authors provide a Matlab implementation at https://github.com/RuikeWu/TV-MVP.
+
+The local PCA method, method for determining the number of factors, and 
+associated hypothesis test are based on Su and Wang (2017). The approach to 
+time-varying portfolio optimization follows Fan et al. (2024). The 
+regularisation applied to the residual covariance matrix adopts the technique 
+introduced by Chen et al. (2019).
 
 ## Installation
 
@@ -162,3 +168,5 @@ Su, L., & Wang, X. (2017). On time-varying factor models: Estimation and testing
 
 Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum variance portfolio.
 Journal of Econometrics, 239(2), 105339.
+
+Chen, J., Li, D., & Linton, O. (2019). A new semiparametric estimation approach for large dynamic covariance matrices with multiple conditioning variables. Journal of Econometrics, 212(1), 155–176.

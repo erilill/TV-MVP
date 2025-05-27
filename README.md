@@ -11,6 +11,15 @@ covariance matrix based on time series data using principal component
 analysis on kernel weighted data. The package also includes a hypothesis
 test of time-invariant covariance, and methods for implementing the
 time-dependent covariance matrix in a portfolio optimization setting.
+This package is an R implementation of the method proposed in Fan et
+al. (2024). The original authors provide a Matlab implementation at
+<https://github.com/RuikeWu/TV-MVP>.
+
+The local PCA method, method for determining the number of factors, and
+associated hypothesis test are based on Su and Wang (2017). The approach
+to time-varying portfolio optimization follows Fan et al. (2024). The
+regularisation applied to the residual covariance matrix adopts the
+technique introduced by Chen et al. (2019).
 
 ## Installation
 
@@ -66,8 +75,8 @@ tvmvp_obj$get_optimal_m()
 #> [1] 1
 
 tvmvp_obj$hyptest(iB=10) # Use larger iB in practice
-#> Computing ■■■■ 10% | ETA: 15s
-#> Computing ■■■■■■■                           20% | ETA: 14sComputing ■■■■■■■■■■                        30% | ETA: 13sComputing ■■■■■■■■■■■■■                     40% | ETA: 11sComputing ■■■■■■■■■■■■■■■■                  50% | ETA:  9sComputing ■■■■■■■■■■■■■■■■■■■               60% | ETA:  7sComputing ■■■■■■■■■■■■■■■■■■■■■■            70% | ETA:  5sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■         80% | ETA:  4sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% | ETA:  2s                                                           J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
+#> Computing ■■■■■■■ 20% | ETA: 7s
+#> Computing ■■■■■■■■■■                        30% | ETA:  7sComputing ■■■■■■■■■■■■■                     40% | ETA:  6sComputing ■■■■■■■■■■■■■■■■                  50% | ETA:  5sComputing ■■■■■■■■■■■■■■■■■■■               60% | ETA:  4sComputing ■■■■■■■■■■■■■■■■■■■■■■            70% | ETA:  3sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■         80% | ETA:  2sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% | ETA:  1s                                                           J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
 tvmvp_obj
 #> ℹ Object of TVMVP
 #> data set "16.22 kB" with 100 rows and 20 columns
@@ -258,3 +267,7 @@ testing. Journal of Econometrics, 198(1), 84–101.
 
 Fan, Q., Wu, R., Yang, Y., & Zhong, W. (2024). Time-varying minimum
 variance portfolio. Journal of Econometrics, 239(2), 105339.
+
+Chen, J., Li, D., & Linton, O. (2019). A new semiparametric estimation
+approach for large dynamic covariance matrices with multiple
+conditioning variables. Journal of Econometrics, 212(1), 155–176.
