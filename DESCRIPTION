@@ -14,9 +14,7 @@ Encoding: UTF-8
 LazyData: true
 Imports:
     R6,
-    tibble,
-    cli,
-    prettyunits
+    cli
 Suggests: 
     knitr, 
     rmarkdown
