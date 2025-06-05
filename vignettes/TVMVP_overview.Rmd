@@ -20,8 +20,8 @@ The TVMVP package implements a method for estimating a time-dependent covariance
 \begin{itemize}
 \item A BIC-type information criterion for determining the optimal number of factors
 \item A hypothesis test for time-invariant covariance
-\item Rolling-window evaluation of portfolio
-\item Multiple portfolio optimization texhniques
+\item Expanding-window evaluation of portfolio
+\item Multiple portfolio optimization techniques
 \end{itemize}
 
 ## Example
@@ -42,7 +42,7 @@ returns <- matrix(rnorm(uT * up, mean = 0.001, sd = 0.02), ncol = up)
 ```{r}
 m <- determine_factors(returns = returns, max_m = 10, bandwidth = silverman(returns))$optimal_m
 m
-hypothesis_test <- hyptest1(returns = returns,
+hypothesis_test <- hyptest(returns = returns,
                             m = m,
                             B = 10, # Use larger B in practice
                             kernel_func = epanechnikov_kernel)
@@ -54,12 +54,12 @@ The function `determine_factors` uses a BIC-type information criterion in order 
 
 ## Portfolio optimization
 
-The package offers two functions for the purpose of portfolio estimation and evaluation: `rolling_time_varying_mvp` which implements a rolling window in order to evaluate the performance of a minimum variance portfolio implemented using the time-varying covariance matrix, and `predict_portfolio` which implements an out of sample prediction of the portfolio.
+The package offers two functions for the purpose of portfolio estimation and evaluation: `expanding_tvmvp` which implements an expanding window in order to evaluate the performance of a minimum variance portfolio implemented using the time-varying covariance matrix, and `predict_portfolio` which implements an out of sample prediction of the portfolio.
 
 Note that these functions expect log returns and log risk free rates. 
 
-```{r}
-mvp_result <- rolling_time_varying_mvp(
+```{r, fig.dim = c(6,4)}
+mvp_result <- expanding_tvmvp(
   returns        = returns,
   initial_window = 60,
   rebal_period   = 5,
@@ -72,7 +72,7 @@ mvp_result
 plot(mvp_result)
 ```
 
-The `rolling_time_varying_mvp` function takes the input: `returns` a $T\times p$ data matrix of log returns, `initial_window` which is the initial holding window used for estimation, `rebal_period` which is the length of the rebalancing period to be used in the evaluation, `max_factors` used in the determination of the optimal number of factors, `return_type` can be set to “daily”, “weekly”, and “monthly”, and is used for annualization of the results, `kernel_func`, and `rf` which denotes the risk free rate, this can be input either as a scalar or at $(T-initial\_window)\times1$ numerical vector. The function outputs relevant metrics for evaluation of the performance of the portfolio such as cumulative log excess returns, standard deviation, and Sharpe ratio.
+The `expanding_tvmvp` function takes the input: `returns` a $T\times p$ data matrix of log returns, `initial_window` which is the initial holding window used for estimation, `rebal_period` which is the length of the rebalancing period to be used in the evaluation, `max_factors` used in the determination of the optimal number of factors, `return_type` can be set to “daily”, “weekly”, and “monthly”, and is used for annualization of the results, `kernel_func`, and `rf` which denotes the risk free rate, this can be input either as a scalar or at $(T-initial\_window)\times1$ numerical vector. The function outputs relevant metrics for evaluation of the performance of the portfolio such as cumulative log excess returns, standard deviation, and Sharpe ratio.
 
 ```{r}
 prediction <- predict_portfolio(returns = returns, 

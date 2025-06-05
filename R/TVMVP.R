@@ -28,8 +28,8 @@
 #' @section Main Functions:
 #' \describe{
 #'   \item{\code{\link{determine_factors}}}{Selects the optimal number of factors via an information criterion.}
-#'   \item{\code{\link{hyptest1}}}{Hypothesis test for time-invariant covariance matrices. Bootstrap p-values supported.}
-#'   \item{\code{\link{rolling_time_varying_mvp}}}{Evaluates MVP performance in a rolling window framework.}
+#'   \item{\code{\link{hyptest}}}{Hypothesis test for time-invariant covariance matrices. Bootstrap p-values supported.}
+#'   \item{\code{\link{expanding_tvmvp}}}{Evaluates MVP performance in a expanding window framework.}
 #'   \item{\code{\link{predict_portfolio}}}{Optimizes portfolio weights out-of-sample.}
 #'   \item{\code{\link{time_varying_cov}}}{Estimates the time-varying covariance matrix.}
 #' }

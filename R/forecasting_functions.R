@@ -1,8 +1,8 @@
-#' #' Rolling Window Time-Varying Minimum Variance Portfolio Optimization
+#' #' Expanding Window Time-Varying Minimum Variance Portfolio Optimization
 #'
 #' This function performs time-varying minimum variance portfolio (TV-MVP) optimization using 
 #' time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The 
-#' optimization is performed over a rolling window, with periodic rebalancing.
+#' optimization is performed over a expanding window, with periodic rebalancing.
 #'
 #' @param returns A matrix of asset returns (T x p), where T is the number of time periods and p is the number of assets.
 #' @param initial_window An integer specifying the number of periods used in the initial estimation window.
@@ -16,7 +16,7 @@
 #' @param floor_value A small positive value to ensure numerical stability in the covariance matrix. Default is `1e-12`.
 #' @param epsilon2 A small positive value used in the adaptive thresholding of the residual covariance estimation. Default is `1e-6`.
 #'
-#' @return An R6 object of class \code{RollingWindow} with the following accessible elements:
+#' @return An R6 object of class \code{ExpandingWindow} with the following accessible elements:
 #' \describe{
 #'   \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
 #'   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
@@ -24,7 +24,7 @@
 #' }
 #'
 #' @details
-#' The function implements a rolling time-varying PCA approach to estimate latent factor structures 
+#' The function implements a expanding window time-varying PCA approach to estimate latent factor structures 
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
 #' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is 
 #' rebalanced periodically according to the specified `rebal_period`. The number of factors is
@@ -38,8 +38,8 @@
 #' set.seed(123)
 #' returns <- matrix(rnorm(20*100), nrow = 100, ncol = 20)
 #'
-#' # Run rolling TV-MVP optimization
-#' results <- rolling_time_varying_mvp(
+#' # Run expanding window TV-MVP optimization
+#' results <- expanding_tvmvp(
 #'   returns = returns,
 #'   initial_window = 50,
 #'   rebal_period = 20,
@@ -57,7 +57,7 @@
 #'
 #' @importFrom stats var
 #' @export
-rolling_time_varying_mvp <- function(
+expanding_tvmvp <- function(
     returns,            # Log returns matrix
     initial_window,     # Number of periods in the initial estimation window
     rebal_period,       # Holding window length (HT in the paper)
@@ -184,12 +184,12 @@ rolling_time_varying_mvp <- function(
   )
   
   # Create and return an R6 object:
-  out <- RollingWindow$new(
+  out <- ExpandingWindow$new(
     summary = summary_df,
     TVMVP   = TVMVP,
     Equal   = Equal
   )
-  class(out) <- c("RollingWindow", class(out))
+  class(out) <- c("ExpandingWindow", class(out))
   return(out)
 }
 #' Predict Optimal Portfolio Weights Using Time-Varying Covariance Estimation
@@ -485,8 +485,8 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
 )
 #' @import R6
 #' @import cli
-RollingWindow <- R6::R6Class(
-  "RollingWindow",
+ExpandingWindow <- R6::R6Class(
+  "ExpandingWindow",
   public = list(
     summary = NULL,
     TVMVP   = NULL,
@@ -538,9 +538,9 @@ RollingWindow <- R6::R6Class(
 )
 #' @importFrom graphics legend lines par plot
 #' @export
-#' @method plot RollingWindow
-plot.RollingWindow <- function(x, ...) {
-  stopifnot(inherits(x, "RollingWindow"))
+#' @method plot ExpandingWindow
+plot.ExpandingWindow <- function(x, ...) {
+  stopifnot(inherits(x, "ExpandingWindow"))
   
   # Calculate cumulative returns
   tvmvp_cum <- cumsum(x$TVMVP$returns)

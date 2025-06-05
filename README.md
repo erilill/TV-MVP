@@ -54,7 +54,7 @@ test:
 m <- determine_factors(returns = returns, max_m = 10, bandwidth = silverman(returns))$optimal_m
 m
 #> [1] 1
-hypothesis_test <- hyptest1(returns = returns,
+hypothesis_test <- hyptest(returns = returns,
                             m = m,
                             B = 10, # Use larger B in practice
                             kernel_func = epanechnikov_kernel)
@@ -85,7 +85,7 @@ offers the Epanechnikov kernel, however others could also be used.
 
 The next step, and the most relevant functionality is the portfolio
 optimization. The package offers two functions for this purpose:
-`rolling_time_varying_mvp` which implements a rolling window in order to
+`expanding_tvmvp` which implements a expanding window in order to
 evaluate the performance of a minimum variance portfolio implemented
 using the time-varying covariance matrix, and `predict_portfolio` which
 implements an out of sample prediction of the portfolio.
@@ -93,7 +93,7 @@ implements an out of sample prediction of the portfolio.
 Note that these functions expect log returns and log risk free rate.
 
 ``` r
-mvp_result <- rolling_time_varying_mvp(
+mvp_result <- expanding_tvmvp(
   returns        = returns,
   initial_window = 60,
   rebal_period   = 5,
@@ -123,17 +123,17 @@ plot(mvp_result)
 
 <img src="man/figures/README-rolpred-1.png" width="100%" />
 
-The `rolling_time_varying_mvp` function takes the input: `returns` a
-$T\times p$ data matrix, `initial_window` which is the initial holding
-window used for estimation, `rebal_period` which is the length of the
-rebalancing period to be used in the evaluation, `max_factors` used in
-the determination of the optimal number of factors, `return_type` can be
-set to “daily”, “weekly”, and “monthly”, and is used for annualization
-of the results, `kernel_func`, and `rf` which denotes the risk free
-rate, this can be input either as a scalar or at
-$(T-initialwindow)\times 1$ numerical vector. The function outputs
-relevant metrics for evaluation of the performance of the portfolio such
-as cumulative excess returns, standard deviation, and Sharpe ratio.
+The `expanding_tvmvp` function takes the input: `returns` a $T\times p$
+data matrix, `initial_window` which is the initial holding window used
+for estimation, `rebal_period` which is the length of the rebalancing
+period to be used in the evaluation, `max_factors` used in the
+determination of the optimal number of factors, `return_type` can be set
+to “daily”, “weekly”, and “monthly”, and is used for annualization of
+the results, `kernel_func`, and `rf` which denotes the risk free rate,
+this can be input either as a scalar or at $(T-initialwindow)\times 1$
+numerical vector. The function outputs relevant metrics for evaluation
+of the performance of the portfolio such as cumulative excess returns,
+standard deviation, and Sharpe ratio.
 
 ``` r
 prediction <- predict_portfolio(returns = returns, 
