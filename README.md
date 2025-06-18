@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/TVMVP)](https://cran.r-project.org/package=TVMVP)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://cran.r-project.org/web/packages/TVMVP/DESCRIPTION)
 ![](http://cranlogs.r-pkg.org/badges/grand-total/TVMVP)
 ![](http://cranlogs.r-pkg.org/badges/TVMVP)
 ![](http://cranlogs.r-pkg.org/badges/last-week/TVMVP)
