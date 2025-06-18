@@ -4,6 +4,10 @@
 # TVMVP
 
 <!-- badges: start -->
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/TVMVP)](https://cran.r-project.org/package=TVMVP)
+![](http://cranlogs.r-pkg.org/badges/grand-total/TVMVP)
+![](http://cranlogs.r-pkg.org/badges/TVMVP)
+![](http://cranlogs.r-pkg.org/badges/last-week/TVMVP)
 <!-- badges: end -->
 
 The TVMVP package implements a method of estimating a time dependent
