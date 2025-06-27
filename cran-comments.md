@@ -15,4 +15,4 @@ This is a resubmission of version 1.0.5.
 ## Changes since last submission
 
 * Updated CRAN URL in README.md to canonical form.
-* Updated (or removed) Date field in DESCRIPTION.
+* Updated Date field in DESCRIPTION.
