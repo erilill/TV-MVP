@@ -1,8 +1,8 @@
-#' #' Rolling Window Time-Varying Minimum Variance Portfolio Optimization
+#' #' Expanding Window Time-Varying Minimum Variance Portfolio Optimization
 #'
 #' This function performs time-varying minimum variance portfolio (TV-MVP) optimization using
 #' time-varying covariance estimation based on Local Principal Component Analysis (Local PCA). The
-#' optimization is performed over a rolling window, with periodic rebalancing.
+#' optimization is performed over a Expanding window, with periodic rebalancing.
 #' The procedure is available either as a stand-alone function or as a method in
 #' the `TVMVP` R6 class.
 #'
@@ -18,7 +18,7 @@
 #' @param floor_value A small positive value to ensure numerical stability in the covariance matrix. Default is `1e-12`.
 #' @param epsilon2 A small positive value used in the adaptive thresholding of the residual covariance estimation. Default is `1e-6`.
 #'
-#' @return An R6 object of class \code{RollingWindow} with the following accessible elements:
+#' @return An R6 object of class \code{ExpandingWindow} with the following accessible elements:
 #' \describe{
 #'   \item{\code{summary}}{A data frame of summary statistics for the TV-MVP and equal-weight portfolios, including cumulative excess return (CER), mean excess returns (MER), Sharpe ratio (SR), and standard deviation (SD) (raw and annualized).}
 #'   \item{\code{TVMVP}}{A list containing rebalancing dates, estimated portfolio weights, and excess returns for the TV-MVP strategy.}
@@ -29,7 +29,7 @@
 #' Two usage styles:
 #' #' \preformatted{
 #' # Function interface
-#' results <- rolling_time_varying_mvp(
+#' results <- expanding_tvmvp(
 #'   obj = tv,
 #'   initial_window = 50,
 #'   rebal_period = 20,
@@ -41,7 +41,7 @@
 #' # R6 method interface
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
-#' results <- tv$rolling_time_varying_mvp(
+#' results <- tv$expanding_tvmvp(
 #'   initial_window = 50,
 #'   rebal_period = 20,
 #'   max_factors = 3,
@@ -49,7 +49,7 @@
 #'   rf = NULL)
 #' }
 #'
-#' The function implements a rolling time-varying PCA approach to estimate latent factor structures
+#' The function implements a Expanding time-varying PCA approach to estimate latent factor structures
 #' and uses a sparse residual covariance estimation method to improve covariance matrix estimation.
 #' The covariance matrix is used to determine the global minimum variance portfolio (MVP), which is
 #' rebalanced periodically according to the specified `rebal_period`. The number of factors is
@@ -75,8 +75,8 @@
 #' tv <- TVMVP$new()
 #' tv$set_data(returns)
 #'
-#' # Run rolling TV-MVP optimization
-#' results <- rolling_time_varying_mvp(
+#' # Run Expanding TV-MVP optimization
+#' results <- expanding_tvmvp(
 #'   obj = tv,
 #'   initial_window = 50,
 #'   rebal_period = 20,
@@ -87,7 +87,7 @@
 #' )
 #'
 #' # R6 method interface
-#' results <- tv$rolling_time_varying_mvp(
+#' results <- tv$expanding_tvmvp(
 #'   initial_window = 50,
 #'   rebal_period = 20,
 #'   max_factors = 3,
@@ -102,7 +102,7 @@
 #' }
 #' @importFrom stats var
 #' @export
-rolling_time_varying_mvp <- function(
+expanding_tvmvp <- function(
     obj,
     initial_window,     # Number of periods in the initial estimation window
     rebal_period,       # Holding window length (HT in the paper)
@@ -116,7 +116,7 @@ rolling_time_varying_mvp <- function(
     epsilon2       = 1e-6                     # For covariance function
 ) {
   if(inherits(obj, "TVMVP")){
-    return(obj$rolling_time_varying_mvp(
+    return(obj$expanding_tvmvp(
       initial_window = initial_window, rebal_period = rebal_period,
       max_factors = max_factors, return_type    = return_type,
       kernel_func    = kernel_func, rf = rf,
@@ -354,8 +354,8 @@ PortfolioPredictions <- R6Class("PortfolioPredictions",
 )
 #' @import R6
 #' @import cli
-RollingWindow <- R6::R6Class(
-  "RollingWindow",
+ExpandingWindow <- R6::R6Class(
+  "ExpandingWindow",
   public = list(
     summary = NULL,
     TVMVP   = NULL,
@@ -369,7 +369,7 @@ RollingWindow <- R6::R6Class(
 
     print = function(...) {
       # Header
-      cli::cli_h1("Rolling Window Portfolio Analysis")
+      cli::cli_h1("Expanding Window Portfolio Analysis")
       cli::cli_rule()
 
       # Print summary
@@ -405,43 +405,51 @@ RollingWindow <- R6::R6Class(
     }
   )
 )
-#' @importFrom graphics legend lines par plot
+#' @importFrom ggplot2 ggplot aes geom_line scale_color_manual labs theme_minimal theme element_text
+#' @importFrom tidyr pivot_longer
+#' @importFrom dplyr %>%
+#' @method plot ExpandingWindow
 #' @export
-#' @method plot RollingWindow
-plot.RollingWindow <- function(x, ...) {
-  stopifnot(inherits(x, "RollingWindow"))
-
-  # Calculate cumulative returns
-  tvmvp_cum <- cumsum(x$TVMVP$returns)
-  equal_cum <- cumsum(x$Equal$returns)
-  T_len <- length(tvmvp_cum)
-
-  # Adjust margins to make room for legend
-  oldpar <- par(no.readonly = TRUE)
-  on.exit(par(oldpar))  # Reset par on exit
-  par(mar = c(6, 4, 4, 2) + 0.1)  # Extra space at bottom
-
-  # Set up plotting area
-  plot(
-    1:T_len, tvmvp_cum,
-    type = "l", col = "blue", lwd = 2,
-    ylim = range(c(tvmvp_cum, equal_cum)),
-    xlab = "Time",
-    ylab = "Cumulative log Excess Return",
-    main = "Cumulative log Excess Returns: TVMVP vs Equal",
-    ...
+plot.ExpandingWindow <- function(x, ...) {
+  stopifnot(inherits(x, "ExpandingWindow"))
+  
+  # Step 1: Create with syntactic names
+  df <- data.frame(
+    Time = seq_along(x$TVMVP$returns),
+    TVMVP = cumsum(x$TVMVP$returns),
+    Equal = cumsum(x$Equal$returns)
   )
-
-  # Add Equal Weight portfolio line
-  lines(1:T_len, equal_cum, col = "red", lwd = 2, lty = 2)
-
-  # Add legend BELOW the plot
-  legend(
-    "bottom", inset = -0.45, xpd = TRUE,
-    legend = c("Time-Varying MVP", "Equal Weight"),
-    col = c("blue", "red"),
-    lty = c(1, 2), lwd = 2,
-    horiz = TRUE, bty = "n", cex = 0.9
+  
+  # Step 2: Rename for nice labels
+  colnames(df)[colnames(df) == "TVMVP"] <- "TV-MVP"
+  colnames(df)[colnames(df) == "Equal"] <- "Equal Weight"
+  
+  # Step 3: Pivot
+  df_long <- tidyr::pivot_longer(
+    df,
+    cols = c("TV-MVP", "Equal Weight"),
+    names_to = "Strategy",
+    values_to = "CumulativeReturn"
   )
+  
+  # Step 4: Plot
+  ggplot2::ggplot(df_long, ggplot2::aes(x = Time, y = CumulativeReturn, color = Strategy)) +
+    ggplot2::geom_line(size = 1) +
+    ggplot2::scale_color_manual(
+      name = "Portfolio Strategy",
+      values = c("TV-MVP" = "#0072B2", "Equal Weight" = "#E69F00")
+    ) +
+    ggplot2::labs(
+      title = "Cumulative Excess Returns of Portfolios",
+      x = "Time",
+      y = "Cumulative Excess Return"
+    ) +
+    ggplot2::theme_minimal(base_size = 14) +
+    ggplot2::theme(
+      legend.title = ggplot2::element_text(size = 12, face = "bold"),
+      legend.text  = ggplot2::element_text(size = 10),
+      plot.title   = ggplot2::element_text(size = 16, face = "bold", hjust = 0.5),
+      axis.title   = ggplot2::element_text(size = 13),
+      axis.text    = ggplot2::element_text(size = 11)
+    )
 }
-
