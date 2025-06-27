@@ -4,8 +4,10 @@
 # TVMVP
 
 <!-- badges: start -->
+
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/TVMVP)](https://cran.r-project.org/package=TVMVP)
-[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://cran.r-project.org/web/packages/TVMVP/DESCRIPTION)
+[![License:
+MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](https://cran.r-project.org/web/packages/TVMVP/DESCRIPTION)
 ![](http://cranlogs.r-pkg.org/badges/grand-total/TVMVP)
 ![](http://cranlogs.r-pkg.org/badges/TVMVP)
 ![](http://cranlogs.r-pkg.org/badges/last-week/TVMVP)
@@ -80,7 +82,7 @@ tvmvp_obj$get_optimal_m()
 #> [1] 1
 
 tvmvp_obj$hyptest(iB=10) # Use larger iB in practice
-#> Computing ■■■■■■■ 20% | ETA: 7s
+#> Computing ■■■■■■■ 20% | ETA: 8s
 #> Computing ■■■■■■■■■■                        30% | ETA:  7sComputing ■■■■■■■■■■■■■                     40% | ETA:  6sComputing ■■■■■■■■■■■■■■■■                  50% | ETA:  5sComputing ■■■■■■■■■■■■■■■■■■■               60% | ETA:  4sComputing ■■■■■■■■■■■■■■■■■■■■■■            70% | ETA:  3sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■         80% | ETA:  2sComputing ■■■■■■■■■■■■■■■■■■■■■■■■■■■■      90% | ETA:  1s                                                           J_pT = 34.7556, p-value = 0.0000: Strong evidence that the covariance is time-varying.
 tvmvp_obj
 #> ℹ Object of TVMVP
@@ -116,7 +118,7 @@ offers the Epanechnikov kernel, however others could also be used.
 
 The next step, and the most relevant functionality is the portfolio
 optimization. The package offers two functions for this purpose:
-`rolling_time_varying_mvp` which implements a rolling window in order to
+`expanding_tvmvp` which implements a expanding window in order to
 evaluate the performance of a minimum variance portfolio implemented
 using the time-varying covariance matrix, and `predict_portfolio` which
 implements an out of sample prediction of the portfolio.
@@ -124,7 +126,7 @@ implements an out of sample prediction of the portfolio.
 Note that these functions expect log returns and log risk free rate.
 
 ``` r
-mvp_result <- tvmvp_obj$rolling_time_varying_mvp(
+mvp_result <- tvmvp_obj$expanding_tvmvp(
   initial_window = 60,
   rebal_period   = 5,
   max_factors    = 10,
@@ -134,7 +136,7 @@ mvp_result <- tvmvp_obj$rolling_time_varying_mvp(
 
 mvp_result
 #> 
-#> ── Rolling Window Portfolio Analysis ───────────────────────────────────────────
+#> ── Expanding Window Portfolio Analysis ─────────────────────────────────────────
 #> ────────────────────────────────────────────────────────────────────────────────
 #> 
 #> ── Summary Metrics ──
@@ -151,19 +153,22 @@ mvp_result
 #> The detailed portfolio outputs are stored in the following elements:
 #> - Time-Varying MVP: Access via `$TVMVP`
 #> - Equal Weight: Access via `$Equal`
+plot(mvp_result)
 ```
 
-The `rolling_time_varying_mvp` function takes the input: `returns` a
-$T\times p$ data matrix, `initial_window` which is the initial holding
-window used for estimation, `rebal_period` which is the length of the
-rebalancing period to be used in the evaluation, `max_factors` used in
-the determination of the optimal number of factors, `return_type` can be
-set to “daily”, “weekly”, and “monthly”, and is used for annualization
-of the results, `kernel_func`, and `rf` which denotes the risk free
-rate, this can be input either as a scalar or at
-$(T-initialwindow)\times 1$ numerical vector. The function outputs
-relevant metrics for evaluation of the performance of the portfolio such
-as cumulative excess returns, standard deviation, and Sharpe ratio.
+<img src="man/figures/README-rolpred-1.png" width="100%" />
+
+The `expanding_tvmvp` function takes the input: `returns` a $T\times p$
+data matrix, `initial_window` which is the initial holding window used
+for estimation, `rebal_period` which is the length of the rebalancing
+period to be used in the evaluation, `max_factors` used in the
+determination of the optimal number of factors, `return_type` can be set
+to “daily”, “weekly”, and “monthly”, and is used for annualization of
+the results, `kernel_func`, and `rf` which denotes the risk free rate,
+this can be input either as a scalar or at $(T-initialwindow)\times 1$
+numerical vector. The function outputs relevant metrics for evaluation
+of the performance of the portfolio such as cumulative excess returns,
+standard deviation, and Sharpe ratio.
 
 ``` r
 prediction <- tvmvp_obj$predict_portfolio(horizon = 21, min_return = 0.5, 
@@ -223,8 +228,8 @@ hypothesis_test <- hyptest(returns = returns,
                             B = 10, # Use larger B in practice
                             )
 
-# Rolling window evaluation
-mvp_result <- rolling_time_varying_mvp(
+# Expanding window evaluation
+mvp_result <- expanding_tvmvp(
   obj            = tvmvp_obj,
   initial_window = 60,
   rebal_period   = 5,
