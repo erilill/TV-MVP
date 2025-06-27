@@ -2,7 +2,7 @@ Package: TVMVP
 Type: Package
 Title: Time-Varying Minimum Variance Portfolio
 Version: 1.0.5
-Date: 2025-05-20
+Date: 2025-06-27
 Authors@R: c(
   person(given = "Erik", family = "Lillrank",
          email = "erik.lillrank@gmail.com",
