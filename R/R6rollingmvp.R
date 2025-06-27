@@ -1,6 +1,6 @@
-# rolling_time_varying_mvp
+# expanding_tvmvp
 
-TVMVP$set("public", "rolling_time_varying_mvp", function(
+TVMVP$set("public", "expanding_tvmvp", function(
     initial_window,     # Number of periods in the initial estimation window
     rebal_period,       # Holding window length (HT in the paper)
     max_factors,
@@ -77,7 +77,8 @@ TVMVP$set("public", "rolling_time_varying_mvp", function(
     tvmvp_weights[[l]] <- w_hat
 
     # Determine the holding period
-    hold_end <- min(reb_t + rebal_period - 1, iT)
+    hold_len <- min(rebal_period, (iT - initial_window) - length(daily_port_ret_tvmvp))
+    hold_end <- min(reb_t + hold_len - 1, iT)
 
     # Portfolio returns over the holding period:
     # TVMVP Portfolio returns
@@ -145,11 +146,11 @@ TVMVP$set("public", "rolling_time_varying_mvp", function(
   )
 
   # Create and return an R6 object:
-  out <- RollingWindow$new(
+  out <- ExpandingWindow$new(
     summary = summary_df,
     TVMVP   = TVMVP,
     Equal   = Equal
   )
-  class(out) <- c("RollingWindow", class(out))
+  class(out) <- c("ExpandingWindow", class(out))
   return(out)
 })

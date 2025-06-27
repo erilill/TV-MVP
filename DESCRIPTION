@@ -23,7 +23,10 @@ Depends: R (>= 3.6.0)
 Imports:
     R6,
     cli,
-    prettyunits
+    prettyunits,
+    dplyr,
+    ggplot2,
+    tidyr
 Suggests: 
     knitr,
     rmarkdown,

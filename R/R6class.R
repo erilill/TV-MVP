@@ -14,7 +14,7 @@
 #'    \item Conduct test of constant factor loadings (\code{$\link{hyptest}()})
 #'    \item Time-dependent covariance estimation (\code{$\link{time_varying_cov}()})
 #'    \item Portfolio optimization (\code{$\link{predict_portfolio}()})
-#'    \item Rolling window evaluation (\code{$\link{rolling_time_varying_mvp}()})
+#'    \item Expanding window evaluation (\code{$\link{expanding_tvmvp}()})
 #'    \item Extract cached results (\code{$get_optimal_m()}, \code{$get_IC_values()}, 
 #'    \code{$get_bootstrap()})
 #' }
@@ -39,7 +39,7 @@
 #' cov <- tv$time_varying_cov()
 #' 
 #' # Evaluate TVMVP performance on historical data
-#' mvp_results <- tv$rolling_time_varying_mvp(
+#' mvp_results <- tv$expanding_tvmvp(
 #'                  initial_window = 60,
 #'                  rebal_period   = 5,
 #'                  max_factors    = 10,
@@ -75,7 +75,7 @@
 #'    \item{\code{$\link{hyptest}()}}{Hypothesis test of constant loadings.}
 #'    \item{\code{$get_bootstrap()}}{Prints bootstrap test statistics from the hypothesis test.}
 #'    \item{\code{$\link{predict_portfolio}()}}{Optimizes portfolio weights for out-of-sample prediction of portfolio performance.}
-#'    \item{\code{$\link{rolling_time_varying_mvp}()}}{Evaluates MVP performance in a rolling window framework.}
+#'    \item{\code{$\link{expanding_tvmvp}()}}{Evaluates MVP performance in a expanding window framework.}
 #'    \item{\code{$\link{time_varying_cov}()}}{Estimates the time-varying covariance matrix.}
 #'    \item{\code{$\link{silverman}()}}{Silverman's rule of thumb bandwidth formula.}
 #' }
